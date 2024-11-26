@@ -1,0 +1,44 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.ossan.idle": {
+			"loop": true
+		},
+		"animation.ossan.sit": {
+			"loop": "hold_on_last_frame",
+			"bones": {
+				"RightArm": {
+					"rotation": {
+						"vector": [-55, 0, 0],
+						"easing": "linear"
+					}
+				},
+				"LeftArm": {
+					"rotation": {
+						"vector": [-55, 0, 0],
+						"easing": "linear"
+					}
+				},
+				"RightLeg": {
+					"rotation": {
+						"vector": [-64.6624, 9.0548, 4.2617],
+						"easing": "linear"
+					}
+				},
+				"LeftLeg": {
+					"rotation": {
+						"vector": [-64.66239, -9.05478, -4.26175],
+						"easing": "linear"
+					}
+				},
+				"hip": {
+					"position": {
+						"vector": [0, -8, 0],
+						"easing": "linear"
+					}
+				}
+			}
+		}
+	},
+	"geckolib_format_version": 2
+}

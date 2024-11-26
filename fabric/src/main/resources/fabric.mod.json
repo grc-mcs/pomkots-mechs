@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "pomkotsmechs",
+  "version": "${version}",
+  "name": "Pomkots Mechs",
+  "description": "Add massive mechs to your world!",
+  "authors": [
+    "grc_mcs"
+  ],
+  "contact": {
+    "homepage": "https://github.com/grc-mcs/pomkots-mechs/wiki/Home",
+    "sources": "https://github.com/grc-mcs/pomkots-mechs/"
+  },
+  "license": "ARR",
+  "icon": "assets/pomkotsmechs/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "grcmcs.minecraft.mods.pomkotsmechs.fabric.PomkotsMechsFabric"
+    ],
+    "client": [
+      "grcmcs.minecraft.mods.pomkotsmechs.fabric.client.PomkotsMechsClientFabric"
+    ],
+    "modmenu": [
+      "grcmcs.minecraft.mods.pomkotsmechs.fabric.client.PomkotsModMenu"
+    ]
+  },
+  "mixins": [
+    "pomkotsmechs.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.5",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "architectury": ">=9.2.14",
+    "geckolib": ">=4.4.9",
+    "leawind_third_person": ">=2.1.0",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

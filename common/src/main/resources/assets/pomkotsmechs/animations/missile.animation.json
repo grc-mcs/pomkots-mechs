@@ -1,0 +1,40 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.missile.idle": {
+			"loop": true,
+			"animation_length": 0.5,
+			"bones": {
+				"fire_lsb": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0],
+							"easing": "linear"
+						},
+						"0.5": {
+							"vector": [0, 0, 360],
+							"easing": "linear"
+						}
+					},
+					"scale": {
+						"0.0": {
+							"vector": [1, 1, 0.7],
+							"easing": "linear"
+						},
+						"0.25": {
+							"vector": [1, 1, 1],
+							"easing": "easeInElastic",
+							"easingArgs": []
+						},
+						"0.5": {
+							"vector": [1, 1, 0.7],
+							"easing": "easeOutElastic",
+							"easingArgs": []
+						}
+					}
+				}
+			}
+		}
+	},
+	"geckolib_format_version": 2
+}

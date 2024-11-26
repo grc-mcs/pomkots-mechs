@@ -1,0 +1,77 @@
+{
+  "se_booster": {
+    "sounds": [
+      "pomkotsmechs:se_booster"
+    ]
+  },
+  "se_bossdown": {
+    "sounds": [
+      "pomkotsmechs:se_bossdown"
+    ]
+  },
+  "se_earthbreak": {
+    "sounds": [
+      "pomkotsmechs:se_earthbreak"
+    ]
+  },
+  "se_earthraise": {
+    "sounds": [
+      "pomkotsmechs:se_earthraise"
+    ]
+  },
+  "se_exploadspark": {
+    "sounds": [
+      "pomkotsmechs:se_exploadspark"
+    ]
+  },
+  "se_explosion": {
+    "sounds": [
+      "pomkotsmechs:se_explosion"
+    ]
+  },
+  "se_gatling": {
+    "sounds": [
+      "pomkotsmechs:se_gatling"
+    ]
+  },
+  "se_grenade": {
+    "sounds": [
+      "pomkotsmechs:se_grenade"
+    ]
+  },
+  "se_hit": {
+    "sounds": [
+      "pomkotsmechs:se_hit"
+    ]
+  },
+  "se_jump": {
+    "sounds": [
+      "pomkotsmechs:se_jump"
+    ]
+  },
+  "se_missile": {
+    "sounds": [
+      "pomkotsmechs:se_missile"
+    ]
+  },
+  "se_onground": {
+    "sounds": [
+      "pomkotsmechs:se_onground"
+    ]
+  },
+  "se_pilebunker": {
+    "sounds": [
+      "pomkotsmechs:se_pilebunker"
+    ]
+  },
+  "se_walk": {
+    "sounds": [
+      "pomkotsmechs:se_walk"
+    ]
+  },
+  "se_target": {
+    "sounds": [
+      "pomkotsmechs:se_target"
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+#issueTrackerURL = ""
+license = "ARR"
+
+[[mods]]
+modId = "pomkotsmechs"
+version = "${version}"
+displayName = "Pomkots Mechs"
+authors = "grc_mcs"
+description = '''
+Add massive mechs to your world!
+'''
+logoFile = "assets/pomkotsmechs/icon.png"
+
+[[dependencies.pomkotsmechs]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.pomkotsmechs]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.pomkotsmechs]]
+modId = "architectury"
+mandatory = true
+versionRange = "[9.2.14,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.pomkotsmechs]]
+modId = "geckolib"
+mandatory = true
+versionRange = "[4.4.9,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.pomkotsmechs]]
+modId = "leawind_third_person"
+mandatory = true
+versionRange = "[2.1.0,)"
+ordering = "AFTER"
+side = "CLIENT"

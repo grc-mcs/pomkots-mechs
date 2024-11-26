@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "grcmcs.minecraft.mods.pomkotsmechs.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "mixins": [
+    "LivingEntityMixin",
+    "CameraAccessor"
+  ],
+  "client": [
+    "GuiMixin",
+    "BotDriverRenderer",
+    "LivingEntityRendererMixin",
+    "TurnToLockonTarget"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "item.pomkotsmechs.pmb01_spawn_egg": "Spawn egg PMB01",
+  "item.pomkotsmechs.pms01_spawn_egg": "Spawn egg PMS01",
+  "item.pomkotsmechs.pms02_spawn_egg": "Spawn egg PMS02",
+  "item.pomkotsmechs.pms03_spawn_egg": "Spawn egg PMS03",
+  "item.pomkotsmechs.pms04_spawn_egg": "Spawn egg PMS04",
+  "item.pomkotsmechs.pms05_spawn_egg": "Spawn egg PMS05",
+  "item.pomkotsmechs.corestone_pmb01": "Core Stone PMB01",
+  "item.pomkotsmechs.corestone_pmv01": "Core Stone PMV01",
+  "item.pomkotsmechs.corestone_pmv01b": "Core Stone PMV01B",
+  "entity.pomkotsmechs.pmb01": "PMB01",
+  "entity.pomkotsmechs.pms01": "PMS01",
+  "entity.pomkotsmechs.pms02": "PMS02",
+  "entity.pomkotsmechs.pms03": "PMS03",
+  "entity.pomkotsmechs.pms04": "PMS04",
+  "entity.pomkotsmechs.pms05": "PMS05",
+  "entity.pomkotsmechs.pmv01": "PMV01",
+  "entity.pomkotsmechs.pmv01b": "PMV01B",
+  "itemGroup.pomkotsmechs": "Pomkots Mechs",
+  "text.autoconfig.pomkotsmechs.title": "Pomkots Mechs",
+  "text.autoconfig.pomkotsmechs.option.enableEntityBlockDestruction": "Allow Mechs to Break Blocks",
+  "text.autoconfig.pomkotsmechs.option.enableHudHealthBar": "Enable Pomkots HUD Health Bar"
+}
