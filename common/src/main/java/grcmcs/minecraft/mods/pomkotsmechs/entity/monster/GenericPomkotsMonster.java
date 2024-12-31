@@ -210,6 +210,11 @@ public abstract class GenericPomkotsMonster extends Monster {
         }
     }
 
+    @Override
+    public boolean displayFireAnimation() {
+        return false;
+    }
+
     protected abstract void doAttack();
 
     protected abstract int getMaxAttackCooltime();

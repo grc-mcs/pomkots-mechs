@@ -1,7 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.model;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.Pmb02Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb02Entity;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
 

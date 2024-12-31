@@ -2,8 +2,8 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.Pmb01Entity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.goal.boss.HitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.HitBoxEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;

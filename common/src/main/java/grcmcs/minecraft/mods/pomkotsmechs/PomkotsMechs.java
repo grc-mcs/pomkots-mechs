@@ -8,19 +8,19 @@ import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 import dev.architectury.registry.registries.RegistrySupplier;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
 import grcmcs.minecraft.mods.pomkotsmechs.config.PomkotsConfig;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.*;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.goal.boss.HitBoxEntity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.goal.boss.HitBoxLegsEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.*;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.*;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01bEntity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.controller.PlayerDummyEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.*;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PlayerDummyEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.CoreStonePMB01Item;
 import grcmcs.minecraft.mods.pomkotsmechs.items.CoreStonePMV01BItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.CoreStonePMV01Item;
+import grcmcs.minecraft.mods.pomkotsmechs.items.CoreStonePMV02Item;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
-import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
@@ -34,7 +34,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SpawnEggItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +52,8 @@ public class PomkotsMechs {
 	// Vehicles
 	public static final RegistrySupplier<EntityType<Pmv01Entity>> PMV01 = registerEntityType("pmv01", Pmv01Entity::new, MobCategory.CREATURE, 3F, 4F);
 	public static final RegistrySupplier<EntityType<Pmv01bEntity>> PMV01B = registerEntityType("pmv01b", Pmv01bEntity::new, MobCategory.CREATURE, 3F, 4F);
+	public static final RegistrySupplier<EntityType<Pmv02Entity>> PMV02 = registerEntityType("pmv02", Pmv02Entity::new, MobCategory.CREATURE, 3F, 4F);
+	public static final RegistrySupplier<EntityType<Pmv03pEntity>> PMV03P = registerEntityType("pmv03p", Pmv03pEntity::new, MobCategory.CREATURE, 3F, 4F);
 
 	// Monster, Boss
 	public static final RegistrySupplier<EntityType<Pms01Entity>> PMS01 = registerEntityType("pms01", Pms01Entity::new, MobCategory.MONSTER, 0.9F, 3F); // Charging Mob
@@ -73,8 +74,14 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<EntityType<GrenadeEntity>> GRENADE = registerEntityType("grenade", GrenadeEntity::new, MobCategory.MISC, 2F, 2F);
 	public static final RegistrySupplier<EntityType<GrenadeLargeEntity>> GRENADELARGE = registerEntityType("grenadelarge", GrenadeLargeEntity::new, MobCategory.MISC, 2F, 2F);
 	public static final RegistrySupplier<EntityType<MissileVerticalEntity>> MISSILE_VERTICAL = registerEntityType("missilevertical", MissileVerticalEntity::new, MobCategory.MISC, 1F, 1F);
+	public static final RegistrySupplier<EntityType<MissileHorizontalEntity>> MISSILE_HORIZONTAL = registerEntityType("missilehorizontal", MissileHorizontalEntity::new, MobCategory.MISC, 1F, 1F);
+
 	public static final RegistrySupplier<EntityType<MissileEnemyEntity>> MISSILE_ENEMY = registerEntityType("missileenemy", MissileEnemyEntity::new, MobCategory.MISC, 1F, 1F);
 	public static final RegistrySupplier<EntityType<MissileEnemyLargeEntity>>  MISSILE_ENEMY_LARGE = registerEntityType("missileenemylarge", MissileEnemyLargeEntity::new, MobCategory.MISC, 2F, 2F);
+
+	public static final RegistrySupplier<EntityType<BlockProjectileEntity>> BLOCK_PROJECTILE = registerEntityType("blockprojectile", BlockProjectileEntity::new, MobCategory.MISC, 2F, 2F);
+	public static final RegistrySupplier<EntityType<BlockMassEntity>> BLOCK_MASS = registerEntityType("blockmass", BlockMassEntity::new, MobCategory.MISC, 4F, 4F);
+	public static final RegistrySupplier<EntityType<PresentBoxEntity>> PRESENT_BOX = registerEntityType("present", PresentBoxEntity::new, MobCategory.MISC, 4F, 4F);
 
 	// Other
 	public static final RegistrySupplier<EntityType<PlayerDummyEntity>> PLAYERDUMMY = registerEntityType("playerdummy", PlayerDummyEntity::new, MobCategory.CREATURE, 1F, 2F);
@@ -117,6 +124,8 @@ public class PomkotsMechs {
 
 	public static final RegistrySupplier<Item> CORESTONE_PMV01 = ITEMS.register("corestone_pmv01", () -> new CoreStonePMV01Item(new Item.Properties()));
 	public static final RegistrySupplier<Item> CORESTONE_PMV01B = ITEMS.register("corestone_pmv01b", () -> new CoreStonePMV01BItem(new Item.Properties()));
+	public static final RegistrySupplier<Item> CORESTONE_PMV02 = ITEMS.register("corestone_pmv02", () -> new CoreStonePMV02Item(new Item.Properties()));
+
 	public static final RegistrySupplier<Item> CORESTONE_PMB01 = ITEMS.register("corestone_pmb01", () -> new CoreStonePMB01Item(new Item.Properties()));
 
 	// ITEMS
@@ -134,6 +143,7 @@ public class PomkotsMechs {
 			.displayItems((parameters, output) -> {
 				output.accept(new ItemStack(CORESTONE_PMV01.get()));
 				output.accept(new ItemStack(CORESTONE_PMV01B.get()));
+				output.accept(new ItemStack(CORESTONE_PMV02.get()));
 				output.accept(new ItemStack(CORESTONE_PMB01.get()));
 				output.accept(new ItemStack(PMB01_SPAWN_EGG.get()));
 				output.accept(new ItemStack(PMS01_SPAWN_EGG.get()));
@@ -162,6 +172,18 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<SoundEvent> SE_PILEBUNKER_EVENT = SOUNDS.register(id("se_pilebunker"), () -> SoundEvent.createVariableRangeEvent(id("se_pilebunker")));
 	public static final RegistrySupplier<SoundEvent> SE_WALK_EVENT = SOUNDS.register(id("se_walk"), () -> SoundEvent.createVariableRangeEvent(id("se_walk")));
 	public static final RegistrySupplier<SoundEvent> SE_TARGET_EVENT = SOUNDS.register(id("se_target"), () -> SoundEvent.createVariableRangeEvent(id("se_target")));
+	public static final RegistrySupplier<SoundEvent> SE_DRILL1 = SOUNDS.register(id("se_drill1"), () -> SoundEvent.createVariableRangeEvent(id("se_drill1")));
+	public static final RegistrySupplier<SoundEvent> SE_DRILL2 = SOUNDS.register(id("se_drill2"), () -> SoundEvent.createVariableRangeEvent(id("se_drill2")));
+	public static final RegistrySupplier<SoundEvent> SE_HUMMER1 = SOUNDS.register(id("se_hummer1"), () -> SoundEvent.createVariableRangeEvent(id("se_hummer1")));
+	public static final RegistrySupplier<SoundEvent> SE_HUMMER2 = SOUNDS.register(id("se_hummer2"), () -> SoundEvent.createVariableRangeEvent(id("se_hummer2")));
+	public static final RegistrySupplier<SoundEvent> SE_LIFT = SOUNDS.register(id("se_lift"), () -> SoundEvent.createVariableRangeEvent(id("se_lift")));
+	public static final RegistrySupplier<SoundEvent> SE_NEEDLE = SOUNDS.register(id("se_needle"), () -> SoundEvent.createVariableRangeEvent(id("se_needle")));
+	public static final RegistrySupplier<SoundEvent> SE_PLACE = SOUNDS.register(id("se_place"), () -> SoundEvent.createVariableRangeEvent(id("se_place")));
+	public static final RegistrySupplier<SoundEvent> SE_ROLLER1 = SOUNDS.register(id("se_roller1"), () -> SoundEvent.createVariableRangeEvent(id("se_roller1")));
+	public static final RegistrySupplier<SoundEvent> SE_ROLLER2 = SOUNDS.register(id("se_roller2"), () -> SoundEvent.createVariableRangeEvent(id("se_roller2")));
+	public static final RegistrySupplier<SoundEvent> SE_STEP = SOUNDS.register(id("se_step"), () -> SoundEvent.createVariableRangeEvent(id("se_step")));
+	public static final RegistrySupplier<SoundEvent> SE_THROW = SOUNDS.register(id("se_throw"), () -> SoundEvent.createVariableRangeEvent(id("se_throw")));
+	public static final RegistrySupplier<SoundEvent> SE_WATER = SOUNDS.register(id("se_water"), () -> SoundEvent.createVariableRangeEvent(id("se_water")));
 
 	public static PomkotsConfig CONFIG;
 
@@ -173,6 +195,8 @@ public class PomkotsMechs {
 
 		EntityAttributeRegistry.register(PMV01::get, Pmv01Entity::createMobAttributes);
 		EntityAttributeRegistry.register(PMV01B::get, Pmv01bEntity::createMobAttributes);
+		EntityAttributeRegistry.register(PMV02::get, Pmv02Entity::createMobAttributes);
+		EntityAttributeRegistry.register(PMV03P::get, Pmv03pEntity::createMobAttributes);
 
 		EntityAttributeRegistry.register(PMB01::get, Pmb01Entity::createMobAttributes);
 		EntityAttributeRegistry.register(PMB02::get, Pmb02Entity::createMobAttributes);
@@ -188,6 +212,8 @@ public class PomkotsMechs {
 		EntityAttributeRegistry.register(PLAYERDUMMY::get, PlayerDummyEntity::createMobAttributes);
 		EntityAttributeRegistry.register(HITBOX1::get, HitBoxEntity::createMobAttributes);
 		EntityAttributeRegistry.register(HITBOX2::get, HitBoxEntity::createMobAttributes);
+		EntityAttributeRegistry.register(BLOCK_MASS::get, BlockMassEntity::createMobAttributes);
+		EntityAttributeRegistry.register(PRESENT_BOX::get, PresentBoxEntity::createMobAttributes);
 
 		PARTICLES.register();
 		ITEMS.register();
@@ -212,12 +238,9 @@ public class PomkotsMechs {
 
 			short keyPressStatus = buf.readShort();
 
-			Entity vehicle = player.getVehicle();
-
-			if (vehicle instanceof Pmv01Entity bot) {
-				bot.setDriverInput(new DriverInput(keyPressStatus));
-			} else if (vehicle instanceof Pmb01Entity bot) {
-				bot.setDriverInput(new DriverInput(keyPressStatus));
+			if (Utils.isRidingPomkotsControllable(player)) {
+				Entity vehicle = player.getVehicle();
+				((PomkotsControllable)vehicle).setDriverInput(new DriverInput(keyPressStatus));
 			}
 		});
 	}
@@ -229,8 +252,8 @@ public class PomkotsMechs {
 			int targetEntityId = buf.readInt();
 
 			Entity vehicle = player.getVehicle();
-			if (vehicle instanceof Pmv01Entity bot) {
-				bot.lockTargetHard(player.level().getEntity(targetEntityId));
+			if (vehicle instanceof PomkotsVehicle bot) {
+				bot.getLockTargets().lockTargetHard(player.level().getEntity(targetEntityId));
 			}
 		});
 
@@ -238,8 +261,8 @@ public class PomkotsMechs {
 			Player player = context.getPlayer();
 
 			Entity vehicle = player.getVehicle();
-			if (vehicle instanceof Pmv01Entity bot) {
-				bot.unlockTargetHard();
+			if (vehicle instanceof PomkotsVehicle bot) {
+				bot.getLockTargets().unlockTargetHard();
 			}
 		});
 
@@ -249,8 +272,8 @@ public class PomkotsMechs {
 			int targetEntityId = buf.readInt();
 
 			Entity vehicle = player.getVehicle();
-			if (vehicle instanceof Pmv01Entity bot) {
-				bot.lockTargetSoft(player.level().getEntity(targetEntityId));
+			if (vehicle instanceof PomkotsVehicle bot) {
+				bot.getLockTargets().lockTargetSoft(player.level().getEntity(targetEntityId));
 			}
 		});
 
@@ -258,8 +281,8 @@ public class PomkotsMechs {
 			Player player = context.getPlayer();
 
 			Entity vehicle = player.getVehicle();
-			if (vehicle instanceof Pmv01Entity bot) {
-				bot.unlockTargetSoft();
+			if (vehicle instanceof PomkotsVehicle bot) {
+				bot.getLockTargets().unlockTargetSoft();
 			}
 		});
 
@@ -269,8 +292,8 @@ public class PomkotsMechs {
 			int targetEntityId = buf.readInt();
 
 			Entity vehicle = player.getVehicle();
-			if (vehicle instanceof Pmv01Entity bot) {
-				bot.lockTargetMulti(player.level().getEntity(targetEntityId));
+			if (vehicle instanceof PomkotsVehicle bot) {
+				bot.getLockTargets().lockTargetMulti(player.level().getEntity(targetEntityId));
 			}
 		});
 
@@ -278,8 +301,8 @@ public class PomkotsMechs {
 			Player player = context.getPlayer();
 
 			Entity vehicle = player.getVehicle();
-			if (vehicle instanceof Pmv01Entity bot) {
-				bot.unlockTargetMulti();
+			if (vehicle instanceof PomkotsVehicle bot) {
+				bot.getLockTargets().unlockTargetMulti();
 			}
 		});
 	}

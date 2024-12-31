@@ -9,4 +9,6 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry;
 public class PomkotsConfig implements ConfigData {
     public boolean enableEntityBlockDestruction = false;
     public boolean enableHudHealthBar = true;
+    public boolean consumeBlocksWhenPlacing = true;
+    public boolean dropItemsWhenDestroyBlock = false;
 }

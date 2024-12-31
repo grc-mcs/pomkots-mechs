@@ -21,7 +21,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.function.Predicate;
 
-public abstract class MissileBaseEntity extends ThrowableProjectile implements GeoEntity, GeoAnimatable {
+public abstract class MissileBaseEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
     protected final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     protected int lifeTicks = 0;
 
@@ -39,6 +39,7 @@ public abstract class MissileBaseEntity extends ThrowableProjectile implements G
         this.setNoGravity(true);
         this.shooter = shooter;
         this.target = target;
+        this.noCulling = true;
     }
 
     protected abstract int getSwitchTick();

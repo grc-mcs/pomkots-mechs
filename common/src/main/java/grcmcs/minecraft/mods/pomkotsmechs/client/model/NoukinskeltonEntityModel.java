@@ -1,7 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.model;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.NoukinSkeltonEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.NoukinSkeltonEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.constant.DataTickets;
@@ -30,10 +30,13 @@ public class NoukinskeltonEntityModel extends GeoModel<NoukinSkeltonEntity> {
     public void setCustomAnimations(NoukinSkeltonEntity animatable, long instanceId, AnimationState animationState) {
         EntityModelData entityData = (EntityModelData) animationState.getData(DataTickets.ENTITY_MODEL_DATA);
 
-        CoreGeoBone head = getAnimationProcessor().getBone("head");
-        if (head != null) {
-            head.setRotY(entityData.netHeadYaw() * Mth.DEG_TO_RAD);
-            head.setRotX(entityData.headPitch() * Mth.DEG_TO_RAD);
+        if (animationState.isCurrentAnimationStage("animation.noukinskelton.walk") || animationState.isCurrentAnimationStage("animation.noukinskelton.idle")) {
+            CoreGeoBone head = getAnimationProcessor().getBone("head");
+            if (head != null) {
+                head.setRotY(entityData.netHeadYaw() * Mth.DEG_TO_RAD);
+                head.setRotX(entityData.headPitch() * Mth.DEG_TO_RAD);
+            }
+
         }
     }
 }

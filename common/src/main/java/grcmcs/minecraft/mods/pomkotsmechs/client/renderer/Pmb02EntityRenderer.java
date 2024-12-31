@@ -3,7 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.model.Pmb02EntityModel;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.Pmb02Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb02Entity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;

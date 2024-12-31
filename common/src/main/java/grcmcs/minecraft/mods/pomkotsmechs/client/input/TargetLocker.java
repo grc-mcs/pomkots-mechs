@@ -2,7 +2,9 @@ package grcmcs.minecraft.mods.pomkotsmechs.client.input;
 
 import dev.architectury.networking.NetworkManager;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -50,7 +52,7 @@ public class TargetLocker {
         }
     }
 
-    public void tick(DriverInput driverInput, Pmv01Entity bot) {
+    public void tick(DriverInput driverInput, PomkotsVehicle bot) {
         if (targetSoft != null && !targetSoft.isAlive()) {
             unlockTargetSoft();
         }
@@ -66,12 +68,12 @@ public class TargetLocker {
         }
 
         if (isLockingHard()) {
-            if (driverInput.isLockPressed()) {
+            if (bot.shouldLockStrong(driverInput)) {
                 unlockTargetHard();
             }
         } else {
             // ソフトロックを試す
-            if (driverInput.isWeaponRightHandPressed()) {
+            if (bot.shouldLockWeak(driverInput)) {
                 if (targetSoft == null) {
                     lockOnTargetSoft(getCrossHairTarget());
                 } else {
@@ -84,7 +86,7 @@ public class TargetLocker {
             }
 
             // ハードロックを試す
-            if (driverInput.isLockPressed()) {
+            if (bot.shouldLockStrong(driverInput)) {
                 var tgt = findTargetHard();
                 if (tgt != null) {
                     lockOnTargetHard(tgt);
@@ -96,7 +98,7 @@ public class TargetLocker {
             lockOnMultiCooltime--;
 
         } else {
-            if (driverInput.isWeaponRightShoulderPressed()) {
+            if (bot.shouldLockMulti(driverInput)) {
                 if (targetHard != null) {
                     addTargetMulti(targetHard);
 
@@ -128,9 +130,9 @@ public class TargetLocker {
         }
     }
 
-    private void releaseTargetMulti(Pmv01Entity bot) {
+    private void releaseTargetMulti(PomkotsVehicle bot) {
         targetMulti.clear();
-        bot.unlockTargetMulti();
+        bot.getLockTargets().unlockTargetMulti();
         sendServerUnlockMulti();
     }
 
@@ -142,38 +144,6 @@ public class TargetLocker {
     private void sendServerUnlockMulti() {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.EMPTY_BUFFER);
         NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_UNLOCK_MULTI), buf);
-    }
-
-
-    public boolean turn(LocalPlayer player) {
-        if (player.getVehicle() instanceof Pmv01Entity) {
-            if (targetHard != null) {
-                if (!targetHard.isAlive()) {
-                    this.unlockTargetHard();
-                    return false;
-                }
-
-                Vec3 targetPos = targetHard.position().add(0, targetHard.getBbHeight() - targetHard.getBbHeight() / 2, 0);
-                Vec3 targetVec = targetPos.subtract(player.position().add(0, player.getEyeHeight(), 0)).normalize();
-
-                double angleX = Mth.wrapDegrees(Math.atan2(-targetVec.x, targetVec.z) * 180 / Math.PI);
-                double angleY = Math.atan2(targetVec.y, targetVec.horizontalDistance()) * 180 / Math.PI;
-
-                double xRot = Mth.wrapDegrees(player.getXRot());
-                double yRot = Mth.wrapDegrees(player.getYRot());
-
-                double toTurnX = Mth.wrapDegrees(yRot - angleX);
-                double toTurnY = Mth.wrapDegrees(xRot + angleY);
-
-                player.turn(-toTurnX, -toTurnY);
-
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
     }
 
     private Entity findTargetHard() {
@@ -209,8 +179,8 @@ public class TargetLocker {
     }
 
     private boolean isSelf(LivingEntity entity, LivingEntity player) {
-        if (entity instanceof Pmv01Entity pmv01) {
-            var driver = pmv01.getDrivingPassenger();
+        if (entity instanceof PomkotsVehicleBase) {
+            var driver = ((PomkotsVehicleBase) entity).getDrivingPassenger();
             if (driver == null) {
                 return false;
             } else {
@@ -272,6 +242,37 @@ public class TargetLocker {
         NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_UNLOCK_HARD), buf);
     }
 
+    public boolean turn(LocalPlayer player) {
+        if (Utils.isRidingPomkotsVehicle(player)) {
+            if (targetHard != null) {
+                if (!targetHard.isAlive()) {
+                    this.unlockTargetHard();
+                    return false;
+                }
+
+                Vec3 targetPos = targetHard.position().add(0, targetHard.getBbHeight() - targetHard.getBbHeight() / 2, 0);
+                Vec3 targetVec = targetPos.subtract(player.position().add(0, player.getEyeHeight(), 0)).normalize();
+
+                double angleX = Mth.wrapDegrees(Math.atan2(-targetVec.x, targetVec.z) * 180 / Math.PI);
+                double angleY = Math.atan2(targetVec.y, targetVec.horizontalDistance()) * 180 / Math.PI;
+
+                double xRot = Mth.wrapDegrees(player.getXRot());
+                double yRot = Mth.wrapDegrees(player.getYRot());
+
+                double toTurnX = Mth.wrapDegrees(yRot - angleX);
+                double toTurnY = Mth.wrapDegrees(xRot + angleY);
+
+                player.turn(-toTurnX, -toTurnY);
+
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
     public boolean isLockingSoft() {
         return targetHard != null;
     }
@@ -302,7 +303,7 @@ public class TargetLocker {
     }
 
     public Entity getCrossHairTarget() {
-        var list = getEntitiesAroundPlayer(minecraft.player, 50);
+        var list = getEntitiesAroundPlayer(minecraft.player, 80);
 
         for (var ent: list) {
             if (isInLockonTraceRange(ent, COSINE_THRESHOLD2)) {

@@ -1,15 +1,11 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.goal.boss.HitBoxEntity;
-import net.minecraft.client.Minecraft;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.HitBoxEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 
 public class HitBoxEntityRenderer extends EntityRenderer<HitBoxEntity> {
     public HitBoxEntityRenderer(EntityRendererProvider.Context context) {

@@ -21,6 +21,13 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.PMV01B, (context)->{
 			return new Pmv01bEntityRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.PMV02, (context)->{
+			return new Pmv02EntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.PMV03P, (context)->{
+			return new Pmv03pEntityRenderer(context);
+		});
+
 
 		EntityRendererRegistry.register(PomkotsMechs.PMB01, (context)->{
 			return new Pmb01EntityRenderer(context);
@@ -69,11 +76,23 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.MISSILE_VERTICAL, (context)->{
 			return new MissileBaseEntityRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.MISSILE_HORIZONTAL, (context)->{
+			return new MissileBaseEntityRenderer(context);
+		});
 		EntityRendererRegistry.register(PomkotsMechs.MISSILE_ENEMY, (context)->{
 			return new MissileBaseEntityRenderer(context);
 		});
 		EntityRendererRegistry.register(PomkotsMechs.MISSILE_ENEMY_LARGE, (context)->{
 			return new MissileBaseEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.BLOCK_PROJECTILE, (context)->{
+			return new BlockProjectileEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.BLOCK_MASS, (context)->{
+			return new BlockMassEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.PRESENT_BOX, (context)->{
+			return new PresentBoxEntityRenderer(context);
 		});
 
 		EntityRendererRegistry.register(PomkotsMechs.EXPLOSION, (context)->{

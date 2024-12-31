@@ -4,7 +4,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -31,21 +33,21 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
     private int curEN = 0;
     private int prevEN = 0;
 
-    private int curCTGat = 0;
-    private int prevCTGat = 0;
-    private int maxCTGat = 0;
+    private int curCTRightArm = 0;
+    private int prevCTRightArm = 0;
+    private int maxCTRightArm = 0;
 
-    private int curCTPile = 0;
-    private int prevCTPile = 0;
-    private int maxCTPile = 0;
+    private int curCTLeftArm = 0;
+    private int prevCTLeftArm = 0;
+    private int maxCTLeftArm = 0;
 
-    private int curCTMissile = 0;
-    private int prevCTMissile = 0;
-    private int maxCTMissile = 0;
+    private int curCTRightShoulder = 0;
+    private int prevCTRightShoulder = 0;
+    private int maxCTRightShoulder = 0;
 
-    private int curCTGrenade = 0;
-    private int prevCTGrenade = 0;
-    private int maxCTGrenade = 0;
+    private int curCTLeftShoulder = 0;
+    private int prevCTLeftShoulder = 0;
+    private int maxCTLeftShoulder = 0;
 
     private int offsetY = 0;
 
@@ -53,7 +55,7 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         LocalPlayer pl = mc.player;
 
         if (pl != null) {
-            if (pl.getVehicle() instanceof Pmv01Entity protobot) {
+            if (pl.getVehicle() instanceof PomkotsVehicleBase protobot) {
                 offsetY = mc.getWindow().getGuiScaledHeight() - 30;
 
                 if (protobot.isMainMode()) {
@@ -66,7 +68,7 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         }
     }
 
-    private void renderHudNormal(Pmv01Entity protobot, GuiGraphics guiGraphics, float tickDelta) {
+    private void renderHudNormal(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
         updateValues(protobot);
         renderCrossHair(guiGraphics, tickDelta);
         renderHealthBar(protobot, guiGraphics, tickDelta);
@@ -77,7 +79,7 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
     private static final int FG_COLOR = 0x990086C9;
     private static final int BG_COLOR = 0x55555555;
 
-    private void renderHudBattle(Pmv01Entity protobot, GuiGraphics guiGraphics, float tickDelta) {
+    private void renderHudBattle(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
         updateValues(protobot);
         renderCrossHair(guiGraphics, tickDelta);
         renderHealthBar(protobot, guiGraphics, tickDelta);
@@ -116,34 +118,71 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
 
     }
 
-    private void updateValues(Pmv01Entity protobot) {
+    private void updateValues(PomkotsVehicleBase vehicle) {
         prevHealth = curHealth;
-        curHealth = protobot.getHealth();
+        curHealth = vehicle.getHealth();
 
         prevEN = curEN;
-        curEN = protobot.getEnergy();
+        curEN = vehicle.getEnergy();
 
-        prevCTMissile = curCTMissile;
-        curCTMissile = protobot.actionController.missile.currentCoolTime;
-        maxCTMissile = protobot.actionController.missile.maxCoolTime;
+        Action rArm;
+        Action lArm;
+        Action rShoulder;
+        Action lShoulder;
 
-        prevCTGrenade = curCTGrenade;
-        curCTGrenade = protobot.actionController.grenade.currentCoolTime;
-        maxCTGrenade = protobot.actionController.grenade.maxCoolTime;
+        if (vehicle.isMainMode()) {
+            rArm = vehicle.actionController.getActionFromType(ActionController.ActionType.R_ARM_MAIN);
+            lArm = vehicle.actionController.getActionFromType(ActionController.ActionType.L_ARM_MAIN);
+            rShoulder = vehicle.actionController.getActionFromType(ActionController.ActionType.R_SHL_MAIN);
+            lShoulder = vehicle.actionController.getActionFromType(ActionController.ActionType.L_SHL_MAIN);
+        } else {
+            rArm = vehicle.actionController.getActionFromType(ActionController.ActionType.R_ARM_SUB);
+            lArm = vehicle.actionController.getActionFromType(ActionController.ActionType.L_ARM_SUB);
+            rShoulder = vehicle.actionController.getActionFromType(ActionController.ActionType.R_SHL_SUB);
+            lShoulder = vehicle.actionController.getActionFromType(ActionController.ActionType.L_SHL_SUB);
+
+        }
+
+        if (rArm != null ) {
+            prevCTRightArm = curCTRightArm;
+            curCTRightArm = rArm.currentCoolTime;
+            maxCTRightArm = rArm.maxChargeTime + 1;
+
+        } else {
+            prevCTRightArm = curCTRightArm = maxCTRightArm = 1;
+        }
+
+        if (lArm != null ) {
+            prevCTLeftArm = curCTLeftArm;
+            curCTLeftArm = lArm.currentCoolTime;
+            maxCTLeftArm = lArm.maxCoolTime;
+
+        } else {
+            prevCTLeftArm = curCTLeftArm = maxCTLeftArm = 1;
+        }
+
+        if (rShoulder != null ) {
+            prevCTRightShoulder = curCTRightShoulder;
+            curCTRightShoulder = rShoulder.currentCoolTime;
+            maxCTRightShoulder = rShoulder.maxCoolTime;
+
+        } else {
+            prevCTRightShoulder = curCTRightShoulder = maxCTRightShoulder = 1;
+        }
 
 
-        prevCTGat = curCTGat;
-        curCTGat = protobot.actionController.gatring.currentCoolTime;
-        maxCTGat = 1;
+        if (lShoulder != null ) {
+            prevCTLeftShoulder = curCTLeftShoulder;
+            curCTLeftShoulder = lShoulder.currentCoolTime;
+            maxCTLeftShoulder = lShoulder.maxCoolTime;
 
-
-        prevCTPile = curCTPile;
-        curCTPile = protobot.actionController.pile.currentCoolTime;
-        maxCTPile = protobot.actionController.pile.maxCoolTime;
+        } else {
+            prevCTLeftShoulder = curCTLeftShoulder = maxCTLeftShoulder = 1;
+        }
     }
 
     // エンティティの体力バーを描画するメソッド
-    private void renderHealthBar(Pmv01Entity protobot, GuiGraphics guiGraphics, float tickDelta) {
+    private void renderHealthBar(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
         // 画面の幅と高さを取得
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
@@ -155,6 +194,10 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         // 画面中央の位置を計算
         int x = (screenWidth / 2) - (width / 2);
         int y = screenHeight - 10;
+
+        if (protobot.shouldRenderDefaultHud("renderHotbar")) {
+            y -= 20;
+        }
 
         int maxHealth = (int) protobot.getMaxHealth();
 
@@ -170,7 +213,7 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
     }
 
     // 燃料ゲージの描画
-    private void renderFuelBar(Pmv01Entity protobot, GuiGraphics guiGraphics, float tickDelta) {
+    private void renderFuelBar(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
         // 画面の幅と高さを取得
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
@@ -195,15 +238,15 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         guiGraphics.fill((int)(x + ((float)width - fuelWidth)/2), y, (int)(x + ((float)width - fuelWidth)/2 + fuelWidth), y + height, FG_COLOR);
     }
 
-    private void renderCooldowns(Pmv01Entity protobot, GuiGraphics guiGraphics, float tickDelta) {
+    private void renderCooldowns(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
 
         int offx = mc.getWindow().getGuiScaledWidth()/2;
         int offy = mc.getWindow().getGuiScaledHeight()/2;
 
-        renderCooldown(prevCTGat, curCTGat, maxCTGat, offx + 19, offy - 9, false, guiGraphics, tickDelta);
-        renderCooldown(prevCTPile, curCTPile, maxCTPile, offx - 21, offy - 9, true, guiGraphics, tickDelta);
-        renderCooldown(prevCTMissile, curCTMissile, maxCTMissile, offx + 19, offy + 1, false, guiGraphics, tickDelta);
-        renderCooldown(prevCTGrenade, curCTGrenade, maxCTGrenade, offx - 21, offy + 1, true, guiGraphics, tickDelta);
+        renderCooldown(prevCTRightArm, curCTRightArm, maxCTRightArm, offx + 19, offy - 9, false, guiGraphics, tickDelta);
+        renderCooldown(prevCTLeftArm, curCTLeftArm, maxCTLeftArm, offx - 21, offy - 9, true, guiGraphics, tickDelta);
+        renderCooldown(prevCTRightShoulder, curCTRightShoulder, maxCTRightShoulder, offx + 19, offy + 1, false, guiGraphics, tickDelta);
+        renderCooldown(prevCTLeftShoulder, curCTLeftShoulder, maxCTLeftShoulder, offx - 21, offy + 1, true, guiGraphics, tickDelta);
 
 //
 //        renderCooldown(prevCTGat, curCTGat, maxCTGat, offx + 17, offy - 3, false, guiGraphics, tickDelta);

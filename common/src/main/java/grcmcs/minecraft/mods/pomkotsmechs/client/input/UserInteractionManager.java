@@ -7,12 +7,11 @@ import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.Pmb01Entity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.player.Player;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +67,7 @@ public class UserInteractionManager {
     public void registerClient() {
         // 左クリックでの攻撃抑制
         PlayerEvent.ATTACK_ENTITY.register((player, world, hand, entity, hitResult) -> {
-            if (isRidingPomkotsMechs(player)) {
+            if (Utils.isRidingPomkotsControllable(player)) {
                 return EventResult.interruptFalse();
             }
             return EventResult.pass();
@@ -92,7 +91,7 @@ public class UserInteractionManager {
         ClientTickEvent.CLIENT_POST.register(client -> {
             short keyPressStatus = 0;
             if (client.player != null) {
-                if (isRidingPomkotsMechs(client.player)) {
+                if (Utils.isRidingPomkotsControllable(client.player)) {
                     for (Map.Entry<Keys, KeyMapping> entry : kbMap.entrySet()) {
                         if (entry.getKey() == Keys.LOCK || entry.getKey() == Keys.MODE) {
                             if (entry.getValue().consumeClick()) {
@@ -135,7 +134,7 @@ public class UserInteractionManager {
                         this.prevDriverInput = keyPressStatus;
                     }
 
-                    if (client.player.getVehicle() instanceof Pmv01Entity bot) {
+                    if (client.player.getVehicle() instanceof PomkotsVehicle bot) {
                         var driverInput = new DriverInput(keyPressStatus);
                         targetLocker.tick(driverInput, bot);
                     }
@@ -146,12 +145,7 @@ public class UserInteractionManager {
         });
     }
 
-    protected boolean isRidingPomkotsMechs(Player player) {
-        return player.getVehicle() instanceof Pmv01Entity || player.getVehicle() instanceof Pmb01Entity;
-    }
-
     private void sendDriverInput2Server(short keyPressStatus) {
-
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeShort(keyPressStatus);
         NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_DRIVER_INPUT), buf);

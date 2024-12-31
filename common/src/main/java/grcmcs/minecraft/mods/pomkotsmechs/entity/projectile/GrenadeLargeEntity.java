@@ -19,7 +19,7 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class GrenadeLargeEntity extends ThrowableProjectile implements GeoEntity, GeoAnimatable {
+public class GrenadeLargeEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final float DAMAGE = BattleBalance.BOSS_GRENADE_DAMAGE;
     private static final int MAX_LIFE_TICKS = 80;

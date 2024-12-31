@@ -1,9 +1,4 @@
 {
-  "se_booster": {
-    "sounds": [
-      "pomkotsmechs:se_booster"
-    ]
-  },
   "se_bossdown": {
     "sounds": [
       "pomkotsmechs:se_bossdown"
@@ -29,6 +24,36 @@
       "pomkotsmechs:se_explosion"
     ]
   },
+  "se_walk": {
+    "sounds": [
+      "pomkotsmechs:se_walk"
+    ]
+  },
+  "se_target": {
+    "sounds": [
+      "pomkotsmechs:se_target"
+    ]
+  },
+  "se_jump": {
+    "sounds": [
+      "pomkotsmechs:se_jump"
+    ]
+  },
+  "se_booster": {
+    "sounds": [
+      "pomkotsmechs:se_booster"
+    ]
+  },
+  "se_onground": {
+    "sounds": [
+      "pomkotsmechs:se_onground"
+    ]
+  },
+  "se_hit": {
+    "sounds": [
+      "pomkotsmechs:se_hit"
+    ]
+  },
   "se_gatling": {
     "sounds": [
       "pomkotsmechs:se_gatling"
@@ -39,24 +64,9 @@
       "pomkotsmechs:se_grenade"
     ]
   },
-  "se_hit": {
-    "sounds": [
-      "pomkotsmechs:se_hit"
-    ]
-  },
-  "se_jump": {
-    "sounds": [
-      "pomkotsmechs:se_jump"
-    ]
-  },
   "se_missile": {
     "sounds": [
       "pomkotsmechs:se_missile"
-    ]
-  },
-  "se_onground": {
-    "sounds": [
-      "pomkotsmechs:se_onground"
     ]
   },
   "se_pilebunker": {
@@ -64,14 +74,64 @@
       "pomkotsmechs:se_pilebunker"
     ]
   },
-  "se_walk": {
+  "se_drill1": {
     "sounds": [
-      "pomkotsmechs:se_walk"
+      "pomkotsmechs:se_drill1"
     ]
   },
-  "se_target": {
+  "se_drill2": {
     "sounds": [
-      "pomkotsmechs:se_target"
+      "pomkotsmechs:se_drill2"
+    ]
+  },
+  "se_hummer1": {
+    "sounds": [
+      "pomkotsmechs:se_hummer1"
+    ]
+  },
+  "se_hummer2": {
+    "sounds": [
+      "pomkotsmechs:se_hummer2"
+    ]
+  },
+  "se_lift": {
+    "sounds": [
+      "pomkotsmechs:se_lift"
+    ]
+  },
+  "se_needle": {
+    "sounds": [
+      "pomkotsmechs:se_needle"
+    ]
+  },
+  "se_place": {
+    "sounds": [
+      "pomkotsmechs:se_place"
+    ]
+  },
+  "se_roller1": {
+    "sounds": [
+      "pomkotsmechs:se_roller1"
+    ]
+  },
+  "se_roller2": {
+    "sounds": [
+      "pomkotsmechs:se_roller2"
+    ]
+  },
+  "se_step": {
+    "sounds": [
+      "pomkotsmechs:se_step"
+    ]
+  },
+  "se_throw": {
+    "sounds": [
+      "pomkotsmechs:se_throw"
+    ]
+  },
+  "se_water": {
+    "sounds": [
+      "pomkotsmechs:se_water"
     ]
   }
 }

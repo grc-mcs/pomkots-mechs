@@ -8,6 +8,7 @@
   "item.pomkotsmechs.corestone_pmb01": "Core Stone PMB01",
   "item.pomkotsmechs.corestone_pmv01": "Core Stone PMV01",
   "item.pomkotsmechs.corestone_pmv01b": "Core Stone PMV01B",
+  "item.pomkotsmechs.corestone_pmv02": "Core Stone PMV02",
   "entity.pomkotsmechs.pmb01": "PMB01",
   "entity.pomkotsmechs.pms01": "PMS01",
   "entity.pomkotsmechs.pms02": "PMS02",
@@ -16,8 +17,11 @@
   "entity.pomkotsmechs.pms05": "PMS05",
   "entity.pomkotsmechs.pmv01": "PMV01",
   "entity.pomkotsmechs.pmv01b": "PMV01B",
+  "entity.pomkotsmechs.pmv02": "PMV02",
   "itemGroup.pomkotsmechs": "Pomkots Mechs",
   "text.autoconfig.pomkotsmechs.title": "Pomkots Mechs",
   "text.autoconfig.pomkotsmechs.option.enableEntityBlockDestruction": "Allow Mechs to Break Blocks",
-  "text.autoconfig.pomkotsmechs.option.enableHudHealthBar": "Enable Pomkots HUD Health Bar"
+  "text.autoconfig.pomkotsmechs.option.enableHudHealthBar": "Enable Pomkots HUD Health Bar",
+  "text.autoconfig.pomkotsmechs.option.consumeBlocksWhenPlacing": "Consume Block Items when Placing",
+  "text.autoconfig.pomkotsmechs.option.dropItemsWhenDestroyBlock": "Drop Items when Destroy Block lump"
 }

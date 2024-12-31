@@ -4,8 +4,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.TargetLocker;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.Pmb01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -27,7 +28,7 @@ public class RenderUtils {
             if (!entity.equals(client.player.getVehicle())) {
                 renderTargetLock(matrixStack, entity, rotation, buffer);
 
-                if (PomkotsMechs.CONFIG.enableHudHealthBar && !(entity instanceof Pmb01Entity) && !(entity instanceof Pmv01Entity)) {
+                if (PomkotsMechs.CONFIG.enableHudHealthBar) {
                     renderHealthBar(matrixStack, entity, rotation, buffer);
                 }
             }
@@ -56,29 +57,26 @@ public class RenderUtils {
     private static void renderTargetLockTexture(String textureName, PoseStack matrixStack, LivingEntity entity, Quaternionf rotation, MultiBufferSource buffer) {
         ResourceLocation reticleTexture = new ResourceLocation(PomkotsMechs.MODID, "textures/crosshair/" + textureName);
 
-        // エンティティの上にヘルスバーを表示
-        matrixStack.pushPose(); // 現在のレンダリング状態を保存
-        matrixStack.translate(0, entity.getBbHeight()/2, 0); // エンティティの頭上に移動
+        matrixStack.pushPose();
+        matrixStack.translate(0, entity.getBbHeight()/2, 0);
         matrixStack.scale(-0.1F, -0.1F, -0.1F);
-        matrixStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation()); // カメラの向きに合わせて回転
+        matrixStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
-        // テッセレーターを使って描画する
         Tesselator tesselator = Tesselator.getInstance();
         BufferBuilder bufferBuilder = tesselator.getBuilder();
 
-        // 描画開始
         bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader); // 位置と色を使うシェーダーを設定
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, reticleTexture);
-        RenderSystem.enableBlend();              // ブレンディングを有効にする
+        RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
 
         float size = 32;
         addQuadTex(bufferBuilder, matrixStack, -size/2,-size/2,size/2,size/2,40);
 
-        tesselator.end(); // 描画を終了してバッファを送り込む
-        matrixStack.popPose(); // 状態を元に戻す
+        tesselator.end();
+        matrixStack.popPose();
     }
 
     // 四角形を描画するヘルパー関数
@@ -119,7 +117,7 @@ public class RenderUtils {
 
         // ヘルスバーの描画（緑）
 //        addQuad(bufferBuilder, matrixStack, -barWidth / 2, 0, -barWidth / 2 + healthBarWidth, barHeight, 0x990086C9);
-        if (entity instanceof Pmv01Entity) {
+        if (entity instanceof PomkotsVehicle) {
             addQuad(bufferBuilder, matrixStack, -barWidth / 2, 0, -barWidth / 2 + healthBarWidth, barHeight, 0x990000AA);
         } else {
             addQuad(bufferBuilder, matrixStack, -barWidth / 2, 0, -barWidth / 2 + healthBarWidth, barHeight, 0x99DE0000);

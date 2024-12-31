@@ -1,7 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.model;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.controller.PlayerDummyEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PlayerDummyEntity;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
 

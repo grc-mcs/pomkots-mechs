@@ -2,11 +2,13 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.HitBoxEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 
 public class MissileEnemyLargeEntity extends MissileBaseEntity {
@@ -19,6 +21,22 @@ public class MissileEnemyLargeEntity extends MissileBaseEntity {
     public MissileEnemyLargeEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter) {
         super(entityType, world, shooter, null);
     }
+
+    @Override
+    protected void onHitEntity(EntityHitResult entityHitResult) {
+        var entity = entityHitResult.getEntity();
+        if (entity instanceof LivingEntity) {
+            if (entity.equals(shooter) || entity instanceof HitBoxEntity) {
+                return;
+            }
+            entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), getDamage());
+            entity.invulnerableTime = 0;
+        }
+        this.createExplosion(this.position());
+
+        this.discard();
+    }
+
     protected int getSwitchTick() {
         return 5;
     }

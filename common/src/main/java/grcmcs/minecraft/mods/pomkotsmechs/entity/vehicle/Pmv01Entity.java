@@ -2,368 +2,89 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
-import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.Utils;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.BulletEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.GrenadeEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.MissileVerticalEntity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.controller.ActionController;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.GeoAnimatable;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.network.SerializableDataTicket;
-import software.bernie.geckolib.util.GeckoLibUtil;
+import software.bernie.geckolib.core.keyframe.event.SoundKeyframeEvent;
+import software.bernie.geckolib.core.object.PlayState;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-public class Pmv01Entity extends LivingEntity implements GeoEntity, GeoAnimatable {
-    public static final float DEFAULT_SCALE = 0.5f;
-    private static final Logger LOGGER = LoggerFactory.getLogger(PomkotsMechs.MODID);
-
-    private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-
-    // ロボ君のアクションの状態（サーバと他クライアントにも同期する）
-    public ActionController actionController = new ActionController();
-
-    // 搭乗してから操作開始するまでの間のティック
-    private short rideCoolTick = 0;
-
-    // 操作しているドライバーのキー入力（サーバと他クライアントにも同期する）
-    private DriverInput driverInput = null;
-
-    public void setDriverInput(DriverInput di) {
-        this.driverInput = di;
-
-        if (!level().isClientSide) {
-            setAnimData(DRIVER_INPUT_SERIALIZABLE_DATA_TICKET, driverInput.getStatus());
-            if (di.isModeChangePressed()) {
-                this.setMainMode(!this.isMainMode());
-            }
-        }
-    }
-
-    public DriverInput getDriverInput() {
-        return this.driverInput;
-    }
-
-    public static final SerializableDataTicket<Short> DRIVER_INPUT_SERIALIZABLE_DATA_TICKET =
-            GeckoLibUtil.addDataTicket(
-                    new SerializableDataTicket<Short>(PomkotsMechs.MODID.toString(), Short.class) {
-                        public void encode(Short data, FriendlyByteBuf buffer) {
-                            try {
-                                buffer.writeShort((int)data);
-                            } catch (Exception e) {
-                                LOGGER.error(e.toString());
-                            }
-                        }
-
-                        public Short decode(FriendlyByteBuf buffer) {
-                            Object o = null;
-                            try {
-                                o = buffer.readShort();
-                            } catch (Exception e) {
-                                LOGGER.error(e.toString());
-                            }
-                            return (Short) o;
-                        }
-                    }
-            );
-
-    // ユーザが縦に移動しようとしてるか横に移動しようとしてるか（速度じゃないので注意）
-    private float forwardIntention = 0;
-    private float sidewayIntention = 0;
-
-    // よくわからんけどサーバとクライアントで位置情報に3tick分ぐらい差があるっぽい。その辺を無理やり対処するためにposの履歴を取っとく
-    private LinkedList<Vec3> posHistory = new LinkedList<Vec3>();
-
-    private Entity lockTargetS = null;
-    private Entity lockTargetH = null;
-    private List<Entity> lockTargetM = new ArrayList<>();
-
-    public void lockTargetSoft(Entity ent) {
-        this.lockTargetS = ent;
-    }
-
-    public void unlockTargetSoft() {
-        this.lockTargetS = null;
-    }
-    public void lockTargetHard(Entity ent) {
-        this.lockTargetH = ent;
-    }
-
-    public void unlockTargetHard() {
-        this.lockTargetH = null;
-    }
-
-    public void lockTargetMulti(Entity ent) {
-        if (lockTargetM.size() < 6) {
-            lockTargetM.add(ent);
-        }
-    }
-
-    private boolean fireMissile = false;
-    public void unlockTargetMulti() {
-        fireMissile = true;
-    }
-
-    private void clearLockTargets() {
-        unlockTargetSoft();
-        unlockTargetHard();
-
-        if (!lockTargetM.isEmpty()) {
-            lockTargetM.clear();
-        }
-    }
-
-    private static final int MAX_ENERGY = 100;
-    private int energy = MAX_ENERGY;
-
-    public int getEnergy() {
-        return this.energy;
-    }
-
-    private void chargeEnergy() {
-        if (this.energy + 2 > MAX_ENERGY) {
-            this.energy = MAX_ENERGY;
-        } else {
-            this.energy += 2;
-        }
-    }
-
-    private boolean useEnergy(int dec) {
-        if (this.energy - dec < 0) {
-            this.energy = 0;
-            return false;
-        } else {
-            this.energy -= dec;
-            return true;
-        }
-    }
-
-    public static AttributeSupplier.Builder createMobAttributes() {
-        return LivingEntity.createLivingAttributes()
-                .add(Attributes.ATTACK_KNOCKBACK)
-                .add(Attributes.MAX_HEALTH, BattleBalance.MECH_HEALTH);
-    }
-
-    private boolean isServerSide() {
-        return !isClientSide();
-    }
-
-    private boolean isClientSide() {
-        return this.level().isClientSide();
+public class Pmv01Entity extends PomkotsVehicleBase {
+    @Override
+    protected String getMechName() {
+        return "pmv01";
     }
 
     public Pmv01Entity(EntityType<? extends LivingEntity> entityType, Level world) {
         super(entityType, world);
+    }
 
-        this.setMaxUpStep(2.0F);
-        this.setYRot(0F);
-        this.setNoGravity(false);
-        this.noCulling = true;
+    protected static final int ACT_HUMMER = 2;
+    protected static final int ACT_SCOP = 3;
+    protected static final int ACT_GATRING = 4;
+    protected static final int ACT_PILE = 5;
+    protected static final int ACT_GRENADE = 6;
+    protected static final int ACT_MISSILE = 7;
+
+    @Override
+    protected void registerActions() {
+        super.registerActions();
+        this.actionController.registerAction(ACT_HUMMER, new Action(20, 12, 8), ActionController.ActionType.R_ARM_SUB);
+        this.actionController.registerAction(ACT_SCOP, new Action(20, 12, 8), ActionController.ActionType.L_ARM_SUB);
+        this.actionController.registerAction(ACT_GATRING, new Action(0, 7, 2), ActionController.ActionType.R_ARM_MAIN);
+        this.actionController.registerAction(ACT_PILE, new Action(20, 10, 10), ActionController.ActionType.L_ARM_MAIN);
+        this.actionController.registerAction(ACT_GRENADE, new Action(60, 4, 10), ActionController.ActionType.L_SHL_MAIN);
+        this.actionController.registerAction(ACT_MISSILE, new Action(60, 0, 20), ActionController.ActionType.R_SHL_MAIN);
     }
 
     @Override
-    public void tick() {
-        this.updatePosHistory(this.position());
-
-        super.tick();
-
-        this.actionController.tick();
-
-        if (this.isAlive() && this.isVehicle()) {
-            if (rideCoolTick > 0) {
-                rideCoolTick--;
-
-            } else {
-                chargeEnergy();
-
-                if (isClientSide()) {
-                    Short b = getAnimData(DRIVER_INPUT_SERIALIZABLE_DATA_TICKET);
-
-                    if (b == null) {
-                        b = 0;
-                    }
-
-                    driverInput = new DriverInput(b);
-                }
-
-                if (driverInput != null) {
-                    this.updateStatus(driverInput);
-                }
-
-                this.fireActions();
-            }
-
-        } else {
-            this.setNoGravity(false);
-
-        }
-    }
-
-    private void updatePosHistory(Vec3 v) {
-        var vec = new Vec3(v.x, v.y, v.z);
-
-        if (posHistory.size() > 3) {
-            posHistory.remove(0);
-        }
-
-        posHistory.add(vec);
-    }
-
-    private void updateStatus (DriverInput driverInput) {
-        getUserIntentionForDirectionFromKey(driverInput);
-
-        // USING EQUIPMENT
-        LivingEntity l = this.getDrivingPassenger();
-
-        // WEAPONS
+    protected void applyPlayerInputWeapons(DriverInput driverInput) {
         if (this.isMainMode()) {
             if (driverInput.isWeaponRightHandPressed()) {
-                this.actionController.gatring.tryAction();
+                this.actionController.getAction(ACT_GATRING).startAction();
             } else if (driverInput.isWeaponLeftHandPressed()) {
-                this.actionController.pile.tryAction();
-                this.boostPileBunker();
+                if (!this.actionController.getAction(ACT_PILE).isInAction()) {
+                    this.startPileBunker();
+                }
+                this.actionController.getAction(ACT_PILE).startAction();
             } else if (driverInput.isWeaponLeftShoulderPressed()) {
-                this.actionController.grenade.tryAction();
-            } else if (fireMissile) {
-                this.fireMissile = false;
-                this.actionController.missile.tryAction();
+                this.actionController.getAction(ACT_GRENADE).startAction();
+            } else if (this.lockTargets.consumeMultiLockComplete()) {
+                this.actionController.getAction(ACT_MISSILE).startAction();
             }
         } else {
             if (driverInput.isWeaponRightHandPressed()) {
-                this.actionController.hummer.tryAction();
+                this.actionController.getAction(ACT_HUMMER).startAction();
             } else if (driverInput.isWeaponLeftHandPressed()) {
-                this.actionController.scop.tryAction();
+                this.actionController.getAction(ACT_SCOP).startAction();
             }
-        }
-
-        // BOOST
-        if (this.getDeltaMovement().z == 0 && this.getDeltaMovement().x == 0) {
-            this.actionController.setBoost(false);
-        }
-
-        // EVASION
-        if (driverInput.isEvasionPressed() && this.actionController.evasion.tryAction()) {
-            this.doEvasion();
-            this.actionController.setBoost(true);
-        }
-
-        // JUMP
-        if (driverInput.isJumpPressed() && this.onGround()) {
-            this.actionController.jump.tryAction();
-        }
-        if (this.actionController.jump.isOnFire()) {
-            if (isServerSide()) {
-                this.push(0, 2, 0);
-            } else {
-                this.playSoundEffect(PomkotsMechs.SE_JUMP_EVENT.get());
-            }
-        }
-
-        // IN AIR
-        if (!this.onGround()) {
-            if (driverInput.isJumpPressed()) {
-                this.setNoGravity(true);
-
-//                if (useEnergy(0)) {
-                if (useEnergy(5)) {
-                    if (isServerSide() && this.getDeltaMovement().y() < 0.7) {
-                        this.push(0, 0.3, 0);
-                    }
-                } else {
-                    if (isServerSide()) {
-                        this.push(0, -0.18 * 0.9800000190734863D, 0);
-                    }
-                }
-            } else if (isServerSide()){
-                this.push(0, -0.18 * 0.9800000190734863D, 0);
-            }
-        } else {
-            if (this.isClientSide() && justLanded(this)) {
-                this.playSoundEffect(PomkotsMechs.SE_JUMP_EVENT.get());
-            }
-            this.setNoGravity(false);
         }
     }
 
-    private boolean justLanded(Pmv01Entity ent) {
-        return ent.getDeltaMovement().y == 0 && (ent.yOld - ent.getY()) > 0.4;
-    }
-
-    private void getUserIntentionForDirectionFromKey(DriverInput driverInput) {
-        if (driverInput.isForwardPressed()) {
-            forwardIntention = 1;
-        } else if (driverInput.isBackPressed()) {
-            forwardIntention = -1;
-        } else {
-            forwardIntention = 0;
-        }
-
-        if (driverInput.isRightPressed()) {
-            sidewayIntention = -1;
-        } else if (driverInput.isLeftPressed()) {
-            sidewayIntention = 1;
-        } else {
-            sidewayIntention = 0;
-        }
-    }
-
-    private void doEvasion() {
-        if (isServerSide()) {
-            Vec3 vel;
-            if (forwardIntention == 0 && sidewayIntention == 0) {
-                vel = new Vec3(0, 0, 1);
-            } else {
-                vel = new Vec3(sidewayIntention, 0, forwardIntention).normalize();
-            }
-
-            vel = vel.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
-            var distance = 0.475 * 15;
-            vel = vel.scale(distance);
-
-            this.push(vel.x, vel.y, vel.z);
-        } else {
-            playSoundEffect(PomkotsMechs.SE_BOOSTER_EVENT.get());
-        }
-    }
-
-    private void boostPileBunker() {
+    private void startPileBunker() {
         if (isServerSide()) {
             Vec3 vel;
 
-            if (this.lockTargetH != null) {
-                vel = this.position().vectorTo(lockTargetH.position()).normalize();
-            } else if (this.lockTargetS != null) {
-                vel = this.position().vectorTo(lockTargetS.position()).normalize();
+            if (this.lockTargets.getLockTargetHard() != null) {
+                vel = this.position().vectorTo(this.lockTargets.getLockTargetHard().position()).normalize();
+            } else if (this.lockTargets.getLockTargetSoft() != null) {
+                vel = this.position().vectorTo(this.lockTargets.getLockTargetSoft().position()).normalize();
             } else {
                 vel = new Vec3(0, 0, 1);
                 vel = vel.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
@@ -379,22 +100,23 @@ public class Pmv01Entity extends LivingEntity implements GeoEntity, GeoAnimatabl
         }
     }
 
-    private void fireActions() {
-        Level world = level();
+    @Override
+    protected void fireWeapons() {
+        Level level = level();
 
-        if (actionController.hummer.isOnFire()) {
-            this.fireHummer(world);
-        } else if (actionController.scop.isOnFire()) {
-            this.fireScop(world);
-        } else if (actionController.gatring.isOnFire()) {
-            this.fireGatring(world);
-        } else if (actionController.pile.isOnFire()) {
-            this.firePilebunker(world);
-        } else if (actionController.grenade.isOnFire()) {
-            this.fireGrenade(world);
-        } else if (actionController.missile.isInFire()) {
-            if (actionController.missile.currentFireTime % 3 == 0) {
-                this.fireMissile(world, actionController.missile.currentFireTime / 3 - 1);
+        if (actionController.getAction(ACT_HUMMER).isOnFire()) {
+            this.fireHummer(level);
+        } else if (actionController.getAction(ACT_SCOP).isOnFire()) {
+            this.fireScop(level);
+        } else if (actionController.getAction(ACT_GATRING).isOnFire()) {
+            this.fireGatring(level);
+        } else if (actionController.getAction(ACT_PILE).isOnFire()) {
+            this.firePilebunker(level);
+        } else if (actionController.getAction(ACT_GRENADE).isOnFire()) {
+            this.fireGrenade(level);
+        } else if (actionController.getAction(ACT_MISSILE).isInFire()) {
+            if (actionController.getAction(ACT_MISSILE).currentFireTime % 3 == 0) {
+                this.fireMissile(level, actionController.getAction(ACT_MISSILE).currentFireTime / 3 - 1);
             }
         }
     }
@@ -473,10 +195,6 @@ public class Pmv01Entity extends LivingEntity implements GeoEntity, GeoAnimatabl
         }
     }
 
-    private boolean isSelf(Entity ent) {
-        return ent.equals(this) || ent.equals(this.getDrivingPassenger());
-    }
-
     private void firePilebunker(Level world) {
         Entity driver = this.getDrivingPassenger();
         var pilePos1 = new Vec3(6.5, 3.0F, 18F).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
@@ -541,13 +259,15 @@ public class Pmv01Entity extends LivingEntity implements GeoEntity, GeoAnimatabl
 
             LivingEntity target = null;
 
-            if (!lockTargetM.isEmpty()) {
-                var lockNum = lockTargetM.size();
+            List<Entity> lockTargetsMulti = lockTargets.getLockTargetMulti();
+
+            if (!lockTargetsMulti.isEmpty()) {
+                var lockNum = lockTargetsMulti.size();
                 int idx = slot;
                 if (lockNum <= slot) {
                     idx = slot % lockNum;
                 }
-                target = (LivingEntity)lockTargetM.get(idx);
+                target = (LivingEntity)lockTargetsMulti.get(idx);
             }
 
             MissileVerticalEntity be = new MissileVerticalEntity(PomkotsMechs.MISSILE_VERTICAL.get(), world, this, target);
@@ -559,14 +279,14 @@ public class Pmv01Entity extends LivingEntity implements GeoEntity, GeoAnimatabl
             world.addFreshEntity(be);
 
             if (slot == 5) {
-                lockTargetM.clear();
+                lockTargets.clearLockTargetsMulti();
             }
         } else {
             if (slot == 0) {
                 playSoundEffect(PomkotsMechs.SE_MISSILE_EVENT.get());
             }
 
-            lockTargetM.clear();
+            lockTargets.clearLockTargetsMulti();
         }
     }
 
@@ -597,362 +317,94 @@ public class Pmv01Entity extends LivingEntity implements GeoEntity, GeoAnimatabl
         }
     }
 
-    private float[] getShootingAngle(Entity bullet, boolean useLockTarget) {
-
-        double xRot = 0;
-        double yRot = 0;
-
-        var lockTarget = (lockTargetH != null)?lockTargetH:lockTargetS;
-        if (useLockTarget && lockTarget != null) {
-            Vec3 positionA = bullet.position();
-            // エンティティBの位置を取得
-            Vec3 positionB = lockTarget.getBoundingBox().getCenter();
-
-            // エンティティAからエンティティBへの相対ベクトル
-            double deltaX = positionB.x - positionA.x;
-            double deltaY = positionB.y - positionA.y;
-            double deltaZ = positionB.z - positionA.z;
-
-            // 水平角度 (Yaw) の計算 (XZ平面上の角度)
-            yRot = Math.toDegrees(Math.atan2(deltaZ, deltaX)) - 90.0; // 90度引いて北基準に
-
-            // 垂直角度 (Pitch) の計算 (Y軸方向の角度)
-            double distanceXZ = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ); // 水平方向の距離
-            xRot = -Math.toDegrees(Math.atan2(deltaY, distanceXZ)); // Y
-
-        } else {
-            var driver = this.getDrivingPassenger();
-            var lookAngle = driver.getLookAngle();
-
-            xRot = -Math.toDegrees(Math.asin(lookAngle.y)) - 7.5;
-            yRot = Math.toDegrees(Math.atan2(lookAngle.z, lookAngle.x)) - 90.0;
-        }
-
-        return new float[]{(float)xRot, (float)yRot};
-    }
-
     @Override
-    public void travel(Vec3 pos) {
-        if (this.isAlive() && this.isVehicle()) {
-            var pilot = this.getDrivingPassenger();
-
-            // ROTATE Vehicle
-            this.setYRot(pilot.getYRot());
-            this.yRotO = this.getYRot();
-            this.setXRot(pilot.getXRot() * 0.5F);
-            this.setRot(this.getYRot(), this.getXRot());
-            this.setYBodyRot(this.getYRot());
-            this.setYHeadRot(this.getYRot());
-
-            float f = pilot.xxa * 0.5F;
-            float f1 = pilot.zza * 0.5F;
-
-            // BOOST
-            if (isServerSide()) {
-                if (this.actionController.isBoost()) {
-                    this.setSpeed(1.5F);
-                } else {
-                    this.setSpeed(0.5F);
-                }
-            }
-
-            super.travel(new Vec3(f, pos.y, f1));
-        } else {
-            super.travel(pos);
-        }
-    }
-
-    @Override protected float getFlyingSpeed() {
-        if (isNoGravity() && isServerSide()) {
-            if (this.actionController.isBoost()) {
-                return 0.4f;
-            } else {
-                return 0.2f;
-            }
-        } else {
-            return super.getFlyingSpeed();
-        }
-    }
-
-    @Override
-    public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
-        if (passenger instanceof Player player) {
-            if (player.isDeadOrDying()) {
-                player.getAbilities().mayfly = true;
-            }
-        }
-
-        this.clearLockTargets();
-
-        return new Vec3(this.getX(), this.getBoundingBox().maxY, this.getZ());        // -1.0 for less head bonk.
-    }
-
-    @Override
-    public boolean hurt(DamageSource ds, float a) {
-        if (ds.getEntity() != null && ds.getEntity().equals(this.getDrivingPassenger())) {
-            return false;
-        } else {
-            if (this.isClientSide()) {
-                this.playSoundEffect(PomkotsMechs.SE_HIT_EVENT.get());
-                ParticleUtil.addParticles(ds,this);
-            }
-            return super.hurt(ds, a);
-        }
-    }
-
-    @Override
-    public InteractionResult interact(Player player, InteractionHand hand) {
-        if (this.getDrivingPassenger() == null) {
-            if (isServerSide()) {
-                player.setYRot(this.getYRot());
-                player.setXRot(this.getXRot());
-                player.startRiding(this);
-            }
-
-            this.rideCoolTick = 3;
-            this.actionController.reset();
-        }
-
-        return InteractionResult.sidedSuccess(this.level().isClientSide);
-    }
-
-    @Override
-    protected boolean canAddPassenger(Entity passenger) {
-        return this.getPassengers().isEmpty();
-    }
-
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, event -> {
-            if (this.getDrivingPassenger() == null) {
+    protected PlayState controllAnimationWeapons(AnimationState<PomkotsVehicleBase> event) {
+        if (this.actionController.getAction(ACT_PILE).isInAction()) {
+            if (this.actionController.getAction(ACT_PILE).isOnStart()) {
                 event.getController().forceAnimationReset();
-                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.idle"));
             }
+            return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".pilebunker"));
 
-            if (this.actionController.pile.isInAction()) {
-                if (this.actionController.pile.isOnStart()) {
-                    event.getController().forceAnimationReset();
-                }
-                return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.pilebunker"));
-
-            } else if (this.actionController.grenade.isInAction()) {
-                if (this.actionController.grenade.isOnStart()) {
-                    event.getController().forceAnimationReset();
-                }
-                return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.grenade"));
-
-            } else if (this.actionController.hummer.isInAction()) {
-                if (this.actionController.hummer.isOnStart()) {
-                    event.getController().forceAnimationReset();
-                }
-                return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.hummer"));
-
-            } else if (this.actionController.scop.isInAction()) {
-                if (this.actionController.scop.isOnStart()) {
-                    event.getController().forceAnimationReset();
-                }
-                return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.scop"));
-
-            } else if (this.actionController.gigadrill.isInAction()) {
-                if (this.actionController.gigadrill.isOnStart()) {
-                    event.getController().forceAnimationReset();
-                }
-                return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.gigadrillbreak"));
-
-            } else if (this.actionController.jump.isInAction()) {
-                if (this.actionController.jump.isOnStart()) {
-                    event.getController().forceAnimationReset();
-                }
-                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.jump"));
-
+        } else if (this.actionController.getAction(ACT_GRENADE).isInAction()) {
+            if (this.actionController.getAction(ACT_GRENADE).isOnStart()) {
+                event.getController().forceAnimationReset();
             }
+            return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".grenade"));
 
-            if (event.isMoving()) {
-                if (this.actionController.evasion.isInAction()) {
-                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.evasion"));
-                } else if (this.actionController.isBoost()) {
-                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.dash"));
-                } else {
-                    if (this.isNoGravity()) {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.idle"));
-                    } else {
-                        return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pmv01.walk"));
-                    }
-                }
-            } else {
-                if (this.yRotO != this.getYRot()) {
-                    return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pmv01.walk"));
-                } else {
-                    event.getController().forceAnimationReset();
-                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.idle"));
-                }
+        } else if (this.actionController.getAction(ACT_HUMMER).isInAction()) {
+            if (this.actionController.getAction(ACT_HUMMER).isOnStart()) {
+                event.getController().forceAnimationReset();
             }
-        }));
+            return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".hummer"));
 
-        controllers.add(new AnimationController<>(this, "fly", 0, event -> {
-            if (event.getAnimatable().onGround()) {
-                if (justLanded(event.getAnimatable())) {
-                    event.getController().forceAnimationReset();
-                    return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.onground"));
-                } else {
-                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.nop"));
-                }
-            } else {
-                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.flylegs"));
+        } else if (this.actionController.getAction(ACT_SCOP).isInAction()) {
+            if (this.actionController.getAction(ACT_SCOP).isOnStart()) {
+                event.getController().forceAnimationReset();
             }
-        }));
+            return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".scop"));
+        }
 
-        controllers.add(new AnimationController<>(this, "rotation", 3, event -> {
-            if (event.isMoving()) {
-                if (this.isNoGravity() && !this.actionController.isBoost() && !this.actionController.evasion.isInAction()) {
-                    if (this.forwardIntention > 0) {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.frontfly"));
-                    } else if (forwardIntention < 0) {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.backfly"));
-                    } else if (this.sidewayIntention < 0) {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.rightfly"));
-                    } else if (sidewayIntention > 0) {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.leftfly"));
-                    } else {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.nop"));
-                    }
-                } else {
-                    if (this.sidewayIntention < 0) {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.right"));
-                    } else if (sidewayIntention > 0) {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.left"));
-                    } else {
-                        return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.nop"));
-                    }
-                }
-            } else {
-                if (!this.actionController.isInActionAll()) {
-                    event.getController().forceAnimationReset();
-                }
-                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.nop"));
-            }
-        }));
+        return null;
+    }
 
+    @Override
+    protected void addExtraAnimationController(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "gatling", 0, event -> {
-            if (this.actionController.gatring.isInAction()) {
-                if (this.actionController.gatring.isOnStart()) {
+            if (this.actionController.getAction(ACT_GATRING).isInAction()) {
+                if (this.actionController.getAction(ACT_GATRING).isOnStart()) {
                     event.getController().forceAnimationReset();
                 }
 
-                if (!this.actionController.gatring.isInFire()) {
-                    return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.gatringgun1"));
+                if (!this.actionController.getAction(ACT_GATRING).isInFire()) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".gatringgun1"));
                 } else {
-                    return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pmv01.gatringgun2"));
+                    return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".gatringgun2"));
                 }
             } else {
-                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.nop"));
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
             }
         }));
 
         controllers.add(new AnimationController<>(this, "weapons", 0, event -> {
-            if (this.actionController.grenade.isInAction()) {
-                if (this.actionController.grenade.isOnStart()) {
+            if (this.actionController.getAction(ACT_GRENADE).isInAction()) {
+                if (this.actionController.getAction(ACT_GRENADE).isOnStart()) {
                     event.getController().forceAnimationReset();
                 }
-                return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.weapon_grenade"));
-            } else if (this.actionController.missile.isInAction()) {
-                if (this.actionController.grenade.isOnStart()) {
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".weapon_grenade"));
+            } else if (this.actionController.getAction(ACT_MISSILE).isInAction()) {
+                if (this.actionController.getAction(ACT_MISSILE).isOnStart()) {
                     event.getController().forceAnimationReset();
                 }
-                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.weapon_missile"));
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".weapon_missile"));
             } else {
-                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.pmv01.nop"));
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
             }
         }));
-
-        controllers.add(new AnimationController<>(this, "boosters", 0, event -> {
-            return event.setAndContinue(RawAnimation.begin().thenPlay("animation.pmv01.booster"));
-        }));
     }
 
     @Override
-    public boolean causeFallDamage(float f1, float f2, DamageSource damageSource) {
-        return false;
+    protected void registerAnimationSoundHandlers(SoundKeyframeEvent event) {
+        if ("se_jump".equals(event.getKeyframeData().getSound())) {
+            this.playSoundEffect(PomkotsMechs.SE_JUMP_EVENT.get());
+        } else if ("se_booster".equals(event.getKeyframeData().getSound())) {
+            this.playSoundEffect(PomkotsMechs.SE_BOOSTER_EVENT.get());
+        } else if ("se_onground".equals(event.getKeyframeData().getSound())) {
+            this.playSoundEffect(PomkotsMechs.SE_JUMP_EVENT.get());
+        }
     }
 
     @Override
-    public Iterable<ItemStack> getArmorSlots() {
-        return NonNullList.withSize(4, ItemStack.EMPTY);
+    public boolean shouldLockMulti(DriverInput driverInput) {
+        return driverInput.isWeaponRightShoulderPressed();
     }
 
     @Override
-    public ItemStack getItemBySlot(EquipmentSlot equipmentSlot) {
-        return ItemStack.EMPTY;
+    public boolean shouldLockWeak(DriverInput driverInput) {
+        return driverInput.isWeaponRightHandPressed();
     }
 
     @Override
-    public void setItemSlot(EquipmentSlot equipmentSlot, ItemStack itemStack) {
-
-    }
-
-    @Override
-    public HumanoidArm getMainArm() {
-        return null;
-    }
-
-    public LivingEntity getDrivingPassenger() {
-        return this.getPassengers().isEmpty() ? null : (LivingEntity) this.getPassengers().get(0);
-    }
-
-    @Override
-    public double getPassengersRidingOffset() {
-        return 2.5F;
-    }
-
-
-    @Override
-    public boolean isPushable() {
-        return false;
-    }
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return this.geoCache;
-    }
-
-    private Vec3 clientSeatPos = Vec3.ZERO;
-
-    public void setClientSeatPos(Vec3 seatPos) {
-        this.clientSeatPos = seatPos;
-    }
-
-    public Vec3 getClientSeatPos() {
-        return this.clientSeatPos;
-    }
-
-    private static final EntityDataAccessor<Boolean> MODE = SynchedEntityData.defineId(Pmv01Entity.class, EntityDataSerializers.BOOLEAN);
-
-    @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(MODE, true); // 初期値を設定
-    }
-
-    private void setMainMode(boolean value) {
-        this.entityData.set(MODE, value);
-    }
-
-    public boolean isMainMode() {
-        return this.entityData.get(MODE);
-    }
-
-    public boolean isSubMode() {
-        return !this.entityData.get(MODE);
-    }
-
-    private void playSoundEffect(SoundEvent event) {
-        this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), event, SoundSource.PLAYERS, 1.0F, 1.0F, false);
-    }
-
-    @Override
-    public void playStepSound(BlockPos blockPos, BlockState blockState) {
-//        if (this.isClientSide() && this.tickCount % 10 == 0) {
-//            this.playSoundEffect(PomkotsMechs.SE_WALK_EVENT);
-//        }
+    public boolean shouldLockStrong(DriverInput driverInput) {
+        return driverInput.isLockPressed();
     }
 }
