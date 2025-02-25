@@ -88,14 +88,37 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
         if (this.isMainMode()) {
             super.tick();
 
+            if (this.isVehicle()) {
+                setNoGravity(true);
+                this.moveForward();
+            } else {
+                setNoGravity(false);
+            }
+
+            if (this.isInWater()) {
+                applyBuoyancy();
+            }
         } else {
-            setNoGravity(true);
             super.tick();
-            this.moveForward();
         }
 
     }
 
+    private void applyBuoyancy() {
+        double waterSurfaceY = this.getFluidHeight(FluidTags.WATER); // 水面の高さを取得
+
+        // 水面上に留まる位置を計算
+        double targetY = waterSurfaceY + 0.5; // 水面より少し上
+        double currentY = this.getY();
+        double deltaY = targetY - currentY;
+
+        // 浮力を適用（速度を調整）
+        Vec3 motion = this.getDeltaMovement();
+        this.setDeltaMovement(motion.x, Mth.clamp(deltaY * 0.1, 0, 0.1), motion.z);
+
+        // 水の抵抗を適用
+        this.setDeltaMovement(this.getDeltaMovement().scale(0.9));
+    }
 
     private void moveForward() {
         // ピッチ（xRot）とヨー（yRot）に基づいて移動量を計算
@@ -112,40 +135,41 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
         this.move(MoverType.SELF, this.getDeltaMovement());
     }
 
-
-    @Override
-    public void travel(Vec3 pos) {
-        if (this.isMainMode()) {
-            super.travel(pos);
-        } else {
-//            this.setSpeed(1);
-//            pos = this.calculateNextPosition(pos, this.getXRot(), this.getYRot(), this.getSpeed());
-            this.travel2(pos);
-        }
-    }
-
-    public Vec3 calculateNextPosition(Vec3 cur, double xRot, double yRot, double speed) {
-        // 度をラジアンに変換
-        double xRotRadians = Math.toRadians(xRot);
-        double yRotRadians = Math.toRadians(yRot);
-
-        // 速度ベクトルの計算
-        double vx = -speed * Math.cos(xRotRadians) * Math.sin(yRotRadians);
-        double vy = -speed * Math.sin(xRotRadians);
-        double vz = speed * Math.cos(xRotRadians) * Math.cos(yRotRadians);
-
-        // 次の座標
-        double nextX = cur.x + vx;
-        double nextY = cur.y + vy;
-        double nextZ = cur.z + vz;
-
-        // 結果をVec3として返す
-        return new Vec3(nextX, nextY, nextZ);
-    }
-
     @Override
     protected void applyPlayerInput(DriverInput driverInput) {
         if (this.isMainMode()) {
+            this.getUserIntentionForDirectionFromKey(driverInput);
+            this.applyPlayerInputWeapons(driverInput);
+
+            if (driverInput.isWeaponRightShoulderPressed()) {
+                this.setSpeed(this.getSpeed() - 0.01F);
+            }
+            if (driverInput.isWeaponLeftShoulderPressed()) {
+                this.setSpeed(this.getSpeed() + 0.01F);
+            }
+
+            if (this.getSpeed() <= 0) {
+                this.setSpeed(0.1F);
+            } else if (this.getSpeed() > 2) {
+                this.setSpeed(2);
+            }
+
+            if (driverInput.isForwardPressed()) {
+                this.setXRot(this.getXRot() - 2);
+            }
+            if (driverInput.isBackPressed()) {
+                this.setXRot(this.getXRot() + 2);
+            }
+            if (driverInput.isLeftPressed()) {
+                this.setYRot(this.getYRot() - 2);
+            }
+            if (driverInput.isRightPressed()) {
+                this.setYRot(this.getYRot() + 2);
+            }
+            this.setXRot(Mth.wrapDegrees(this.getXRot()));
+
+            this.hasImpulse = true;
+        } else {
             this.getUserIntentionForDirectionFromKey(driverInput);
 
             this.applyPlayerInputWeapons(driverInput);
@@ -153,31 +177,6 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
             this.applyPlayerInputEvasion(driverInput);
             this.applyPlayerInputJump(driverInput);
             this.applyPlayerInputInAirActions(driverInput);
-        } else {
-            this.getUserIntentionForDirectionFromKey(driverInput);
-            this.applyPlayerInputWeapons(driverInput);
-
-            if (driverInput.isForwardPressed()) {
-                this.setXRot(this.getXRot() - 5);
-            }
-            if (driverInput.isBackPressed()) {
-                this.setXRot(this.getXRot() + 5);
-            }
-            if (driverInput.isLeftPressed()) {
-                this.setYRot(this.getYRot() - 5);
-            }
-            if (driverInput.isRightPressed()) {
-                this.setYRot(this.getYRot() + 5);
-            }
-
-//            this.setXRot(Mth.clamp(this.getXRot(), -90, 90)); // ピッチは上下90度まで
-
-            this.yRotO = this.getYRot();
-            this.setYBodyRot(this.getYRot());
-            this.setYHeadRot(this.getYRot());
-//            this.setRot(this.getYRot(), this.getXRot());
-
-            this.hasImpulse = true;
         }
     }
 
@@ -216,7 +215,7 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
                 muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
                 be.setPos(offset.add(muzzlPos));
 
-                be.shootFromRotation(be, this.getXRot(), this.getYRot(), this.getFallFlyingTicks(), 0.9F, 2F);
+                be.shootFromRotation(be, this.getXRot(), this.getYRot(), this.getFallFlyingTicks(), 2.5F, 2F);
 
                 world.addFreshEntity(be);
             }
@@ -242,7 +241,7 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
 
             be.setPos(offset.add(worldMuzzlPos));
 
-            be.shootFromRotation(be, this.getXRot(), this.getYRot(), this.getFallFlyingTicks(), 1F, 0F);
+            be.shootFromRotation(be, this.getXRot(), this.getYRot(), this.getFallFlyingTicks(), 2.5F, 0F);
 
             world.addFreshEntity(be);
         } else {
@@ -251,56 +250,58 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
         }
     }
 
+    @Override
+    public void travel(Vec3 pos) {
+        if (this.isMainMode()) {
+            this.travel2(pos);
+        } else {
+            super.travel(pos);
+        }
+    }
 
     @Override
     protected PlayState controllAnimationWeapons(AnimationState<PomkotsVehicleBase> event) {
-//        if (this.actionController.getAction(ACT_LIFT_BLOCK).isInAction()) {
-//            if (this.actionController.getAction(ACT_LIFT_BLOCK).isOnStart()) {
-//                event.getController().forceAnimationReset();
-//            }
-//            return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".raise"));
-//        } else if (this.actionController.getAction(ACT_THROW).isInAction()) {
-//            if (this.actionController.getAction(ACT_THROW).isOnStart()) {
-//                event.getController().forceAnimationReset();
-//            }
-//            return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".throw"));
-//
-//        }
-
         return null;
     }
 
     protected PlayState controllAnimationBasicMove(AnimationState<PomkotsVehicleBase> event) {
         if (this.isMainMode()) {
-            return super.controllAnimationBasicMove(event);
-        } else {
             return null;
+        } else {
+            return super.controllAnimationBasicMove(event);
         }
     }
 
     protected PlayState controllAnimationFlyingMotion(AnimationState<PomkotsVehicleBase> event) {
         if (this.isMainMode()) {
-            return super.controllAnimationFlyingMotion(event);
-        } else {
             return null;
+        } else {
+            return super.controllAnimationFlyingMotion(event);
         }
     }
 
     protected PlayState controllAnimationRotation(AnimationState<PomkotsVehicleBase> event) {
         if (this.isMainMode()) {
-            return super.controllAnimationRotation(event);
+            if (this.getDriverInput() != null) {
+                if (this.getDriverInput().isRightPressed()) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".rightfly"));
+                } else if (this.getDriverInput().isLeftPressed()) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".leftfly"));
+                }
+            }
+            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".centerfly"));
         } else {
-            return null;
+            return super.controllAnimationRotation(event);
         }
     }
 
     @Override
     protected void addExtraAnimationController(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "props", 0, event -> {
-            if (event.isMoving()) {
+            if (this.isVehicle()) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".prop"));
             }
-            return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".prop"));
+            return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".idle"));
         }).setSoundKeyframeHandler(soundKeyframeEvent -> {
             this.registerAnimationSoundHandlers(soundKeyframeEvent);
         }));

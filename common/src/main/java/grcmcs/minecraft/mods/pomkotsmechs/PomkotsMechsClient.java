@@ -55,6 +55,9 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.NS01, (context)->{
 			return new NoukinSkeltonEntityRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.EARTHBREAK2, (context)->{
+			return new EarthbreakEntityRenderer(context);
+		});
 
 		EntityRendererRegistry.register(PomkotsMechs.PLAYERDUMMY, (context)->{
 			return new PlayerDummyEntityRenderer(context);

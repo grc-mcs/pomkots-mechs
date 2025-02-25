@@ -66,7 +66,8 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<EntityType<Pmb01Entity>> PMB01 = registerEntityType("pmb01", Pmb01Entity::new, MobCategory.MONSTER, 0.7F, 19F);
 	public static final RegistrySupplier<EntityType<Pmb02Entity>> PMB02 = registerEntityType("pmb02", Pmb02Entity::new, MobCategory.MONSTER, 3F, 3F);
 
-	public static final RegistrySupplier<EntityType<NoukinSkeltonEntity>> NS01 = registerEntityType("noukinskelton", NoukinSkeltonEntity::new, MobCategory.CREATURE, 0.5F, 3F);
+	public static final RegistrySupplier<EntityType<NoukinSkeltonEntity>> NS01 = registerEntityType("noukinskelton", NoukinSkeltonEntity::new, MobCategory.CREATURE, 2F, 3F);
+	public static final RegistrySupplier<EntityType<EarthbreakEntity>> EARTHBREAK2 = registerEntityType("earthbreak2", EarthbreakEntity::new, MobCategory.MISC, 60F, 0.1F);
 
 	// Projectile
 	public static final RegistrySupplier<EntityType<BulletEntity>> BULLET = registerEntityType("bullet", BulletEntity::new, MobCategory.MISC, 2F, 2F);

@@ -37,12 +37,8 @@ public class Pmv03pEntityRenderer extends GeoEntityRenderer<Pmv03pEntity> {
     public void actuallyRender(PoseStack poseStack, Pmv03pEntity animatable, BakedGeoModel model, RenderType renderType,
                                MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
                                int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        //
-        float xrot = Mth.lerp(partialTick, animatable.xRotO, animatable.getXRot());
-//        PomkotsMechs.LOGGER.info("p" + partialTick + ",r0" + animatable.xRotO + ",r" + animatable.getXRot() + ",xx" + xrot);
-
+        float xrot = this.interpolateAngle(partialTick, animatable.xRotO, animatable.getXRot());
         model.getBone("body").get().setRotX((float)Math.toRadians(-xrot));
-//        model.getBone("body").get().setRotY((float)Math.toRadians(animatable.getYRot()));
 
         super.actuallyRender(poseStack, animatable, model, renderType,
                 bufferSource, buffer, isReRender, partialTick,
@@ -58,6 +54,18 @@ public class Pmv03pEntityRenderer extends GeoEntityRenderer<Pmv03pEntity> {
         }
 
         RenderUtils.renderAdditionalHud(poseStack, animatable, this.entityRenderDispatcher.cameraOrientation(), bufferSource);
+    }
+
+    private float interpolateAngle(float partialTicks, float prevAngle, float currentAngle) {
+        float wrappedPrev = Mth.wrapDegrees(prevAngle);
+        float wrappedCurrent = Mth.wrapDegrees(currentAngle);
+
+        // 補間の途中でジャンプが起きないように調整
+        float delta = wrappedCurrent - wrappedPrev;
+        if (delta < -180.0F) delta += 360.0F;
+        if (delta > 180.0F) delta -= 360.0F;
+
+        return Mth.wrapDegrees(wrappedPrev + partialTicks * delta);
     }
 
     private Vec3 getSeatPosition(BakedGeoModel model, int num) {

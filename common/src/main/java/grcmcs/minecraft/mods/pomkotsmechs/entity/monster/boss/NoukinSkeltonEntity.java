@@ -5,6 +5,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.AttackMeleeBossGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.WalkBossGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.EarthbreakEntity;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -59,16 +60,16 @@ public class NoukinSkeltonEntity extends GenericPomkotsMonster implements GeoEnt
         this.noCulling = true;
 
         // 各アクションのクールタイムやらアニメーション、発動処理のトリガーを行う設定をする
-        this.actionController.registerAction("attack", new BossActionController.BossAction(120,55,15,
+        this.actionController.registerAction("attack", new BossActionController.BossAction(400,55,30,
                 (Void) -> {if (this.isServerSide()) {this.triggerAnim("action_controller", "attack");}},
                 (Void) -> {this.attackNormal();}));
-        this.actionController.registerAction("charge", new BossActionController.BossAction(120,43,12,
+        this.actionController.registerAction("charge", new BossActionController.BossAction(400,80,32,
                 (Void) -> {if (this.isServerSide()) {this.triggerAnim("action_controller", "charge");}},
                 (Void) -> {this.attackCharge();}));
-        this.actionController.registerAction("punch", new BossActionController.BossAction(120,63,20,
+        this.actionController.registerAction("punch", new BossActionController.BossAction(400,100,25,
                 (Void) -> {if (this.isServerSide()) {this.triggerAnim("action_controller", "punch");}},
                 (Void) -> {this.attackPunch();}));
-        this.actionController.registerAction("tatsumaki", new BossActionController.BossAction(12,20,15,
+        this.actionController.registerAction("tatsumaki", new BossActionController.BossAction(400,20,15,
                 (Void) -> {if (this.isServerSide()) {this.triggerAnim("action_controller", "tatsumaki");}},
                 (Void) -> {this.attackTatsumaki();}));
 
@@ -83,12 +84,36 @@ public class NoukinSkeltonEntity extends GenericPomkotsMonster implements GeoEnt
     }
 
     private void attackNormal() {
+        var world = this.level();
+        if (this.isServerSide()) {
+            AABB atari = this.getBoundingBox().inflate(5);
+
+            var kbVel = new Vec3(0, 0, -3F).yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+            for (var ent : world.getEntities(null, atari)) {
+                if (ent.equals(this)) {
+                    continue;
+                }
+
+                if (ent instanceof LivingEntity le) {
+                    if (!world.isClientSide()) {
+                        le.knockback(2, kbVel.x, kbVel.z);
+                        le.hurt(this.damageSources().generic(), 5);
+                    }
+                }
+            }
+        }
     }
 
     private void attackCharge() {
+        if (isServerSide()) {
+            chargeVelocity = this.getLookAngle();
+        }
     }
 
     private void attackPunch() {
+        if (isServerSide()) {
+            this.setDeltaMovement(0,3,0);
+        }
     }
 
     private void attackTatsumaki() {
@@ -107,11 +132,13 @@ public class NoukinSkeltonEntity extends GenericPomkotsMonster implements GeoEnt
 
         controllers.add(new AnimationController<>(this, "action_controller", state -> PlayState.STOP)
                 .triggerableAnim("attack", RawAnimation.begin().thenPlay("animation.noukinskelton.attack1"))
-                .triggerableAnim("charge", RawAnimation.begin().thenPlay("animation.noukinskelton.charge1").thenPlay("animation.noukinskelton.charge2"))
-                .triggerableAnim("punch", RawAnimation.begin().thenPlay("animation.noukinskelton.punch").thenPlay("animation.noukinskelton.punch2").thenPlay("animation.noukinskelton.punch3"))
+                .triggerableAnim("charge", RawAnimation.begin().thenPlay("animation.noukinskelton.charge1").thenLoop("animation.noukinskelton.charge2"))
+                .triggerableAnim("punch", RawAnimation.begin().thenPlay("animation.noukinskelton.punch").thenPlay("animation.noukinskelton.punch2").thenPlay("animation.noukinskelton.punch3").thenLoop("animation.noukinskelton.punch4"))
                 .triggerableAnim("tatsumaki", RawAnimation.begin().thenPlay("animation.noukinskelton.tatsumaki"))
         );
     }
+
+    private Vec3 chargeVelocity = Vec3.ZERO;
 
     @Override
     public void tick() {
@@ -136,12 +163,42 @@ public class NoukinSkeltonEntity extends GenericPomkotsMonster implements GeoEnt
                         }
                     }
                 }
+            } else if (this.actionController.getAction("charge").currentActionTick > 32) {
+                this.setDeltaMovement(chargeVelocity);
+
+                AABB atari = this.getBoundingBox().inflate(5);
+
+                for (var ent : world.getEntities(null, atari)) {
+                    if (ent.equals(this)) {
+                        continue;
+                    }
+
+                    if (ent instanceof LivingEntity le) {
+                        var kbVel = ent.position().vectorTo(this.position()).normalize();
+
+                        if (!world.isClientSide()) {
+                            le.knockback(4, kbVel.x, kbVel.z);
+                            le.hurt(this.damageSources().generic(), 3);
+                        }
+                    }
+                }
+            } else if (this.actionController.getAction("punch").isInAction()) {
+                if (!prevOnGround && this.onGround()) {
+                    EarthbreakEntity be = new EarthbreakEntity(PomkotsMechs.EARTHBREAK2.get(), this.level(), this);
+                    be.setPos(this.position());
+                    this.level().addFreshEntity(be);
+                }
+                this.prevOnGround = this.onGround();
             }
         }
 
-        rotateToTarget(getTarget());
+        if (!this.actionController.getAction("charge").isInAction()) {
+            rotateToTarget(getTarget());
+        }
 
     }
+
+    private boolean prevOnGround = true;
 
     private final ServerBossEvent bossInfo = new ServerBossEvent(this.getDisplayName(), ServerBossEvent.BossBarColor.RED, ServerBossEvent.BossBarOverlay.PROGRESS);
 

@@ -276,9 +276,9 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
             // BOOST
             if (isServerSide()) {
                 if (this.actionController.isBoost()) {
-                    this.setSpeed(1.5F);
+                    this.setSpeed(this.getRunSpeed());
                 } else {
-                    this.setSpeed(0.5F);
+                    this.setSpeed(this.getWalkSpeed());
                 }
             }
 
@@ -287,6 +287,14 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
         } else {
             super.travel(pos);
         }
+    }
+
+    protected float getWalkSpeed(){
+        return 0.5F;
+    }
+
+    protected float getRunSpeed() {
+        return 1.5F;
     }
 
     @Override protected float getFlyingSpeed() {
