@@ -26,7 +26,8 @@ public class RenderUtils {
             }
 
             if (!entity.equals(client.player.getVehicle())) {
-                renderTargetLock(matrixStack, entity, rotation, buffer);
+                // HUD側で二次元的に処理する事にしたので使わない
+//                renderTargetLock(matrixStack, entity, rotation, buffer);
 
                 if (PomkotsMechs.CONFIG.enableHudHealthBar) {
                     renderHealthBar(matrixStack, entity, rotation, buffer);

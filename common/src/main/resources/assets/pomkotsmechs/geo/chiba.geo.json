@@ -1,0 +1,45 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.tochorobo",
+				"texture_width": 512,
+				"texture_height": 512,
+				"visible_bounds_width": 21,
+				"visible_bounds_height": 13,
+				"visible_bounds_offset": [0, 4.5, 0]
+			},
+			"bones": [
+				{
+					"name": "root",
+					"pivot": [0, 0, 0],
+					"cubes": [
+						{"origin": [-8.5, -12.75, -8.25], "size": [7.5, 22.5, 2.25], "uv": [323, 309]},
+						{"origin": [4.25, -12.75, -12], "size": [7.5, 22.5, 1.5], "pivot": [2.75, -6.75, 0.75], "rotation": [0, 90, 0], "uv": [423, 143]},
+						{"origin": [4.25, -12.75, 10.5], "size": [7.5, 22.5, 1.5], "pivot": [2.75, -6.75, -0.75], "rotation": [0, -90, 0], "uv": [423, 143]},
+						{"origin": [-8.5, -13.5, -7], "size": [7.5, 24, 14], "uv": [425, 163]},
+						{
+							"origin": [-8.75, -10.5, -4.5],
+							"size": [17, 17, 9],
+							"uv": {
+								"north": {"uv": [64, 467], "uv_size": [6, 7]},
+								"east": {"uv": [64, 467], "uv_size": [6, 7]},
+								"south": {"uv": [64, 467], "uv_size": [6, 7]},
+								"west": {"uv": [64, 467], "uv_size": [6, 7]},
+								"up": {"uv": [70, 474], "uv_size": [-6, -7]},
+								"down": {"uv": [70, 474], "uv_size": [-6, -7]}
+							}
+						},
+						{"origin": [-8.5, -12.75, 6], "size": [7.5, 22.5, 2.25], "uv": [323, 309]},
+						{"origin": [1, -12.75, -8.25], "size": [7.5, 22.5, 2.25], "uv": [323, 309], "mirror": true},
+						{"origin": [-11.75, -12.75, 10.5], "size": [7.5, 22.5, 1.5], "pivot": [-2.75, -6.75, -0.75], "rotation": [0, 90, 0], "uv": [423, 143], "mirror": true},
+						{"origin": [-11.75, -12.75, -12], "size": [7.5, 22.5, 1.5], "pivot": [-2.75, -6.75, 0.75], "rotation": [0, -90, 0], "uv": [423, 143], "mirror": true},
+						{"origin": [1, -13.5, -7], "size": [7.5, 24, 14], "uv": [425, 163], "mirror": true},
+						{"origin": [1, -12.75, 6], "size": [7.5, 22.5, 2.25], "uv": [323, 309], "mirror": true}
+					]
+				}
+			]
+		}
+	]
+}

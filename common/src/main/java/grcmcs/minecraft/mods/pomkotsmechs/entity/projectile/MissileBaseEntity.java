@@ -197,8 +197,8 @@ public abstract class MissileBaseEntity extends PomkotsThrowableProjectile imple
             if (entity.equals(shooter)) {
                 return;
             }
-            entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), getDamage());
             entity.invulnerableTime = 0;
+            entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), getDamage());
         }
         this.createExplosion(this.position());
 
@@ -227,7 +227,7 @@ public abstract class MissileBaseEntity extends PomkotsThrowableProjectile imple
         }
     }
 
-    private void addParticles(Vec3 offset) {
+    protected void addParticles(Vec3 offset) {
         Level world = level();
         for (int i = 0; i < 3; i++) {
             int rad = Math.abs(i - 3);

@@ -40,7 +40,7 @@ public class ParticleUtil {
         }
     }
 
-    private static void addSparkParticles(Vec3 offset, Level level) {
+    public static void addSparkParticles(Vec3 offset, Level level) {
         RandomSource random = level.getRandom();
 
         for (int i = 0; i < 30; i++) {

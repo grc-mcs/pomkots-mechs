@@ -133,5 +133,20 @@
     "sounds": [
       "pomkotsmechs:se_water"
     ]
+  },
+  "se_rifle": {
+    "sounds": [
+      "pomkotsmechs:se_rifle"
+    ]
+  },
+  "se_shotgun": {
+    "sounds": [
+      "pomkotsmechs:se_shotgun"
+    ]
+  },
+  "se_saber": {
+    "sounds": [
+      "pomkotsmechs:se_saber"
+    ]
   }
 }

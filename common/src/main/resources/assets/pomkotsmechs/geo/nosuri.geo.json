@@ -1,0 +1,70 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.tochorobo",
+				"texture_width": 512,
+				"texture_height": 512,
+				"visible_bounds_width": 21,
+				"visible_bounds_height": 13,
+				"visible_bounds_offset": [0, 4.5, 0]
+			},
+			"bones": [
+				{
+					"name": "root",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "vmissile",
+					"parent": "root",
+					"pivot": [0, -8, -7]
+				},
+				{
+					"name": "vmmain2",
+					"parent": "vmissile",
+					"pivot": [-0.5, 2, -13],
+					"cubes": [
+						{"origin": [-3.5, -14.5, -7], "size": [7.5, 24, 12], "uv": [427, 165]}
+					]
+				},
+				{
+					"name": "vmr2",
+					"parent": "vmmain2",
+					"pivot": [-2, -32.5, -34],
+					"cubes": [
+						{"origin": [-3.5, -39.25, -6.75], "size": [7.5, 24, 12.5], "uv": [422, 145]}
+					]
+				},
+				{
+					"name": "vmrg2",
+					"parent": "vmr2",
+					"pivot": [-3.5, -27.25, -0.25],
+					"cubes": [
+						{"origin": [-4.25, -38.5, 5.75], "size": [8.25, 22.5, 1.5], "uv": [414, 136]},
+						{"origin": [9.25, -38.5, 9.5], "size": [7.5, 22.5, 1.5], "pivot": [7.75, -32.5, -1.75], "rotation": [0, -90, 0], "uv": [414, 136]},
+						{"origin": [18.25, -38.5, 9.5], "size": [7.5, 22.5, 1.5], "pivot": [16.75, -32.5, -1.75], "rotation": [0, -90, 0], "uv": [414, 136]}
+					]
+				},
+				{
+					"name": "vml2",
+					"parent": "vmmain2",
+					"pivot": [-11, -7.75, -34],
+					"cubes": [
+						{"origin": [-2.75, -23.5, -5.5], "size": [6, 21, 9], "uv": [431, 140]}
+					]
+				},
+				{
+					"name": "vmlg2",
+					"parent": "vml2",
+					"pivot": [-3.5, -2.5, -0.25],
+					"cubes": [
+						{"origin": [-3.5, -13.75, 5], "size": [7.5, 22.5, 2.25], "uv": [422, 142]},
+						{"origin": [9.25, -13.75, 9.5], "size": [7.5, 22.5, 1.5], "pivot": [7.75, -7.75, -1.75], "rotation": [0, -90, 0], "uv": [423, 143]},
+						{"origin": [18.25, -13.75, 9.5], "size": [7.5, 22.5, 1.5], "pivot": [16.75, -7.75, -1.75], "rotation": [0, -90, 0], "uv": [423, 143]}
+					]
+				}
+			]
+		}
+	]
+}

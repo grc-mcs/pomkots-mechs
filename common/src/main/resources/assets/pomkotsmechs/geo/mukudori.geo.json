@@ -1,0 +1,64 @@
+{
+	"format_version": "1.12.0",
+	"minecraft:geometry": [
+		{
+			"description": {
+				"identifier": "geometry.tochorobo",
+				"texture_width": 512,
+				"texture_height": 512,
+				"visible_bounds_width": 21,
+				"visible_bounds_height": 13,
+				"visible_bounds_offset": [0, 4.5, 0]
+			},
+			"bones": [
+				{
+					"name": "root",
+					"pivot": [0, 0, 0]
+				},
+				{
+					"name": "vmissile",
+					"parent": "root",
+					"pivot": [0, -7, -7]
+				},
+				{
+					"name": "vmmain2",
+					"parent": "vmissile",
+					"pivot": [-0.5, 3, -13],
+					"cubes": [
+						{"origin": [-5.5, 6.5, -4], "size": [11.5, 5, 13], "uv": [424, 164]},
+						{"origin": [-6.5, -17.5, -5], "size": [13.5, 28, 15], "uv": [421, 162]},
+						{"origin": [-5.5, -19.5, 9], "size": [10.5, 9, 3], "uv": [434, 174]},
+						{"origin": [2.5, -20.5, 7], "size": [7.5, 11, 3], "pivot": [7.25, -15, 8.5], "rotation": [0, 50, 0], "uv": [435, 174]},
+						{"origin": [-10, -20.5, 7], "size": [7.5, 11, 3], "pivot": [-7.25, -15, 8.5], "rotation": [0, -50, 0], "uv": [435, 174], "mirror": true},
+						{"origin": [2.5, -2.5, -3], "size": [5.5, 13, 11], "pivot": [1, 0.25, -7], "rotation": [0, 0, 22.5], "uv": [428, 166]},
+						{"origin": [9.5, -5.5, 11], "size": [6.5, 13, 11], "pivot": [10, -2.75, 7], "rotation": [-90, -72.5, 90], "uv": [426, 166]},
+						{"origin": [11.5, -2.5, 10], "size": [5.5, 13, 9], "pivot": [10, 0.25, 5], "rotation": [-90, -72.5, 90], "uv": [430, 168]},
+						{"origin": [-9, -5.5, -4], "size": [6.5, 13, 13], "pivot": [-3, -2.75, -7], "rotation": [0, 0, -22.5], "uv": [424, 164], "mirror": true},
+						{"origin": [-8, -2.5, -3], "size": [5.5, 13, 11], "pivot": [-1, 0.25, -7], "rotation": [0, 0, -22.5], "uv": [428, 166], "mirror": true},
+						{"origin": [2.5, -5.5, -4], "size": [6.5, 13, 13], "pivot": [3, -2.75, -7], "rotation": [0, 0, 22.5], "uv": [424, 164]}
+					]
+				},
+				{
+					"name": "vmr2",
+					"parent": "vmmain2",
+					"pivot": [-2, -31.5, -34]
+				},
+				{
+					"name": "vmrg2",
+					"parent": "vmr2",
+					"pivot": [-3.5, -26.25, -0.25]
+				},
+				{
+					"name": "vml2",
+					"parent": "vmmain2",
+					"pivot": [-11, -6.75, -34]
+				},
+				{
+					"name": "vmlg2",
+					"parent": "vml2",
+					"pivot": [-3.5, -1.5, -0.25]
+				}
+			]
+		}
+	]
+}

@@ -3,13 +3,21 @@ package grcmcs.minecraft.mods.pomkotsmechs.util;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Utils {
     protected static final Logger LOGGER = LoggerFactory.getLogger(PomkotsMechs.MODID);
@@ -104,5 +112,60 @@ public class Utils {
             circlePosRad5.add(new Vec3i(i - rad + 3, 0, 2));}
         for (int i = 1; i <= 3; i++) {
             circlePosRad5.add(new Vec3i(i - rad + 3, 0, -2));}
+    }
+
+    public static boolean isBlockDestructionAllowed(Entity ent) {
+        if (ent instanceof PomkotsVehicleBase) {
+            return !ent.level().isClientSide && PomkotsMechs.CONFIG.enablePlayerVehicleBlockDestruction;
+        } else {
+            return !ent.level().isClientSide && PomkotsMechs.CONFIG.enableEntityBlockDestruction;
+        }
+    }
+
+    public static boolean isDestructiveBLock(String blockID) {
+        updateDestConfig();
+        return !nonDestructiveBlocks.contains(blockID);
+    }
+
+    public static void destroyBlock(Level level, BlockPos blockPos, boolean dropItem) {
+        var blockID = getBlockId(level.getBlockState(blockPos).getBlock());
+        if (isDestructiveBLock(blockID)) {
+            level.destroyBlock(blockPos, dropItem);
+        }
+    }
+
+    public static void setBlock(Level level, BlockPos blockPos, BlockState blockState, int num) {
+        var blockID = getBlockId(level.getBlockState(blockPos).getBlock());
+        if (isDestructiveBLock(blockID)) {
+            level.setBlock(blockPos, blockState, num);
+        }
+    }
+
+    private static String getBlockId(Block block) {
+        return BuiltInRegistries.BLOCK.getKey(block).toString();
+    }
+
+    private static String prevDestConfig = "hoge";
+    private static final Set<String> nonDestructiveBlocks = new HashSet<>();
+
+    private static void updateDestConfig() {
+        if (!prevDestConfig.equals(PomkotsMechs.CONFIG.nonDestructiveBlocks)) {
+            prevDestConfig = PomkotsMechs.CONFIG.nonDestructiveBlocks;
+
+            if (prevDestConfig != null && !prevDestConfig.isEmpty()) {
+                resetNonDestructiveBlocks();
+                for (var blockId: prevDestConfig.split(",")) {
+                    Utils.addNonDestructiveBlock(blockId);
+                }
+            }
+        }
+    }
+
+    public static void resetNonDestructiveBlocks() {
+        nonDestructiveBlocks.clear();
+    }
+
+    public static void addNonDestructiveBlock(String blockID) {
+        nonDestructiveBlocks.add(blockID);
     }
 }

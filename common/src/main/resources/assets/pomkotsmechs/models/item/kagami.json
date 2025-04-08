@@ -1,0 +1,23 @@
+{
+  "credit": "Made with Blockbench",
+  "parent": "builtin/entity",
+  "display": {
+    "gui": {
+      "rotation": [90,-45,90],
+      "translation": [-3,-2,0],
+      "scale": [0.16,0.16,0.16]
+    },
+    "ground": {
+      "rotation": [90,0,0],
+      "translation": [0,0,0],
+      "scale": [1,1,1]
+    }
+  },
+  "texture_size": [
+    32,
+    32
+  ],
+  "textures": {
+    "particle": "entity/parts/gray.png"
+  }
+}

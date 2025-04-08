@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.items;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -40,9 +41,9 @@ public class CoreStonePMV01Item extends Item {
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (target instanceof Pmv01Entity robot) {
+        if (target instanceof PomkotsVehicleBase robot) {
             // ロボットの体力を回復
-            robot.heal(20.0F);
+            robot.heal(20F);
             robot.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 1, 3)); // 回復エフェクト
 
             return false;

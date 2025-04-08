@@ -1,0 +1,525 @@
+{
+  "mech_parts": {
+    "deneb": {
+      "type": "parts",
+      "head": {
+        "description": "Light Weight Mech",
+        "weight": 75,
+        "level_param": [
+          {"durability": 5},
+          {"durability": 5},
+          {"durability": 10},
+          {"durability": 10},
+          {"durability": 15}
+      ]},
+      "body": {
+        "description": "Light Weight Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 35},
+          {"durability": 40},
+          {"durability": 45},
+          {"durability": 55},
+          {"durability": 60}
+      ]},
+      "arm": {
+        "description": "Light Weight Mech",
+        "weight": 150,
+        "level_param": [
+          {"durability": 20},
+          {"durability": 20},
+          {"durability": 25},
+          {"durability": 25},
+          {"durability": 30}
+      ]},
+      "legs": {
+        "description": "Light Weight Mech",
+        "weight": 225,
+        "level_param": [
+          {"durability": 35, "max_weight": 1800, "speed_modifier": 1, "jump_modifier": 0.9},
+          {"durability": 35, "max_weight": 1850, "speed_modifier": 1.05, "jump_modifier": 0.95},
+          {"durability": 40, "max_weight": 1900, "speed_modifier": 1.1, "jump_modifier": 1},
+          {"durability": 40, "max_weight": 1950, "speed_modifier": 1.15, "jump_modifier": 1.05},
+          {"durability": 45, "max_weight": 2000, "speed_modifier": 1.2, "jump_modifier": 1.1}
+      ]}
+    },
+    "altair": {
+      "type": "parts",
+      "head": {
+        "description": "Mid Weight Mech",
+        "weight": 100,
+        "level_param": [
+          {"durability": 10},
+          {"durability": 10},
+          {"durability": 15},
+          {"durability": 15},
+          {"durability": 20}
+      ]},
+      "body": {
+        "description": "Mid Weight Mech",
+        "weight": 400,
+        "level_param": [
+          {"durability": 60},
+          {"durability": 65},
+          {"durability": 70},
+          {"durability": 75},
+          {"durability": 80}
+      ]},
+      "arm": {
+        "description": "Mid Weight Mech",
+        "weight": 200,
+        "level_param": [
+          {"durability": 30},
+          {"durability": 30},
+          {"durability": 35},
+          {"durability": 35},
+          {"durability": 40}
+      ]},
+      "legs": {
+        "description": "Mid Weight Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 40, "max_weight": 2300, "speed_modifier": 0.80, "jump_modifier": 0.80},
+          {"durability": 45, "max_weight": 2350, "speed_modifier": 0.85, "jump_modifier": 0.85},
+          {"durability": 50, "max_weight": 2400, "speed_modifier": 0.90, "jump_modifier": 0.90},
+          {"durability": 55, "max_weight": 2450, "speed_modifier": 0.95, "jump_modifier": 0.95},
+          {"durability": 60, "max_weight": 2500, "speed_modifier": 1.00, "jump_modifier": 1.00}
+      ]}
+    },
+    "vega": {
+      "type": "parts",
+      "head": {
+        "description": "Heavy Weight Mech",
+        "weight": 150,
+        "level_param": [
+          {"durability": 20},
+          {"durability": 25},
+          {"durability": 30},
+          {"durability": 35},
+          {"durability": 40}
+      ]},
+      "body": {
+        "description": "Heavy Weight Mech",
+        "weight": 600,
+        "level_param": [
+          {"durability": 120},
+          {"durability": 130},
+          {"durability": 140},
+          {"durability": 150},
+          {"durability": 160}
+      ]},
+      "arm": {
+        "description": "Heavy Weight Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 60},
+          {"durability": 65},
+          {"durability": 70},
+          {"durability": 75},
+          {"durability": 80}
+      ]},
+      "legs": {
+        "description": "Heavy Weight Mech",
+        "weight": 450,
+        "level_param": [
+          {"durability": 80, "max_weight": 3600, "speed_modifier": 0.60, "jump_modifier": 0.40},
+          {"durability": 90, "max_weight": 3700, "speed_modifier": 0.65, "jump_modifier": 0.45},
+          {"durability": 100, "max_weight": 3800, "speed_modifier": 0.70, "jump_modifier": 0.50},
+          {"durability": 110, "max_weight": 3900, "speed_modifier": 0.75, "jump_modifier": 0.55},
+          {"durability": 120, "max_weight": 4000, "speed_modifier": 0.80, "jump_modifier": 0.60}
+      ]}
+    },
+    "sirius": {
+      "type": "parts",
+      "head": {
+        "description": "Reverse Joint Mech",
+        "weight": 100,
+        "level_param": [
+          {"durability": 10},
+          {"durability": 10},
+          {"durability": 15},
+          {"durability": 15},
+          {"durability": 20}
+      ]},
+      "body": {
+        "description": "Reverse Joint Mech",
+        "weight": 400,
+        "level_param": [
+          {"durability": 60},
+          {"durability": 65},
+          {"durability": 70},
+          {"durability": 75},
+          {"durability": 80}
+      ]},
+      "arm": {
+        "description": "Reverse Joint Mech",
+        "weight": 200,
+        "level_param": [
+          {"durability": 30},
+          {"durability": 30},
+          {"durability": 35},
+          {"durability": 35},
+          {"durability": 40}
+      ]},
+      "legs": {
+        "description": "Reverse Joint Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 40, "max_weight": 1800, "speed_modifier": 0.90, "jump_modifier": 1.80},
+          {"durability": 45, "max_weight": 1850, "speed_modifier": 0.95, "jump_modifier": 1.85},
+          {"durability": 50, "max_weight": 1900, "speed_modifier": 1.00, "jump_modifier": 1.90},
+          {"durability": 55, "max_weight": 1950, "speed_modifier": 1.05, "jump_modifier": 1.95},
+          {"durability": 60, "max_weight": 2000, "speed_modifier": 1.10, "jump_modifier": 2.00}
+      ]}
+    },
+    "aldebaran": {
+      "type": "parts",
+      "head": {
+        "description": "Tank Mech",
+        "weight": 150,
+        "level_param": [
+          {"durability": 20},
+          {"durability": 25},
+          {"durability": 30},
+          {"durability": 35},
+          {"durability": 40}
+      ]},
+      "body": {
+        "description": "Tank Mech",
+        "weight": 600,
+        "level_param": [
+          {"durability": 120},
+          {"durability": 130},
+          {"durability": 140},
+          {"durability": 150},
+          {"durability": 160}
+      ]},
+      "arm": {
+        "description": "Tank Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 60},
+          {"durability": 65},
+          {"durability": 70},
+          {"durability": 75},
+          {"durability": 80}
+      ]},
+      "legs": {
+        "description": "Tank Mech",
+        "weight": 450,
+        "level_param": [
+          {"durability": 80, "max_weight": 7200, "speed_modifier": 0.50, "jump_modifier": 0},
+          {"durability": 90, "max_weight": 7400, "speed_modifier": 0.55, "jump_modifier": 0},
+          {"durability": 100, "max_weight": 7600, "speed_modifier": 0.60, "jump_modifier": 0},
+          {"durability": 110, "max_weight": 7800, "speed_modifier": 0.65, "jump_modifier": 0},
+          {"durability": 120, "max_weight": 8000, "speed_modifier": 0.7, "jump_modifier": 0}
+      ]}
+    },
+    "biwa": {
+      "type": "weapon",
+      "description": "Large grenade on shoulder",
+      "weight": 500,
+      "level_param": [
+        {"damage": 32},
+        {"damage": 34},
+        {"damage": 36},
+        {"damage": 38},
+        {"damage": 40}
+    ]},
+    "jinba": {
+      "type": "weapon",
+      "description": "Drill on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 6},
+        {"damage": 7},
+        {"damage": 8},
+        {"damage": 9},
+        {"damage": 10}
+    ]},
+    "kagami": {
+      "type": "weapon",
+      "description": "Large grenade on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 32},
+        {"damage": 34},
+        {"damage": 36},
+        {"damage": 38},
+        {"damage": 40}
+    ]},
+    "kagenobu": {
+      "type": "weapon",
+      "description": "Pile bunker on arm",
+      "weight": 400,
+      "level_param": [
+        {"damage": 60},
+        {"damage": 65},
+        {"damage": 70},
+        {"damage": 75},
+        {"damage": 80}
+    ]},
+    "kasumi": {
+      "type": "weapon",
+      "description": "Gatling on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 3.5},
+        {"damage": 3.7},
+        {"damage": 3.9},
+        {"damage": 4.1},
+        {"damage": 4.5}
+    ]},
+    "kawasemi": {
+      "type": "weapon",
+      "description": "Missile strait on shoulder",
+      "weight": 250,
+      "level_param": [
+        {"damage": 12, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 13, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 14, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 15, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 16, "missile_max_num": 4, "missile_lock_interval": 2}
+    ]},
+    "mashu": {
+      "type": "weapon",
+      "description": "Beam rifle on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 42},
+        {"damage": 44},
+        {"damage": 46},
+        {"damage": 48},
+        {"damage": 50}
+    ]},
+    "mukudori": {
+      "type": "weapon",
+      "description": "x6 curved multi way missile on shoulder",
+      "weight": 500,
+      "level_param": [
+        {"damage": 12, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 13, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 14, "missile_max_num": 4, "missile_lock_interval": 2},
+        {"damage": 15, "missile_max_num": 5, "missile_lock_interval": 2},
+        {"damage": 16, "missile_max_num": 6, "missile_lock_interval": 2}
+    ]},
+    "nosuri": {
+      "type": "weapon",
+      "description": "x6 vertical multi missile on shoulder",
+      "weight": 250,
+      "level_param": [
+        {"damage": 12, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 13, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 14, "missile_max_num": 4, "missile_lock_interval": 2},
+        {"damage": 15, "missile_max_num": 5, "missile_lock_interval": 2},
+        {"damage": 16, "missile_max_num": 6, "missile_lock_interval": 2}
+    ]},
+    "senzoku": {
+      "type": "weapon",
+      "description": "Shot gun on arm",
+      "weight": 250,
+      "level_param": [
+        {"damage": 5},
+        {"damage": 6},
+        {"damage": 7},
+        {"damage": 8},
+        {"damage": 9}
+    ]},
+    "shakuji": {
+      "type": "weapon",
+      "description": "Rifle on arm",
+      "weight": 250,
+      "level_param": [
+        {"damage": 22},
+        {"damage": 24},
+        {"damage": 26},
+        {"damage": 28},
+        {"damage": 30}
+    ]},
+    "shinobazu": {
+      "type": "weapon",
+      "description": "Sub machine gun on arm",
+      "weight": 250,
+      "level_param": [
+        {"damage": 2.6},
+        {"damage": 2.7},
+        {"damage": 2.8},
+        {"damage": 2.9},
+        {"damage": 3}
+    ]},
+    "suwa": {
+      "type": "weapon",
+      "description": "Gatling on shoulder",
+      "weight": 500,
+      "level_param": [
+        {"damage": 3.5},
+        {"damage": 3.7},
+        {"damage": 3.9},
+        {"damage": 4.1},
+        {"damage": 4.5}
+    ]},
+    "takao": {
+      "type": "weapon",
+      "description": "Hummer on arm",
+      "weight": 400,
+      "level_param": [
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60}
+    ]},
+    "gassan": {
+      "type": "weapon",
+      "description": "Rance on arm",
+      "weight": 400,
+      "level_param": [
+        {"damage": 50}
+    ]},
+    "tsurugi": {
+      "type": "weapon",
+      "description": "Blade on arm",
+      "weight": 250,
+      "level_param": [
+        {"damage": 20},
+        {"damage": 25},
+        {"damage": 30},
+        {"damage": 35},
+        {"damage": 40}
+    ]},
+    "uguisu": {
+      "type": "weapon",
+      "description": "x4 multi missile on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 12, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 13, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 14, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 15, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 16, "missile_max_num": 4, "missile_lock_interval": 2}
+    ]},
+    "dodo": {
+      "type": "weapon",
+      "description": "Gigantic Missile",
+      "weight": 2000,
+      "level_param": [
+        {"damage": 120, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 140, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 160, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 180, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 200, "missile_max_num": 1, "missile_lock_interval": 2}
+      ]},
+    "chiba": {
+      "type": "generator",
+      "description": "Large generator",
+      "weight": 500,
+      "level_param": [
+        {"max_energy": 150, "energy_charge_per_tick": 2, "work_sec_per_fuel": 5}
+    ]},
+    "shiga": {
+      "type": "generator",
+      "description": "Middle generator",
+      "weight": 300,
+      "level_param": [
+        {"max_energy": 100, "energy_charge_per_tick": 2, "work_sec_per_fuel": 8}
+    ]},
+    "saga": {
+      "type": "generator",
+      "description": "Small generator",
+      "weight": 100,
+      "level_param": [
+        {"max_energy": 75, "energy_charge_per_tick": 2, "work_sec_per_fuel": 10}
+    ]},
+    "haneda": {
+      "type": "booster",
+      "description": "Large booster",
+      "weight": 50,
+      "level_param": [
+        {"energy_consume_evasion": 60, "energy_consume_vertical": 7, "speed_modifier_evasion": 1.4, "speed_modifier_vertical": 1.3}
+      ]},
+    "narita": {
+      "type": "booster",
+      "description": "Middle booster",
+      "weight": 30,
+      "level_param": [
+        {"energy_consume_evasion": 50, "energy_consume_vertical": 6, "speed_modifier_evasion":1.2, "speed_modifier_vertical": 1.2}
+    ]},
+    "kansai": {
+      "type": "booster",
+      "description": "Small booster",
+      "weight": 10,
+      "level_param": [
+        {"energy_consume_evasion": 40, "energy_consume_vertical": 5, "speed_modifier_evasion": 1.0, "speed_modifier_vertical": 1.1}
+    ]},
+    "circuitsoftlock": {
+      "type": "extension",
+      "description": "Enable target lock(soft) on aiming",
+      "weight": 0,
+      "level_param": [
+        {}
+    ]},
+    "circuithardlock": {
+      "type": "extension",
+      "description": "Enable target lock(hard) on aiming",
+      "weight": 0,
+      "level_param": [
+        {}
+    ]},
+    "magazinerifle": {
+      "type": "magazine",
+      "description": "Magazine for Rifle",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 12}
+      ]},
+    "magazinemissile": {
+      "type": "magazine",
+      "description": "Magazine for Missile",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 12}
+      ]},
+    "magazinemissilelarge": {
+      "type": "magazine",
+      "description": "Magazine for Gigantic Missile",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 2}
+      ]},
+    "magazinemachinegun": {
+      "type": "magazine",
+      "description": "Magazine for Machine Gun",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 30}
+      ]},
+    "magazineshotgun": {
+      "type": "magazine",
+      "description": "Magazine for Shot Gun",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 30}
+      ]},
+    "magazinegrenade": {
+      "type": "magazine",
+      "description": "Magazine for Grenade",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 6}
+      ]},
+    "magazinegatling": {
+      "type": "magazine",
+      "description": "Magazine for Gatling",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 24}
+      ]},
+    "pellet": {
+      "type": "fuel",
+      "description": "Fuel Pellet Medium Size",
+      "weight": 0,
+      "level_param": [
+        {"energy": 10}
+      ]}
+  }
+}

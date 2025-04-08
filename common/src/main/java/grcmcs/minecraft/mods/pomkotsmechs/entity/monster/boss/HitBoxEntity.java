@@ -1,5 +1,6 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
+import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PomkotsThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.mixin.ProjectileMixin;
 import net.minecraft.core.NonNullList;
@@ -17,6 +18,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -60,6 +62,7 @@ public class HitBoxEntity extends LivingEntity {
                     projectile -> !projectile.isRemoved() // 削除されていないエンティティのみ
             );
 
+            List<PomkotsThrowableProjectile> hitProjectiles = new ArrayList<>();
             for (PomkotsThrowableProjectile projectile : projectiles) {
                 if (bossBoundingBox.intersects(projectile.getBoundingBox())) {
                     projectile.onHitEntityPublic(this);
@@ -93,6 +96,7 @@ public class HitBoxEntity extends LivingEntity {
                     }
                 }
 
+                parentEntity.invulnerableTime = 0;
                 return parentEntity.hurt(source, amount * 0.5F);
             }
 

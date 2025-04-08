@@ -1,8 +1,12 @@
 package grcmcs.minecraft.mods.pomkotsmechs;
 
 import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.networking.NetworkManager;
+import dev.architectury.platform.Platform;
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.client.particle.ParticleProviderRegistry;
+import dev.architectury.registry.menu.MenuRegistry;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.hud.PomkotsHud;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.UserInteractionManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ExplosionCore;
@@ -10,6 +14,16 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.particles.FireParticle;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.MissileSmokeParticle;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.SparkParticle;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.*;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.projectile.BulletBeamEntityRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.projectile.BulletGrenadeEntityRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.projectile.BulletMachineEntityRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.projectile.BulletRifleEntityRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
+import io.netty.buffer.Unpooled;
+import net.minecraft.network.FriendlyByteBuf;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 public class PomkotsMechsClient {
 	private static final UserInteractionManager keyPressManager = new UserInteractionManager();
@@ -26,6 +40,13 @@ public class PomkotsMechsClient {
 		});
 		EntityRendererRegistry.register(PomkotsMechs.PMV03P, (context)->{
 			return new Pmv03pEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.PMV03, (context)->{
+			return new Pmv03EntityRenderer(context);
+		});
+
+		EntityRendererRegistry.register(PomkotsMechs.PMVC01, (context)->{
+			return new Pmvc01EntityRenderer(context);
 		});
 
 
@@ -52,9 +73,6 @@ public class PomkotsMechsClient {
 			return new Pms05EntityRenderer(context);
 		});
 
-		EntityRendererRegistry.register(PomkotsMechs.NS01, (context)->{
-			return new NoukinSkeltonEntityRenderer(context);
-		});
 		EntityRendererRegistry.register(PomkotsMechs.EARTHBREAK2, (context)->{
 			return new EarthbreakEntityRenderer(context);
 		});
@@ -76,6 +94,13 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.GRENADELARGE, (context)->{
 			return new GrenadeLargeEntityRenderer(context);
 		});
+
+		EntityRendererRegistry.register(PomkotsMechs.MISSILE_GENERIC, (context)->{
+			return new MissileBaseEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.MISSILE_GENERIC_LARGE, (context)->{
+			return new MissileBaseEntityRenderer(context);
+		});
 		EntityRendererRegistry.register(PomkotsMechs.MISSILE_VERTICAL, (context)->{
 			return new MissileBaseEntityRenderer(context);
 		});
@@ -96,6 +121,21 @@ public class PomkotsMechsClient {
 		});
 		EntityRendererRegistry.register(PomkotsMechs.PRESENT_BOX, (context)->{
 			return new PresentBoxEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.BULLET_RIFLE, (context)->{
+			return new BulletRifleEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.BULLET_MACHINE, (context)->{
+			return new BulletMachineEntityRenderer(context, 0.4F);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.BULLET_MACHINE_LARGE, (context)->{
+			return new BulletMachineEntityRenderer(context, 0.7F);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.BULLET_GRENADE, (context)->{
+			return new BulletGrenadeEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.BULLET_BEAM, (context)->{
+			return new BulletBeamEntityRenderer(context);
 		});
 
 		EntityRendererRegistry.register(PomkotsMechs.EXPLOSION, (context)->{
@@ -120,6 +160,10 @@ public class PomkotsMechsClient {
 			return new HitBoxEntityRenderer(context);
 		});
 
+		if (Platform.isFabric()) {
+			MenuRegistry.registerScreenFactory(PomkotsMechs.MECH_WORKBENCH_GUI.get(), MechWorkbenchScreen::new);
+		}
+
 		keyPressManager.registerClient();
 
 		ParticleProviderRegistry.register(PomkotsMechs.FIRE, FireParticle.Provider::new);
@@ -128,5 +172,15 @@ public class PomkotsMechsClient {
 		ParticleProviderRegistry.register(PomkotsMechs.SPARK, SparkParticle.Provider::new);
 
 		ClientGuiEvent.RENDER_HUD.register(new PomkotsHud());
+
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_UPDATE_DATAPACK), (buf, context) -> {
+			try {
+				ByteArrayInputStream bais = new ByteArrayInputStream(buf.readByteArray());
+				PomkotsDataPackManager.getInstance().deSerialize(bais);
+				bais.close();
+			} catch (Exception e) {
+				PomkotsMechs.LOGGER.error("Failed to recieve datapack to client", e);
+			}
+		});
 	}
 }

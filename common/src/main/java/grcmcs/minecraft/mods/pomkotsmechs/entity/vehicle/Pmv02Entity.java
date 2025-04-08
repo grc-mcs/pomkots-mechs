@@ -7,6 +7,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.BlockProjectileEntit
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PresentBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -429,7 +430,7 @@ public class Pmv02Entity extends PomkotsVehicleBase {
                 var blockPos = hitResult.getBlockPos();
 
                 // ブロックを破壊
-                level.destroyBlock(blockPos, PomkotsMechs.CONFIG.dropItemsWhenDestroyBlock);
+                Utils.destroyBlock(level, blockPos, PomkotsMechs.CONFIG.dropItemsWhenDestroyBlock);
             }
         }
     }
@@ -498,7 +499,7 @@ public class Pmv02Entity extends PomkotsVehicleBase {
                         for (int z = -rangeZ / 2; z <= rangeZ / 2; z++) {
                             BlockPos targetPos = origin.offset(x, y, z);
                             if (!level.isEmptyBlock(targetPos)) {
-                                level.destroyBlock(targetPos, PomkotsMechs.CONFIG.dropItemsWhenDestroyBlock);
+                                Utils.destroyBlock(level, targetPos, PomkotsMechs.CONFIG.dropItemsWhenDestroyBlock);
                             }
                         }
                     }
@@ -522,7 +523,7 @@ public class Pmv02Entity extends PomkotsVehicleBase {
                                     var bs = this.level().getBlockState(a);
 
                                     if (!blockState.equals(bs)) {
-                                        this.level().setBlock(a, blockToPlace.defaultBlockState(), 3);
+                                        Utils.setBlock(level, a, blockToPlace.defaultBlockState(), 3);
                                         consumedBlocks++;
                                     }
                                 }
@@ -572,7 +573,7 @@ public class Pmv02Entity extends PomkotsVehicleBase {
                     BlockState state = this.level().getBlockState(blockPos);
                     if (!state.isAir()) {
                         if (x * x + z * z <= radius * radius) {
-                            this.level().destroyBlock(blockPos, PomkotsMechs.CONFIG.dropItemsWhenDestroyBlock);
+                            Utils.destroyBlock(this.level(), blockPos, PomkotsMechs.CONFIG.dropItemsWhenDestroyBlock);
                         }
                     }
                 }
@@ -598,7 +599,7 @@ public class Pmv02Entity extends PomkotsVehicleBase {
                         BlockState state = this.level().getBlockState(targetPos);
                         // ブロックが空でない場合に破壊
                         if (!state.isAir()) {
-                            this.level().destroyBlock(targetPos, PomkotsMechs.CONFIG.dropItemsWhenDestroyBlock);
+                            Utils.destroyBlock(this.level(), targetPos, PomkotsMechs.CONFIG.dropItemsWhenDestroyBlock);
                         }
                     }
                 }

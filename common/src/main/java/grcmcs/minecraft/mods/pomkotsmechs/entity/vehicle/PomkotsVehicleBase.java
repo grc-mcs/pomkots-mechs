@@ -85,6 +85,8 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
         this.setMaxUpStep(2.0F);
     }
 
+    private DriverInput prevDriverInput = new DriverInput((short)0);
+
     @Override
     public void tick() {
         this.updatePosHistory(this.position());
@@ -93,7 +95,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
 
         this.actionController.tick();
 
-        if (this.isAlive() && this.isVehicle()) {
+        if (this.isAlive() && this.isVehicle() && this.canWork()) {
             if (rideCoolTick > 0) {
                 rideCoolTick--;
 
@@ -106,7 +108,9 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
                     if (b == null) {
                         b = 0;
                     }
-                    driverInput = new DriverInput(b);
+                    driverInput = new DriverInput(b, prevDriverInput);
+                } else if (driverInput != null){
+                    driverInput = new DriverInput(driverInput.getStatus(), prevDriverInput);
                 }
 
                 if (driverInput != null) {
@@ -121,7 +125,12 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
 
         }
 
+        this.prevDriverInput = this.driverInput;
         this.onGroundPrev = this.onGround();
+    }
+
+    public boolean canWork() {
+        return true;
     }
 
     protected void applyPlayerInput(DriverInput driverInput) {
@@ -161,7 +170,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
             }
 
             vel = vel.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
-            var distance = 0.475 * 15;
+            var distance = getHorizontalBoostAcceleration();
             vel = vel.scale(distance);
 
             this.push(vel.x, vel.y, vel.z);
@@ -174,7 +183,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
         }
         if (this.actionController.getAction(ACT_JUMP).isOnFire()) {
             if (isServerSide()) {
-                this.push(0, 2, 0);
+                this.push(0, this.getJumpSpeed(), 0);
             }
         }
     }
@@ -184,11 +193,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
             if (driverInput.isJumpPressed()) {
                 this.setNoGravity(true);
 
-                if (useEnergy(5)) {
-                    if (isServerSide() && this.getDeltaMovement().y() < 0.7) {
-                        this.push(0, 0.3, 0);
-                    }
-                } else {
+                if (!tryVerticalBoost()) {
                     if (isServerSide()) {
                         this.push(0, -0.18 * 0.9800000190734863D, 0);
                     }
@@ -199,6 +204,16 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
         } else {
             this.setNoGravity(false);
         }
+    }
+
+    protected boolean tryVerticalBoost() {
+        if (useEnergy(5)) {
+            if (isServerSide() && this.getDeltaMovement().y() < getVerticalBoostMaxSpeed()) {
+                this.push(0, getVerticalBoostAcceleration(), 0);
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void fireWeapons() {
@@ -259,7 +274,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
 
     @Override
     public void travel(Vec3 pos) {
-        if (this.isAlive() && this.isVehicle()) {
+        if (this.isAlive() && this.isVehicle() && this.canWork()) {
             var pilot = this.getDrivingPassenger();
 
             // ROTATE Vehicle
@@ -309,6 +324,23 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
         }
     }
 
+    protected float getHorizontalBoostAcceleration() {
+        return 0.475F * 15F;
+    }
+
+    protected float getVerticalBoostAcceleration() {
+        return 0.3F;
+    }
+
+    protected float getVerticalBoostMaxSpeed() {
+        return 0.7F;
+    }
+
+    protected float getJumpSpeed() {
+        return 2F;
+    }
+
+
     @Override
     public boolean hurt(DamageSource ds, float a) {
         if (ds.getEntity() != null && ds.getEntity().equals(this.getDrivingPassenger())) {
@@ -342,7 +374,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
     @Override
     public InteractionResult interact(Player player, InteractionHand hand) {
         if (this.getDrivingPassenger() == null) {
-            if (isServerSide()) {
+            if (isServerSide() && player.getVehicle() == null) {
                 player.setYRot(this.getYRot());
                 player.setXRot(this.getXRot());
                 player.startRiding(this);
@@ -527,6 +559,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
             );
 
     public void setDriverInput(DriverInput di) {
+//        this.driverInput = new DriverInput(di.getStatus(), this.driverInput);
         this.driverInput = di;
 
         if (!level().isClientSide) {
@@ -579,6 +612,10 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
      */
     private static final int MAX_ENERGY = 100;
     private int energy = MAX_ENERGY;
+
+    public int getMaxEnergy () {
+        return MAX_ENERGY;
+    }
 
     public int getEnergy() {
         return this.energy;
@@ -661,6 +698,10 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
      */
     protected void playSoundEffect(SoundEvent event) {
         this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), event, SoundSource.PLAYERS, 1.0F, 1.0F, false);
+    }
+
+    public void playSoundPublic(SoundEvent event) {
+        this.playSoundEffect(event);
     }
 
     @Override

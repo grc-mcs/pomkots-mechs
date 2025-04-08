@@ -1,5 +1,6 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
+import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
@@ -13,5 +14,9 @@ public abstract class PomkotsThrowableProjectile extends ThrowableProjectile {
 
     public void onHitEntityPublic(Entity entity) {
         this.onHitEntity(new EntityHitResult(entity));
+    }
+
+    public float getHitDamage() {
+        return 0;
     }
 }

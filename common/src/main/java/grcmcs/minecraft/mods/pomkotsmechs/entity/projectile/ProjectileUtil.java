@@ -1,22 +1,15 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
-import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import net.minecraft.world.Difficulty;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.GameRules;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 public class ProjectileUtil {
     public static boolean isDestructionAllowed(Entity ent) {
-        return !ent.level().isClientSide && PomkotsMechs.CONFIG.enableEntityBlockDestruction;
+        return Utils.isBlockDestructionAllowed(ent);
     }
 
     public static HitResult raycastBoundingCheck(Projectile entity) {

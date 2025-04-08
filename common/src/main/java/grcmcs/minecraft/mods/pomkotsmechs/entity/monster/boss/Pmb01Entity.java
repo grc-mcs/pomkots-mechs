@@ -554,7 +554,7 @@ public class Pmb01Entity extends GenericPomkotsMonster implements GeoEntity, Geo
 
     @Override
     public void setDriverInput(DriverInput di) {
-        this.driverInput = di;
+        this.driverInput = new DriverInput(di.getStatus(), this.driverInput);
 
         if (isServerSide() && di.isModeChangePressed()) {
             this.setMainMode(!this.isMainMode());

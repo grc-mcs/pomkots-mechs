@@ -4,12 +4,27 @@ public class BattleBalance {
     // Vehicles
     public static float MECH_HEALTH = 200F;
 
-    public static float MECH_PILE_DAMAGE = 30.0F;
+    public static float MECH_PILE_DAMAGE = 100;
     public static float MECH_GATLING_DAMAGE = 3F;
     public static float MECH_GRENADE_DAMAGE = 5F;
     public static float MECH_GRENADE_EXPLOSION = 4F;
     public static float MECH_MISSILE_DAMAGE = 8F;
     public static float MECH_MISSILE_EXPLOSION = 2F;
+
+    public static float MECH_MISSILE_GENERIC_SPEED = 1.4F;
+    public static float MECH_MISSILE_GENERIC_DAMAGE = 15F;
+
+    public static float MECH_MACHINEGUN_LARGE_DAMAGE = 3F;
+    public static float MECH_MACHINEGUN_LARGE_SPEED = 2.5F;
+
+    public static float MECH_RIFLE_DAMAGE = 20F;
+    public static float MECH_RIFLE_SPEED = 3F;
+
+    public static float MECH_BULLET_GRENADE_DAMAGE = 30F;
+    public static float MECH_BULLET_GRENADE_SPEED = 3F;
+
+    public static float MECH_BEAM_DAMAGE = 50F;
+    public static float MECH_BEAM_SPEED = 3F;
 
     // Mobs
     public static float MOB_HEALTH = 150F;

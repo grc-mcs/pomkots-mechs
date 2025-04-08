@@ -1,10 +1,12 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.hud;
 
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.input.TargetLocker;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
 import net.minecraft.client.Camera;
@@ -18,12 +20,25 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 public class PomkotsHud implements ClientGuiEvent.RenderHud {
-    Minecraft mc = Minecraft.getInstance();
+    private static final int FG_COLOR = 0x990086C9;
+    private static final int BG_COLOR = 0x55555555;
+
+    private static final ResourceLocation CROSSHAIR_TEXTURE = PomkotsMechs.id("textures/crosshair/crosshair0.png");
+    private static final ResourceLocation TARGET_LOCK_TEXTURE = PomkotsMechs.id("textures/crosshair/crosshair2.png");
+    private static final ResourceLocation TARGET_LOCK_HARD_TEXTURE = PomkotsMechs.id("textures/crosshair/custom/target_hard.png");
+    private static final ResourceLocation TARGET_LOCK_SOFT_TEXTURE = PomkotsMechs.id("textures/crosshair/custom/target_soft.png");
+    private static final ResourceLocation TARGET_LOCK_MULTI_TEXTURE = PomkotsMechs.id("textures/crosshair/custom/target_multi.png");
+
+    protected Minecraft mc = Minecraft.getInstance();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PomkotsMechs.MODID);
 
@@ -32,6 +47,7 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
 
     private int curEN = 0;
     private int prevEN = 0;
+    private int maxEN = 0;
 
     private int curCTRightArm = 0;
     private int prevCTRightArm = 0;
@@ -49,81 +65,106 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
     private int prevCTLeftShoulder = 0;
     private int maxCTLeftShoulder = 0;
 
-    private int offsetY = 0;
+
+    private int prevTick;
 
     public void renderHud(GuiGraphics guiGraphics, float tickDelta) {
         LocalPlayer pl = mc.player;
 
         if (pl != null) {
             if (pl.getVehicle() instanceof PomkotsVehicleBase protobot) {
-                offsetY = mc.getWindow().getGuiScaledHeight() - 30;
-
-                if (protobot.isMainMode()) {
-                    renderHudBattle(protobot, guiGraphics, tickDelta);
-                } else {
-                    renderHudNormal(protobot, guiGraphics, tickDelta);
+                if (prevTick != pl.tickCount) {
+                    updateValues(protobot);
                 }
 
+                renderLockOnMarks(guiGraphics);
+
+                if (protobot instanceof Pmvc01Entity mech) {
+                    renderCustomMechHud(mech, guiGraphics, tickDelta);
+                } else {
+                    if (protobot.isMainMode()) {
+                        renderHudBattle(protobot, guiGraphics, tickDelta);
+                    } else {
+                        renderHudNormal(protobot, guiGraphics, tickDelta);
+                    }
+                }
+
+                prevTick = pl.tickCount;
             }
         }
     }
 
-    private void renderHudNormal(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
-        updateValues(protobot);
-        renderCrossHair(guiGraphics, tickDelta);
-        renderHealthBar(protobot, guiGraphics, tickDelta);
-        renderFuelBar(protobot, guiGraphics, tickDelta);
-        renderCooldowns(protobot, guiGraphics, tickDelta);
+    public void renderLockOnMarks(GuiGraphics guiGraphics) {
+        TargetLocker locker = TargetLocker.getInstance();
+
+        if (locker.getHardLockTarget() != null) {
+            renderLockOnMark(locker.getHardLockTarget(), TARGET_LOCK_HARD_TEXTURE, guiGraphics);
+        } else if (locker.getSoftLockTarget() != null) {
+            renderLockOnMark(locker.getSoftLockTarget(), TARGET_LOCK_SOFT_TEXTURE, guiGraphics);
+        }
+
+        renderMultiLockOnMarks(locker.targetMulti, guiGraphics);
+        renderMultiLockOnMarks(locker.targetMultiRA, guiGraphics);
+        renderMultiLockOnMarks(locker.targetMultiLA, guiGraphics);
+        renderMultiLockOnMarks(locker.targetMultiRS, guiGraphics);
+        renderMultiLockOnMarks(locker.targetMultiLS, guiGraphics);
     }
 
-    private static final int FG_COLOR = 0x990086C9;
-    private static final int BG_COLOR = 0x55555555;
-
-    private void renderHudBattle(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
-        updateValues(protobot);
-        renderCrossHair(guiGraphics, tickDelta);
-        renderHealthBar(protobot, guiGraphics, tickDelta);
-        renderFuelBar(protobot, guiGraphics, tickDelta);
-        renderCooldowns(protobot, guiGraphics, tickDelta);
+    private void renderMultiLockOnMarks(Map<Integer, Entity> multiLock, GuiGraphics guiGraphics) {
+        if (!multiLock.isEmpty()) {
+            for (var entry: multiLock.entrySet()) {
+                renderLockOnMark(entry.getValue(), TARGET_LOCK_MULTI_TEXTURE, guiGraphics);
+            }
+        }
     }
 
-    private static final ResourceLocation CROSSHAIR_TEXTURE = PomkotsMechs.id("textures/crosshair/crosshair0.png");
+    private void renderLockOnMark(Entity targetEntity, ResourceLocation texture, GuiGraphics guiGraphics) {
+        Vector3f screenPos = projectEntityToScreen(targetEntity);
+        if (screenPos == null) return;
 
-    private void renderCrossHair(GuiGraphics guiGraphics, float tickDelta) {
-        // テクスチャの幅と高さ（クロスヘアの画像サイズ）
-        int textureWidth = 32;  // クロスヘアの幅
-        int textureHeight = 32; // クロスヘアの高さ
+        int screenX = (int) screenPos.x();
+        int screenY = (int) screenPos.y();
 
-        // 画面の幅と高さを取得
-        int screenWidth = mc.getWindow().getGuiScaledWidth();
-        int screenHeight = mc.getWindow().getGuiScaledHeight();
+        int size = 16;
 
-        // 画面中央の位置を計算
-        int startX = (screenWidth / 2) - (textureWidth / 2);
-        int startY = (screenHeight / 2) - (textureHeight / 2);
-
-        // クロスヘアのテクスチャをバインド
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc(); // デフォルトのブレンド関数を設定
-
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.6f); // R, G, B, A (Aが透明度)
-
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, CROSSHAIR_TEXTURE);
-
-        // `blit`メソッドでテクスチャを画面中央に描画
-        guiGraphics.blit(CROSSHAIR_TEXTURE, startX, startY, 0, 0, 0, textureWidth, textureHeight, textureWidth, textureHeight);
-
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // R, G, B, A (Aが透明度)
-
+        guiGraphics.blit(texture, screenX - size / 2, screenY - size / 2, 0, 0, size, size, size, size);
     }
 
+    private Vector3f projectEntityToScreen(Entity entity) {
+        Camera camera = mc.gameRenderer.getMainCamera();
+
+        Vec3 entityPos = entity.position().add(0, entity.getBbHeight() / 2, 0);
+        Vec3 camPos = camera.getPosition();
+        Quaternionf cameraRotation = camera.rotation();
+
+        Vec3 relativePos = entityPos.subtract(camPos);
+
+        Quaternionf q = new Quaternionf();
+        Vector3f transformed = new Vector3f((float) relativePos.x, (float) relativePos.y, (float) relativePos.z);
+        transformed.rotate(cameraRotation.conjugate(q));
+
+        if (transformed.z() < 0.1F) return null;
+
+        Window window = mc.getWindow();
+
+        float aRatio = (float)window.getGuiScaledWidth() / window.getGuiScaledHeight();
+        float fov = (float) Math.toRadians(mc.options.fov().get());
+        float halfFov = (float)Math.tan(fov/2.0F);
+
+        float screenX = (window.getGuiScaledWidth() / 2F) * (1F - transformed.x() / (transformed.z() * halfFov * aRatio));
+        float screenY = (window.getGuiScaledHeight() / 2F) * (1F - transformed.y() / (transformed.z() * halfFov));
+
+        return new Vector3f(screenX, screenY, transformed.z());
+    }
+
+    // あまりにあんまりなのでいつかなおす
     private void updateValues(PomkotsVehicleBase vehicle) {
         prevHealth = curHealth;
         curHealth = vehicle.getHealth();
 
         prevEN = curEN;
         curEN = vehicle.getEnergy();
+        maxEN = vehicle.getMaxEnergy();
 
         Action rArm;
         Action lArm;
@@ -146,7 +187,7 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         if (rArm != null ) {
             prevCTRightArm = curCTRightArm;
             curCTRightArm = rArm.currentCoolTime;
-            maxCTRightArm = rArm.maxChargeTime + 1;
+            maxCTRightArm = rArm.maxCoolTime;
 
         } else {
             prevCTRightArm = curCTRightArm = maxCTRightArm = 1;
@@ -181,6 +222,49 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         }
     }
 
+    private void renderHudNormal(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
+        renderCrossHair(guiGraphics, tickDelta);
+        renderHealthBar(protobot, guiGraphics, tickDelta);
+        renderEnergyBar(protobot, guiGraphics, tickDelta);
+        renderCooldowns(protobot, guiGraphics, tickDelta);
+    }
+
+    private void renderHudBattle(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
+        renderCrossHair(guiGraphics, tickDelta);
+        renderHealthBar(protobot, guiGraphics, tickDelta);
+        renderEnergyBar(protobot, guiGraphics, tickDelta);
+        renderCooldowns(protobot, guiGraphics, tickDelta);
+    }
+
+    private void renderCrossHair(GuiGraphics guiGraphics, float tickDelta) {
+        // テクスチャの幅と高さ（クロスヘアの画像サイズ）
+        int textureWidth = 32;  // クロスヘアの幅
+        int textureHeight = 32; // クロスヘアの高さ
+
+        // 画面の幅と高さを取得
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+        // 画面中央の位置を計算
+        int startX = (screenWidth / 2) - (textureWidth / 2);
+        int startY = (screenHeight / 2) - (textureHeight / 2);
+
+        // クロスヘアのテクスチャをバインド
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc(); // デフォルトのブレンド関数を設定
+
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.6f); // R, G, B, A (Aが透明度)
+
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, CROSSHAIR_TEXTURE);
+
+        // `blit`メソッドでテクスチャを画面中央に描画
+        guiGraphics.blit(CROSSHAIR_TEXTURE, startX, startY, 0, 0, 0, textureWidth, textureHeight, textureWidth, textureHeight);
+
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // R, G, B, A (Aが透明度)
+
+    }
+
     // エンティティの体力バーを描画するメソッド
     private void renderHealthBar(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
         // 画面の幅と高さを取得
@@ -213,14 +297,14 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
     }
 
     // 燃料ゲージの描画
-    private void renderFuelBar(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
+    private void renderEnergyBar(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
         // 画面の幅と高さを取得
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
 
-        int maxFuel = 100; // 最大燃料
+        int maxFuel = maxEN; // 最大燃料
 
-        int width = 20;
+        int width = 25;
         int height = 2;
 
         // 画面中央の位置を計算
@@ -235,7 +319,7 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         float fuelWidth = width * (enLerp / maxFuel);
 
         // 前景バー
-        guiGraphics.fill((int)(x + ((float)width - fuelWidth)/2), y, (int)(x + ((float)width - fuelWidth)/2 + fuelWidth), y + height, FG_COLOR);
+        guiGraphics.fill((int)(x + ((float)width - fuelWidth)/2), y, (int)(x + ((float)width - fuelWidth)/2 + fuelWidth) + 1, y + height, FG_COLOR);
     }
 
     private void renderCooldowns(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
@@ -247,96 +331,219 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         renderCooldown(prevCTLeftArm, curCTLeftArm, maxCTLeftArm, offx - 21, offy - 9, true, guiGraphics, tickDelta);
         renderCooldown(prevCTRightShoulder, curCTRightShoulder, maxCTRightShoulder, offx + 19, offy + 1, false, guiGraphics, tickDelta);
         renderCooldown(prevCTLeftShoulder, curCTLeftShoulder, maxCTLeftShoulder, offx - 21, offy + 1, true, guiGraphics, tickDelta);
-
-//
-//        renderCooldown(prevCTGat, curCTGat, maxCTGat, offx + 17, offy - 3, false, guiGraphics, tickDelta);
-//        renderCooldown(prevCTPile, curCTPile, maxCTPile, offx - 25, offy - 3, true, guiGraphics, tickDelta);
-//        renderCooldown(prevCTMissile, curCTMissile, maxCTMissile, offx + 17, offy + 1, false, guiGraphics, tickDelta);
-//        renderCooldown(prevCTGrenade, curCTGrenade, maxCTGrenade, offx - 25, offy + 1, true, guiGraphics, tickDelta);
     }
 
     private void renderCooldown(int prevCT, int curCT, int maxCT, int x, int y, boolean reverse, GuiGraphics guiGraphics, float tickDelta) {
-        // クールダウンブロックのサイズと配置位置
-        int blockWidth = 2; // クールダウンブロックの幅
-        int blockHeight = 8; // クールダウンブロックの高さ
+        int blockWidth = 2;
+        int blockHeight = 8;
 
-
-        // クールダウンが残っている場合、その割合に応じてゲージを描画
         float ctLerp = Mth.lerp(tickDelta, prevCT, curCT);
-        int cooldownHeight = (int) (blockHeight * (((float)maxCT - ctLerp) / (float)maxCT)); // 100を最大値とした割合
+        int cooldownHeight = (int) (blockHeight * (((float)maxCT - ctLerp) / (float)maxCT));
 
-        // 背景バー（黒）
         guiGraphics.fill(x, y, x + blockWidth, y + blockHeight, BG_COLOR);
-
-        // クールダウンゲージ（青）
         guiGraphics.fill(x, y + blockHeight - cooldownHeight, x + blockWidth, y + blockHeight, FG_COLOR);
-
     }
 
+
+    private static final int FG_COLOR2 = 0xFFC7D4DE;
+    private static final int BG_COLOR2 = 0x55555555;
+    private static final int BG_ERR_COLOR2 = 0x55AA0000;
+    private static final int FG_ERR_COLOR2 = 0xAAAA0000;
+
+    private static final ResourceLocation CROSSHAIR_TEXTURE2 = PomkotsMechs.id("textures/crosshair/custom/crosshair.png");
+    private static final ResourceLocation DONUT_CD_FORE = PomkotsMechs.id("textures/crosshair/custom/front_cooldown.png");
+    private static final ResourceLocation DONUT_AM_FORE = PomkotsMechs.id("textures/crosshair/custom/front_ammo.png");
+
+    protected void renderCustomMechHud(Pmvc01Entity mech, GuiGraphics guiGraphics, float tickDelta) {
+        renderCrossHair2(guiGraphics, tickDelta);
+        renderWeaponInformation(mech, guiGraphics, tickDelta);
+        renderHealthBar2(mech, guiGraphics, tickDelta);
+        renderFuelBar(mech, guiGraphics, tickDelta);
+        renderEnergyBar2(mech, guiGraphics, tickDelta);
+    }
+
+    private void renderWeaponInformation(Pmvc01Entity mech, GuiGraphics guiGraphics, float tickDelta) {
+        int offx = mc.getWindow().getGuiScaledWidth()/2;
+        int offy = mc.getWindow().getGuiScaledHeight()/2;
+
+        renderCooldown2(prevCTRightArm, curCTRightArm, maxCTRightArm, offx + 36 - 2, offy - 20, false, guiGraphics, tickDelta);
+        renderBulletNum(mech.getAmmoManager(Pmvc01Entity.INV_WEAPON_RIGHT_HAND), offx + 36 + 3 - 2, offy - 20, guiGraphics);
+        renderAmmoRight(mech.getAmmoManager(Pmvc01Entity.INV_WEAPON_RIGHT_HAND), offx + 36 + 12 - 2, offy - 18, guiGraphics);
+
+        renderCooldown2(prevCTRightShoulder, curCTRightShoulder, maxCTRightShoulder, offx + 36 - 2, offy + 12, false, guiGraphics, tickDelta);
+        renderBulletNum(mech.getAmmoManager(Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER), offx + 36 + 3 - 2, offy + 12,  guiGraphics);
+        renderAmmoRight(mech.getAmmoManager(Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER), offx + 36 + 12 - 2, offy + 14, guiGraphics);
+
+        renderCooldown2(prevCTLeftArm, curCTLeftArm, maxCTLeftArm, offx - 36, offy - 20, true, guiGraphics, tickDelta);
+        renderBulletNum(mech.getAmmoManager(Pmvc01Entity.INV_WEAPON_LEFT_HAND), offx - 36 - 3, offy - 20, guiGraphics);
+        renderAmmoLeft(mech.getAmmoManager(Pmvc01Entity.INV_WEAPON_LEFT_HAND), offx - 36, offy - 18, guiGraphics);
+
+        renderCooldown2(prevCTLeftShoulder, curCTLeftShoulder, maxCTLeftShoulder, offx - 36, offy + 12, true, guiGraphics, tickDelta);
+        renderBulletNum(mech.getAmmoManager(Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER), offx - 36 - 3, offy + 12,  guiGraphics);
+        renderAmmoLeft(mech.getAmmoManager(Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER), offx - 36, offy + 14, guiGraphics);
+
+
+    }
 
     private void renderCooldown2(int prevCT, int curCT, int maxCT, int x, int y, boolean reverse, GuiGraphics guiGraphics, float tickDelta) {
-        // クールダウンブロックのサイズと配置位置
-        int blockWidth = 8; // クールダウンブロックの幅
-        int blockHeight = 2; // クールダウンブロックの高さ
+        int blockWidth = 2;
+        int blockHeight = 12;
 
-
-        // クールダウンが残っている場合、その割合に応じてゲージを描画
         float ctLerp = Mth.lerp(tickDelta, prevCT, curCT);
-        int cooldownWidth = (int) (blockWidth * (((float)maxCT - ctLerp) / (float)maxCT)); // 100を最大値とした割合
+        int cooldownHeight = (int) (blockHeight * (((float)maxCT - ctLerp) / (float)maxCT));
 
-        // 背景バー（黒）
         guiGraphics.fill(x, y, x + blockWidth, y + blockHeight, BG_COLOR);
-
-        // クールダウンゲージ（青）
-        guiGraphics.fill(x, y, x + cooldownWidth, y + blockHeight, FG_COLOR);
-
+        guiGraphics.fill(x, y + blockHeight - cooldownHeight, x + blockWidth, y + blockHeight, FG_COLOR2);
     }
 
-    private void drawRectangleOutline(GuiGraphics guiGraphics, int x, int y, int width, int height, int color) {
-        // 上辺
-        guiGraphics.fill(x, y, x + width, y + 1, color);
-        // 下辺
-        guiGraphics.fill(x, y + height - 1, x + width, y + height, color);
-        // 左辺
-        guiGraphics.fill(x, y, x + 1, y + height, color);
-        // 右辺
-        guiGraphics.fill(x + width - 1, y, x + width, y + height, color);
-    }
-//
-//    // 残弾数の表示
-//    private void renderAmmoCount(MatrixStack matrixStack, PlayerEntity player) {
-//        int ammoCount = getAmmoFromPlayerInventory(player);
-//
-//        // 残弾数をHUDに表示
-//        String ammoText = "Ammo: " + ammoCount;
-//        MinecraftClient.getInstance().textRenderer.draw(matrixStack, ammoText, 10, 80, 0xFFFFFF);
-//    }
-//
-//    // プレイヤーのインベントリから弾薬数を取得するメソッド
-//    private int getAmmoFromPlayerInventory(PlayerEntity player) {
-//        // プレイヤーのインベントリから弾薬アイテムをカウント
-//        // （弾薬のアイテムを特定するロジックをここに追加）
-//        return 10; // 仮の値、実際はアイテムスタックから取得する
-//    }
+    private void renderBulletNum(Pmvc01Entity.AmmoManager amm, int x, int y, GuiGraphics guiGraphics) {
+        int bulletNum = amm.getBulletNum();
+        int maxBulletNum = amm.getBulletNumPerMagazine();
 
-    private void renderHealthBars(GuiGraphics guiGraphics, float tickDelta) {
-        PoseStack poseStack = guiGraphics.pose();
-//        poseStack.pushPose();
-        try {
-            Camera camera = mc.gameRenderer.getMainCamera();
+        if (maxBulletNum > 0) {
+            int blockWidth = 2;
+            int blockHeight = 12;
 
-            // すべてのエンティティをループ
-            for (Entity entity : mc.level.entitiesForRendering()) {
-                if (entity instanceof Monster) {
-                    Monster monster = (Monster) entity;
-                    // モンスターの体力バーをレンダリング
-                    renderHealthBar(monster, guiGraphics, tickDelta);
-                }
+            int bulletNumHeight = (int) (blockHeight * ((bulletNum) / (float)maxBulletNum)); // 100を最大値とした割合
+
+            if (bulletNum == 0) {
+                guiGraphics.fill(x, y, x + blockWidth, y + blockHeight, BG_ERR_COLOR2);
+            } else {
+                guiGraphics.fill(x, y, x + blockWidth, y + blockHeight, BG_COLOR);
             }
 
-        } finally {
-//            poseStack.popPose();
+            guiGraphics.fill(x, y + blockHeight - bulletNumHeight, x + blockWidth, y + blockHeight, FG_COLOR2);
         }
+    }
+
+    private void renderAmmoLeft(Pmvc01Entity.AmmoManager amm, int x, int y, GuiGraphics gui) {
+        if (amm.getBulletNumPerMagazine() != 0) {
+            int bColor = 0xBCFFE1, mColor = FG_COLOR2;
+            if (amm.getBulletNum() == 0) {
+                bColor = 0xFF0000;
+            }
+            if (amm.getMagazineNum() == 0) {
+                mColor = 0xFF0000;
+            }
+            gui.drawString(Minecraft.getInstance().font, String.format("%2s", amm.getMagazineNum()), (x - 20), y, mColor, false);
+        }
+    }
+
+    private void renderAmmoRight(Pmvc01Entity.AmmoManager amm, int x, int y, GuiGraphics gui) {
+        if (amm.getBulletNumPerMagazine() != 0) {
+            int bColor = 0xBCFFE1, mColor = FG_COLOR2;
+            if (amm.getBulletNum() == 0) {
+                bColor = 0xFF0000;
+            }
+            if (amm.getMagazineNum() == 0) {
+                mColor = 0xFF0000;
+            }
+            gui.drawString(Minecraft.getInstance().font, String.format("%-2s", amm.getMagazineNum()), x, y, mColor, false);
+        }
+
+    }
+
+    private void renderCrossHair2(GuiGraphics guiGraphics, float tickDelta) {
+        // テクスチャの幅と高さ（クロスヘアの画像サイズ）
+        int textureWidth = 64;  // クロスヘアの幅
+        int textureHeight = 64; // クロスヘアの高さ
+
+        // 画面の幅と高さを取得
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+        // 画面中央の位置を計算
+        int startX = (screenWidth / 2) - (textureWidth / 2);
+        int startY = (screenHeight / 2) - (textureHeight / 2);
+
+        // クロスヘアのテクスチャをバインド
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc(); // デフォルトのブレンド関数を設定
+
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.6f); // R, G, B, A (Aが透明度)
+
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, CROSSHAIR_TEXTURE2);
+
+        // `blit`メソッドでテクスチャを画面中央に描画
+        guiGraphics.blit(CROSSHAIR_TEXTURE2, startX, startY, 0, 0, 0, textureWidth, textureHeight, textureWidth, textureHeight);
+
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // R, G, B, A (Aが透明度)
+
+    }
+
+    private void renderHealthBar2(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
+        // 画面の幅と高さを取得
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+        // 体力バーの位置とサイズ
+        int width = 120;
+        int height = 3;
+
+        // 画面中央の位置を計算
+        int x = (screenWidth / 2) - (width / 2);
+        int y = screenHeight - 13;
+
+        int maxHealth = (int) protobot.getMaxHealth();
+
+        // 背景バー
+        guiGraphics.fill(x, y, x + width, y + height, BG_COLOR);
+
+        // 現在の体力の割合を計算
+        int healthWidthCur = (int) (width * Mth.lerp(tickDelta, (float) curHealth / maxHealth, (float) curHealth / maxHealth));
+        int healthWidthPrev = (int) (width * Mth.lerp(tickDelta, (float) prevHealth / maxHealth, (float) prevHealth / maxHealth));
+
+        int healthWidth = Mth.lerpInt(tickDelta, healthWidthPrev, healthWidthCur);
+        // 前景バー
+        guiGraphics.fill(x, y, x + healthWidth, y + height, (healthWidth < 40) ? FG_ERR_COLOR2 : FG_COLOR2);
+    }
+
+    private void renderFuelBar(Pmvc01Entity protobot, GuiGraphics guiGraphics, float tickDelta) {
+        // 画面の幅と高さを取得
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+        // 体力バーの位置とサイズ
+        int width = 120;
+        int height = 3;
+
+        // 画面中央の位置を計算
+        int x = (screenWidth / 2) - (width / 2);
+        int y = screenHeight - 8;
+
+        int maxFuel = protobot.getMaxFuel();
+
+
+        float fuelWidth = (maxFuel == 0 ? 0: (float)protobot.getFuelNow()/maxFuel) * width;
+
+        guiGraphics.fill(x, y, x + width, y + height, fuelWidth == 0 ? BG_ERR_COLOR2: BG_COLOR);
+        guiGraphics.fill(x, y, x + (int)fuelWidth, y + height, (fuelWidth < 40) ? FG_ERR_COLOR2 : FG_COLOR2);
+    }
+
+    private void renderEnergyBar2(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
+        // 画面の幅と高さを取得
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+        int maxFuel = maxEN; // 最大燃料
+
+        int width = 35;
+        int height = 2;
+
+        // 画面中央の位置を計算
+        int x = (screenWidth / 2) - (width / 2);
+        int y = (screenHeight / 2) -40;
+
+        // 燃料の割合を計算
+        float enLerp = Mth.lerp(tickDelta, prevEN, curEN);
+        float fuelWidth = width * (enLerp / maxFuel);
+
+        // 背景バー
+        guiGraphics.fill(x, y, x + width, y + height, (fuelWidth < width * 0.2) ? BG_ERR_COLOR2: BG_COLOR);
+
+        // 前景バー
+        guiGraphics.fill((int)(x + ((float)width - fuelWidth)/2), y, (int)(x + ((float)width - fuelWidth)/2 + fuelWidth) + 1, y + height, FG_COLOR2);
     }
 
     private void renderHealthBar(LivingEntity entity, GuiGraphics guiGraphics, float tickDelta) {

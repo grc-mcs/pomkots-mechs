@@ -4,6 +4,7 @@ import dev.architectury.networking.NetworkManager;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Camera;
@@ -18,16 +19,19 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//TODO ちょっと酷いのでいつかリファクタリングする…
 public class TargetLocker {
     private static final Logger LOGGER = LoggerFactory.getLogger(PomkotsMechs.MODID);
     private static final float COSINE_THRESHOLD = Mth.cos((float)Math.toRadians(30));
@@ -42,13 +46,29 @@ public class TargetLocker {
     private Minecraft minecraft = Minecraft.getInstance();
     private Entity targetSoft = null;
     private Entity targetHard = null;
-    private Map<Integer, Entity> targetMulti = new HashMap<>();
+    public Map<Integer, Entity> targetMulti = new HashMap<>();
+    public Map<Integer, Entity> targetMultiRA = new HashMap<>();
+    public Map<Integer, Entity> targetMultiLA = new HashMap<>();
+    public Map<Integer, Entity> targetMultiRS = new HashMap<>();
+    public Map<Integer, Entity> targetMultiLS = new HashMap<>();
 
     public void clearLockTargets() {
         this.targetSoft = null;
         this.targetHard = null;
         if (targetMulti != null) {
             targetMulti.clear();
+        }
+        if (targetMultiRA != null) {
+            targetMultiRA.clear();
+        }
+        if (targetMultiLA != null) {
+            targetMultiLA.clear();
+        }
+        if (targetMultiRS != null) {
+            targetMultiRS.clear();
+        }
+        if (targetMultiLS != null) {
+            targetMultiLS.clear();
         }
     }
 
@@ -60,11 +80,19 @@ public class TargetLocker {
             unlockTargetHard();
         }
         if (!targetMulti.isEmpty()) {
-            for (Map.Entry<Integer, Entity> entry: targetMulti.entrySet()) {
-                if (entry.getValue() != null && !entry.getValue().isAlive()) {
-                    targetMulti.remove(entry.getKey());
-                }
-            }
+            unlockTargetMulti(targetMulti);
+        }
+        if (!targetMultiRA.isEmpty()) {
+            unlockTargetMulti(targetMultiRA);
+        }
+        if (!targetMultiLA.isEmpty()) {
+            unlockTargetMulti(targetMultiLA);
+        }
+        if (!targetMultiRS.isEmpty()) {
+            unlockTargetMulti(targetMultiRS);
+        }
+        if (!targetMultiLS.isEmpty()) {
+            unlockTargetMulti(targetMultiLS);
         }
 
         if (isLockingHard()) {
@@ -94,32 +122,141 @@ public class TargetLocker {
             }
         }
 
-        if (lockOnMultiCooltime > 0) {
-            lockOnMultiCooltime--;
+        tickMultiLock(bot, driverInput);
+    }
+
+    public Entity getHardLockTarget() {
+        return targetHard;
+    }
+
+    public Entity getSoftLockTarget() {
+        return targetSoft;
+    }
+
+    public Entity getCrossHairTarget() {
+        var list = getEntitiesAroundPlayer(minecraft.player, 80);
+
+        for (var ent: list) {
+            if (isInLockonTraceRange(ent, COSINE_THRESHOLD2)) {
+                return ent;
+            }
+        }
+        return null;
+    }
+
+    private int lockOnMultiCooltime = 0;
+
+    private void tickMultiLock(PomkotsVehicle bot, DriverInput driverInput) {
+
+
+        // もしマルチロック武器のボタンが押されてなかったらロックを全部リリースする
+        // カスタムのポンコツメカ君
+        if (bot instanceof Pmvc01Entity customMech) {
+            if (lockOnMultiCooltime > 0) {
+                lockOnMultiCooltime--;
+
+            } else {
+                addTargetMultiCustom(customMech, driverInput);
+            }
+
+            releaseTargetMultiCustom(customMech, driverInput);
+        }
+        // 元々のポンコツメカ君（もう手を入れたら絶対動かないのでそのまま…いつかリファクタする）
+        else {
+            if (lockOnMultiCooltime > 0) {
+                lockOnMultiCooltime--;
+
+            } else {
+                if (bot.shouldLockMulti(driverInput)) {
+                    Entity target = findMultiLockTarget();
+                    if (target != null) {
+                        addTargetMulti(target);
+                    }
+                }
+            }
+
+            if (!driverInput.isWeaponRightShoulderPressed() && !targetMulti.isEmpty()) {
+                releaseTargetMulti(bot);
+            }
+        }
+    }
+
+    private Entity findMultiLockTarget() {
+        Entity target = null;
+        if (targetHard != null) {
+            target = targetHard;
+        } else if (targetSoft != null) {
+            target = targetSoft;
 
         } else {
-            if (bot.shouldLockMulti(driverInput)) {
-                if (targetHard != null) {
-                    addTargetMulti(targetHard);
+            var ent = getCrossHairTarget();
+            if (ent != null) {
+                target = ent;
+            }
+        }
+        return target;
+    }
 
-                } else if (targetSoft != null) {
-                    addTargetMulti(targetSoft);
+    private void addTargetMultiCustom(Pmvc01Entity mech, DriverInput driverInput) {
+        boolean added = false;
+        if (mech.shouldLockMulti(driverInput)) {
+            Entity target = findMultiLockTarget();
 
-                } else {
-                    var ent = getCrossHairTarget();
-                    if (ent != null) {
-                        addTargetMulti(ent);
-                    }
+            if (target != null) {
+                if (driverInput.isWeaponRightHandPressed()) {
+                    added |= addTargetMultiCustom(targetMultiRA, Pmvc01Entity.INV_WEAPON_RIGHT_HAND, target, mech.getRightArmWeapon());
+                }
+                if (driverInput.isWeaponLeftHandPressed()) {
+                    added |= addTargetMultiCustom(targetMultiLA, Pmvc01Entity.INV_WEAPON_LEFT_HAND, target, mech.getLeftArmWeapon());
+                }
+                if (driverInput.isWeaponRightShoulderPressed()) {
+                    added |= addTargetMultiCustom(targetMultiRS, Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER, target, mech.getRightShoulderWeapon());
+                }
+                if (driverInput.isWeaponLeftShoulderPressed()) {
+                    added |= addTargetMultiCustom(targetMultiLS, Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER, target, mech.getLeftShoulderWeapon());
                 }
             }
         }
 
-        if (!driverInput.isWeaponRightShoulderPressed() && !targetMulti.isEmpty()) {
-            releaseTargetMulti(bot);
+        if (added) {
+            minecraft.player.playSound(PomkotsMechs.SE_TARGET_EVENT.get(), 1.0F, 1.0F);
         }
     }
 
-    private int lockOnMultiCooltime = 0;
+    private boolean addTargetMultiCustom(Map<Integer, Entity> map, int slot, Entity target, ItemStack item) {
+        if (map.size() < Pmvc01Entity.getMultiLockTargetNum(item)) {
+
+            map.put(target.getId(), target);
+            lockOnMultiCooltime = 10;
+            sendServerLockMultiCustom(target.getId(), slot);
+
+            return true;
+        }
+        return false;
+    }
+
+    private void releaseTargetMultiCustom(Pmvc01Entity mech, DriverInput driverInput) {
+        if (!driverInput.isWeaponRightHandPressed()) {
+            targetMultiRA.clear();
+            mech.getLockTargets().unlockTargetMulti();
+            sendServerUnlockMulti();
+        }
+        if (!driverInput.isWeaponLeftHandPressed()) {
+            targetMultiLA.clear();
+            mech.getLockTargets().unlockTargetMulti();
+            sendServerUnlockMulti();
+        }
+        if (!driverInput.isWeaponRightShoulderPressed()) {
+            targetMultiRS.clear();
+            mech.getLockTargets().unlockTargetMulti();
+            sendServerUnlockMulti();
+        }
+        if (!driverInput.isWeaponLeftShoulderPressed()) {
+            targetMultiLS.clear();
+            mech.getLockTargets().unlockTargetMulti();
+            sendServerUnlockMulti();
+        }
+    }
 
     private void addTargetMulti(Entity ent) {
         if (targetMulti.size() < 6) {
@@ -136,6 +273,24 @@ public class TargetLocker {
         sendServerUnlockMulti();
     }
 
+    private void unlockTargetMulti(Map<Integer, Entity> map) {
+        List<Integer> removeTarget = null;
+        for (Map.Entry<Integer, Entity> entry: map.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isAlive()) {
+                if (removeTarget == null) {
+                    removeTarget = new ArrayList<>();
+                }
+                removeTarget.add(entry.getKey());
+            }
+        }
+
+        if (removeTarget != null) {
+            for (Integer key: removeTarget) {
+                map.remove(key);
+            }
+        }
+    }
+
     private void sendServerLockMulti(int entityId) {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.copyInt(entityId));
         NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_LOCK_MULTI), buf);
@@ -144,6 +299,12 @@ public class TargetLocker {
     private void sendServerUnlockMulti() {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.EMPTY_BUFFER);
         NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_UNLOCK_MULTI), buf);
+    }
+
+    private void sendServerLockMultiCustom(int entityId, int slot) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.copyInt(entityId));
+        buf.writeInt(slot);
+        NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_LOCK_MULTI_CUSTOM), buf);
     }
 
     private Entity findTargetHard() {
@@ -302,17 +463,6 @@ public class TargetLocker {
         return dotProduct >= cosineThreshold;
     }
 
-    public Entity getCrossHairTarget() {
-        var list = getEntitiesAroundPlayer(minecraft.player, 80);
-
-        for (var ent: list) {
-            if (isInLockonTraceRange(ent, COSINE_THRESHOLD2)) {
-                return ent;
-            }
-        }
-        return null;
-    }
-
     private void sendServerLockSoft(int entityId) {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.copyInt(entityId));
         NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_LOCK_SOFT), buf);
@@ -335,6 +485,11 @@ public class TargetLocker {
             return HARD;
         } else if (targetMulti.containsKey(ent.getId())) {
             return MULTI;
+        } else if (targetMultiRA.containsKey(ent.getId())
+                || targetMultiLA.containsKey(ent.getId())
+                || targetMultiRS.containsKey(ent.getId())
+                || targetMultiLS.containsKey(ent.getId())) {
+                return MULTI;
         } else {
             return NONE;
         }
