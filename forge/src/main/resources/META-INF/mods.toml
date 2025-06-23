@@ -42,6 +42,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.pomkotsmechs]]
+modId = "cloth_config"
+mandatory = true
+versionRange = "[11.1.118,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.pomkotsmechs]]
 modId = "leawind_third_person"
 mandatory = true
 versionRange = "[2.1.0,)"

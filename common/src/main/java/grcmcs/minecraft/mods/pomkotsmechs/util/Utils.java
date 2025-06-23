@@ -2,21 +2,39 @@ package grcmcs.minecraft.mods.pomkotsmechs.util;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PomkotsThrowableProjectile;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv03Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class Utils {
@@ -115,7 +133,9 @@ public class Utils {
     }
 
     public static boolean isBlockDestructionAllowed(Entity ent) {
-        if (ent instanceof PomkotsVehicleBase) {
+        if (ent == null) {
+            return false;
+        } else if (ent instanceof PomkotsVehicleBase) {
             return !ent.level().isClientSide && PomkotsMechs.CONFIG.enablePlayerVehicleBlockDestruction;
         } else {
             return !ent.level().isClientSide && PomkotsMechs.CONFIG.enableEntityBlockDestruction;
@@ -167,5 +187,117 @@ public class Utils {
 
     public static void addNonDestructiveBlock(String blockID) {
         nonDestructiveBlocks.add(blockID);
+    }
+
+    public static boolean shouldRenderCockpit(PomkotsVehicleBase vehicle) {
+        if (vehicle instanceof Pmv03Entity) {
+            return true;
+        } else if (vehicle instanceof Pmvc01Entity pmvc01) {
+            ItemStack headStack = pmvc01.getHeadParts();
+            if (headStack != null && !headStack.isEmpty() && headStack.getItem() instanceof BasePartsItem.Head headParts) {
+                if (headParts.isFullCovered()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static float[] getShootingAngle(Entity bullet, Entity target, boolean useDeviation) {
+        var targetPos = getTargetPos(target, useDeviation);
+        var bulletPos = bullet.position();
+
+        Vec3 bulletDir = targetPos.subtract(bulletPos).normalize();
+
+        float yaw = (float) (Math.atan2(-bulletDir.x, bulletDir.z) * (180.0 / Math.PI));
+        float pitch = (float) (Math.asin(-bulletDir.y) * (180.0 / Math.PI));
+
+        return new float[]{pitch, yaw};
+    }
+
+    public static Vec3 getTargetPos(Entity target, boolean useDeviation) {
+        Vec3 targetPos;
+        useDeviation = true;
+
+        if (useDeviation) {
+            targetPos = target.getBoundingBox().getCenter().add(target.getDeltaMovement()).add(target.getDeltaMovement());
+        } else {
+            targetPos = target.getBoundingBox().getCenter();
+        }
+
+        return targetPos;
+    }
+
+    public static boolean isObstructed(Level level, Entity from, Entity to) {
+        Vec3 fromPos = from.getEyePosition(1.0f);
+        Vec3 toPos = to.getEyePosition(1.0f);
+
+        BlockHitResult result = level.clip(new ClipContext(
+                fromPos,
+                toPos,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                from
+        ));
+
+        // ブロックにヒットしている場合、遮蔽あり
+        return result.getType() == HitResult.Type.BLOCK;
+    }
+
+    public static void playSoundEffect(SoundEvent event, Entity src) {
+        src.level().playLocalSound(src.getX(), src.getY(), src.getZ(), event, SoundSource.PLAYERS, 1.0F, 1.0F, false);
+    }
+
+    public static void playSoundEffect(SoundEvent event, Entity src, float volume) {
+        src.level().playLocalSound(src.getX(), src.getY(), src.getZ(), event, SoundSource.PLAYERS, volume, 1.0F, false);
+    }
+
+    public static boolean isWithinHorizontalDistance(Entity entityA, Entity entityB, double distance) {
+        Vec3 posA = entityA.position();
+        Vec3 posB = entityB.position();
+
+        double dx = posA.x - posB.x;
+        double dz = posA.z - posB.z;
+        double horizontalDistSqr = dx * dx + dz * dz;
+
+        return horizontalDistSqr <= distance * distance;
+    }
+
+    public static LivingEntity getProjectileOwner(Projectile projectile) {
+        if (projectile instanceof PomkotsThrowableProjectile ptp) {
+            var shooter = ptp.getShooter();
+
+            if (shooter == null) {
+                return null;
+            } else if (shooter instanceof PomkotsVehicleBase v) {
+                var d = v.getDrivingPassenger();
+                return Objects.requireNonNullElse(d, v);
+            } else {
+                return shooter;
+            }
+        } else {
+            if (projectile.getOwner() instanceof LivingEntity l) {
+                return l;
+            } else {
+                return null;
+            }
+        }
+    }
+
+    public static boolean isSystemicDamage(DamageSource source) {
+        return "genericKill".equals(source.getMsgId());
+    }
+
+    public static boolean isInRangeOnAxisXZ(Entity a, Entity b, float distance) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        double dx = a.getX() - b.getX();
+        double dz = a.getZ() - b.getZ();
+        double distanceXZSquared = dx * dx + dz * dz;
+
+        return distanceXZSquared <= distance * distance;
     }
 }

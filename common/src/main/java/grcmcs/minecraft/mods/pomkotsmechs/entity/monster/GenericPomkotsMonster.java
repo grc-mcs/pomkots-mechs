@@ -2,41 +2,73 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
-import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPack;
+import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.CoreStonePMB01Item;
+import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class GenericPomkotsMonster extends Monster {
+    public static AttributeSupplier.Builder createMobAttributes() {
+        return LivingEntity.createLivingAttributes()
+                .add(Attributes.ATTACK_KNOCKBACK)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 1.0F)
+                .add(Attributes.FOLLOW_RANGE, 200);
+    }
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(PomkotsMechs.MODID);
     // 搭乗してから操作開始するまでの間のティック
     protected short rideCoolTick = 0;
 
-    protected GenericPomkotsMonster(EntityType<? extends Monster> entityType, Level level) {
-        super(entityType, level);
+    protected boolean alwaysLookAtTarget = true;
+
+    private PomkotsDataPack.EnemyData mechData;
+
+    protected PomkotsDataPack.EnemyData getMechData() {
+        return mechData;
     }
 
-    public static AttributeSupplier.Builder createMobAttributes() {
-        return LivingEntity.createLivingAttributes()
-                .add(Attributes.FOLLOW_RANGE, BattleBalance.MOB_FOLLOW_RANGE)
-                .add(Attributes.ATTACK_KNOCKBACK)
-                .add(Attributes.KNOCKBACK_RESISTANCE, BattleBalance.MOB_KNOCKBACK_RESISTANCE)
-                .add(Attributes.MAX_HEALTH, BattleBalance.MOB_HEALTH);
+    abstract public String getMechName();
+
+    protected GenericPomkotsMonster(EntityType<? extends Monster> entityType, Level level) {
+        super(entityType, level);
+
+        mechData = loadMechData();
+
+        this.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(mechData.knockBackResistance);
+        this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(mechData.followRange);
+        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(mechData.health);
+        this.setHealth(mechData.health);
+        this.getAttribute(Attributes.ARMOR).setBaseValue(mechData.armor);
+        this.getAttribute(Attributes.ARMOR_TOUGHNESS).setBaseValue(mechData.armorToughness);
+    }
+
+    @Override
+    protected void registerGoals() {
+        super.registerGoals();
+
+        if (mechData == null) {
+            mechData = loadMechData();
+        }
+    }
+
+    protected PomkotsDataPack.EnemyData loadMechData() {
+        return PomkotsDataPackManager.getInstance().getDataPack().getEnemyData(getMechName());
     }
 
     protected int attackCooltime = 0;
@@ -98,7 +130,7 @@ public abstract class GenericPomkotsMonster extends Monster {
 
         LivingEntity target = this.getTarget();
 
-        if (!level().isClientSide && target != null) {
+        if (!level().isClientSide && target != null && alwaysLookAtTarget) {
             this.getLookControl().setLookAt(target, 30F, 30F);
         }
     }
@@ -167,12 +199,14 @@ public abstract class GenericPomkotsMonster extends Monster {
 
     @Override
     public boolean isPersistenceRequired() {
-        // デスポーンを防ぐために常にtrueを返す
         return true;
     }
 
     @Override
     public void checkDespawn() {
+        if (!isPersistenceRequired()) {
+            super.checkDespawn();
+        }
     }
 
     protected boolean isServerSide() {
@@ -218,4 +252,10 @@ public abstract class GenericPomkotsMonster extends Monster {
     protected abstract void doAttack();
 
     protected abstract int getMaxAttackCooltime();
+
+    public static boolean canSpawnCommon(EntityType<? extends GenericPomkotsMonster> type, ServerLevelAccessor world, MobSpawnType reason, BlockPos pos, RandomSource random) {
+        return Monster.checkMonsterSpawnRules(type, world, reason, pos, random)
+                && world.getBlockState(pos.below()).isSolidRender(world, pos.below())
+                && world.getRawBrightness(pos, 0) < 8;
+    }
 }

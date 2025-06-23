@@ -82,7 +82,7 @@ public class SlashEntity extends ThrowableProjectile implements GeoEntity, GeoAn
     protected void onHitEntity(EntityHitResult entityHitResult) {
         var entity = entityHitResult.getEntity();
         if (entity instanceof LivingEntity) {
-            entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), BattleBalance.BOSS_EXPLOADSLASH_DAMAGE);
+            entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), 20);
             entity.invulnerableTime = 20;
 
             Vec3 velocity = this.getDeltaMovement();

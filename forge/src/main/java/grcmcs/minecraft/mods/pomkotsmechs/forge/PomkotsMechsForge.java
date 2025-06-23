@@ -53,7 +53,7 @@ public final class PomkotsMechsForge {
                             ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> new ConfigScreenHandler.ConfigScreenFactory((client, parent) -> {
                                 return AutoConfig.getConfigScreen(PomkotsConfig.class, parent).get();
                             }));
-
+                            ClientRenderEvents.init();
                         });
     }
 }

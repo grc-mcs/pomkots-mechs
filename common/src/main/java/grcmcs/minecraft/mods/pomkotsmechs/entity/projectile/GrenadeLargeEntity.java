@@ -21,7 +21,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class GrenadeLargeEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private static final float DAMAGE = BattleBalance.BOSS_GRENADE_DAMAGE;
+    private static final float DAMAGE = 10;
     private static final int MAX_LIFE_TICKS = 80;
     private int lifeTicks = 0;
     private float explosionScale = 0;
@@ -36,7 +36,7 @@ public class GrenadeLargeEntity extends PomkotsThrowableProjectile implements Ge
     }
 
     public GrenadeLargeEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float exprosionScale) {
-        super(entityType, world);
+        super(entityType, shooter, world);
         this.shooter = shooter;
         this.explosionScale = exprosionScale;
     }

@@ -24,12 +24,12 @@ public class BulletEntity extends PomkotsThrowableProjectile implements GeoEntit
     private LivingEntity shooter = null;
 
     public BulletEntity(EntityType<? extends ThrowableProjectile> entityType, Level world) {
-        super(entityType, world);
-        this.setNoGravity(true);
+        this(entityType, world, null);
     }
 
     public BulletEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter) {
-        this(entityType, world);
+        super(entityType, shooter, world);
+        this.setNoGravity(true);
         this.shooter = shooter;
     }
 

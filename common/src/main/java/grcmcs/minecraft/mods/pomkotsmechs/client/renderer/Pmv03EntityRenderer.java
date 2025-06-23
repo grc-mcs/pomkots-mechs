@@ -7,6 +7,8 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.model.Pmv01EntityModel;
 import grcmcs.minecraft.mods.pomkotsmechs.client.model.Pmv03EntityModel;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv03Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -42,6 +44,7 @@ public class Pmv03EntityRenderer extends GeoEntityRenderer<Pmv03Entity> {
 
         if (animatable.getDrivingPassenger() != null) {
             animatable.setClientSeatPos(getSeatPosition(model));
+            animatable.setMainCameraPosition(getMainCameraPosition(model, animatable, partialTick, Pmv03Entity.DEFAULT_SCALE));
         }
 
         RenderUtils.renderAdditionalHud(poseStack, animatable, this.entityRenderDispatcher.cameraOrientation(), bufferSource);
@@ -59,6 +62,23 @@ public class Pmv03EntityRenderer extends GeoEntityRenderer<Pmv03Entity> {
                     seatPos.x * Pmv03Entity.DEFAULT_SCALE - rootPos.x * Pmv03Entity.DEFAULT_SCALE,
                     seatPos.y * Pmv03Entity.DEFAULT_SCALE - rootPos.y * Pmv03Entity.DEFAULT_SCALE - 6F,
                     seatPos.z * Pmv03Entity.DEFAULT_SCALE - rootPos.z * Pmv03Entity.DEFAULT_SCALE);
+        } else {
+            return Vec3.ZERO;
+        }
+    }
+
+    private Vec3 getMainCameraPosition(BakedGeoModel model, Pmv03Entity entity, float partialTick, float scale) {
+        if (model != null) {
+            GeoBone vcSeat = model.getBone("maincam").get();
+
+            Vector3d seatPos = vcSeat.getLocalPosition();
+
+            return new Vec3(
+                    seatPos.x * scale,
+                    seatPos.y * scale,
+                    seatPos.z * scale
+            );
+
         } else {
             return Vec3.ZERO;
         }

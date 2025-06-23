@@ -21,10 +21,16 @@ public class ExplosionEntity extends ThrowableProjectile implements GeoEntity, G
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final int MAX_LIFE_TICKS = 50;
     private int lifeTicks = 0;
+    private int explosionScale;
 
     public ExplosionEntity(EntityType<? extends ThrowableProjectile> entityType, Level world) {
+        this(entityType, world, 0);
+    }
+
+    public ExplosionEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, int explosionScale) {
         super(entityType, world);
         this.setNoGravity(true);
+        this.explosionScale = explosionScale;
     }
 
     @Override
@@ -32,12 +38,23 @@ public class ExplosionEntity extends ThrowableProjectile implements GeoEntity, G
         this.setNoGravity(true);
         super.tick();
 
-        if(this.lifeTicks++ >= MAX_LIFE_TICKS) {
+        var level = this.level();
+        if (this.lifeTicks++ >= MAX_LIFE_TICKS) {
             this.discard();
+
         } else if (this.lifeTicks == 5) {
             this.generateLava();
-            if (this.level().isClientSide) {
-                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), PomkotsMechs.SE_EXPLOSION_EVENT.get(), SoundSource.PLAYERS, 1.0F, 1.0F, false);
+            if (level.isClientSide) {
+                level.playLocalSound(this.getX(), this.getY(), this.getZ(), PomkotsMechs.SE_EXPLOSION_EVENT.get(), SoundSource.PLAYERS, 1.0F, 1.0F, false);
+            }
+
+        } else if (this.lifeTicks == 4 && !level.isClientSide && explosionScale > 0) {
+            var pos = this.position();
+
+            if (PomkotsMechs.CONFIG.enableEntityBlockDestruction) {
+                level.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
+            } else {
+                level.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE);
             }
         }
     }
@@ -70,6 +87,16 @@ public class ExplosionEntity extends ThrowableProjectile implements GeoEntity, G
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
 
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
+    }
+
+    @Override
+    public boolean ignoreExplosion() {
+        return true;
     }
 
     @Override

@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "pomkotsmechs:block/pomkotscube", "y": 0 },
+    "facing=east":  { "model": "pomkotsmechs:block/pomkotscube", "y": 90 },
+    "facing=south": { "model": "pomkotsmechs:block/pomkotscube", "y": 180 },
+    "facing=west":  { "model": "pomkotsmechs:block/pomkotscube", "y": 270 }
+  }
+}

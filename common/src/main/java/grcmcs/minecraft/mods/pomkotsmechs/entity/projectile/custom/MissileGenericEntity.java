@@ -28,7 +28,7 @@ public class MissileGenericEntity extends MissileBaseEntity {
     }
 
     public MissileGenericEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, LivingEntity target, float damage, float speed) {
-        super(entityType, world);
+        super(entityType, world, shooter, target);
 
         this.setNoGravity(true);
         this.shooter = shooter;

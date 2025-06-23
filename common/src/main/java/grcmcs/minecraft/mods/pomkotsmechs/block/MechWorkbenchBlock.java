@@ -46,12 +46,11 @@ public class MechWorkbenchBlock extends HorizontalDirectionalBlock implements En
         return RenderShape.MODEL;
     }
 
-    protected static final VoxelShape SHAPE = Block.box(0.0, 6.0, 0.0, 16.0, 12.0, 16.0);
+    protected static final VoxelShape SHAPE = Block.box(0.1, 0.1, 0.1, 15.9, 15.9, 15.9);
     public VoxelShape getShape(BlockState bs, BlockGetter bg, BlockPos bp, CollisionContext cc) {
         // 謎にこっちのシェイプの形状で周囲のブロックがカリングされちゃうのでざっくり置いとく
         return SHAPE;
     }
-
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {

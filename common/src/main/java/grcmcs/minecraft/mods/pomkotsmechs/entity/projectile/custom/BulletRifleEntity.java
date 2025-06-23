@@ -38,7 +38,7 @@ public class BulletRifleEntity extends PomkotsThrowableProjectile implements Geo
     }
 
     public BulletRifleEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float damage) {
-        super(entityType, world);
+        super(entityType, shooter, world);
         this.setNoGravity(true);
         this.noCulling = true;
         this.noPhysics = true;

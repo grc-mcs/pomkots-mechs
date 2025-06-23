@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "pomkotsmechs:item/large_steel_plate"
+  }
+}

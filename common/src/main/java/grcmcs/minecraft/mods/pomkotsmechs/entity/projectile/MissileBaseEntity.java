@@ -35,7 +35,7 @@ public abstract class MissileBaseEntity extends PomkotsThrowableProjectile imple
     }
 
     public MissileBaseEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, LivingEntity target) {
-        super(entityType, world);
+        super(entityType, shooter, world);
         this.setNoGravity(true);
         this.shooter = shooter;
         this.target = target;
@@ -243,6 +243,10 @@ public abstract class MissileBaseEntity extends PomkotsThrowableProjectile imple
                 }
             }
         }
+    }
+
+    public LivingEntity getShooter() {
+        return shooter;
     }
 
     @Override

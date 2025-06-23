@@ -39,7 +39,7 @@ public class BulletBeamEntity extends PomkotsThrowableProjectile implements GeoE
     }
 
     public BulletBeamEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float damage) {
-        super(entityType, world);
+        super(entityType, shooter, world);
         this.setNoGravity(true);
         this.noCulling = true;
         this.noPhysics = true;

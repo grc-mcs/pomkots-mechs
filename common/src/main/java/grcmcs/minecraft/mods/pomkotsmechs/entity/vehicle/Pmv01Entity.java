@@ -292,7 +292,7 @@ public class Pmv01Entity extends PomkotsVehicleBase {
 
     private void fireGrenade(Level world) {
         if (!world.isClientSide()) {
-            GrenadeEntity be = new GrenadeEntity(PomkotsMechs.GRENADE.get(), world, this, BattleBalance.MECH_GRENADE_EXPLOSION);
+            GrenadeEntity be = new GrenadeEntity(PomkotsMechs.GRENADE.get(), world, this, BattleBalance.MECH_GRENADE_DAMAGE, BattleBalance.MECH_GRENADE_EXPLOSION);
 
             // 原因不明なんだけど、getPosした時の座標と、レンダリングされてる座標で3tick分ぐらい乖離がある気配がする
             // ので、3tick前の座標をオフセットにする

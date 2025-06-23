@@ -440,18 +440,18 @@
 			"bones": {
 				"hips": {
 					"rotation": {
-						"vector": ["linear", "linear", "linear"]
+						"vector": [0, 0, 0]
 					}
 				},
 				"body": {
 					"rotation": {
-						"vector": ["linear", "linear", "linear"]
+						"vector": [0, 0, 0]
 					}
 				}
 			}
 		},
 		"animation.pmv01.right": {
-			"animation_length": 0.5,
+			"animation_length": 0.25,
 			"bones": {
 				"hips": {
 					"rotation": {

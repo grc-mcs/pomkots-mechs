@@ -4,8 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.TargetLocker;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb01Entity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;

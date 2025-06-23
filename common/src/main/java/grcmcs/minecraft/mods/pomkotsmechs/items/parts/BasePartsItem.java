@@ -294,6 +294,9 @@ public abstract class BasePartsItem extends Item implements GeoItem {
         public String getPartsCategory() {
             return "head";
         }
+        public boolean isFullCovered() {
+            return false;
+        }
     }
 
     public static abstract class Body extends MechParts {

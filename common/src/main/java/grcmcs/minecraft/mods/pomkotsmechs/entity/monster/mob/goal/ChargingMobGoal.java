@@ -2,26 +2,19 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal;
 
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.Pms01Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
-public class ChargingMobGoal extends Goal {
-    protected final Pms01Entity mob;
-    protected float speedModifier;
+public class ChargingMobGoal extends SmallMobGoalBase {
     protected int walkCount = 0;
+    protected Pms01Entity pms1;
 
     public ChargingMobGoal(Pms01Entity mob, float speedModifier) {
-        this.mob = mob;
-        this.speedModifier = speedModifier;
+        super(mob, speedModifier);
+        pms1 = mob;
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-    }
-
-    @Override
-    public boolean canUse() {
-        return true;
     }
 
     public boolean canContinueToUse() {
@@ -67,7 +60,7 @@ public class ChargingMobGoal extends Goal {
             } else {
                 double distance = target.position().distanceTo(this.mob.position());
 
-                if (mob.isAttacking()) {
+                if (pms1.isAttacking()) {
                     // この処理はMOB側にあった方がいい気もしないでもない…
 //                    updateHomingMovement();
                 }

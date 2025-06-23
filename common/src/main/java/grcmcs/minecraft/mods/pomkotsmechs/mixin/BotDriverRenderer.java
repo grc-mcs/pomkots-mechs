@@ -2,7 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.Pmb01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;

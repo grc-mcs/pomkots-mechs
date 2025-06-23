@@ -19,19 +19,26 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class BulletMiddleEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private static final float DAMAGE = BattleBalance.MOB_BULLET_DAMAGE;
+    private static final float DAMAGE = 20;
     private static final int MAX_LIFE_TICKS = 40;
     private int lifeTicks = 0;
     private LivingEntity shooter = null;
+    private float damage;
 
     public BulletMiddleEntity(EntityType<? extends ThrowableProjectile> entityType, Level world) {
-        super(entityType, world);
-        this.setNoGravity(true);
+        this(entityType, world, null, DAMAGE);
     }
 
     public BulletMiddleEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter) {
-        this(entityType, world);
+        this(entityType, world, shooter, DAMAGE);
+    }
+
+    public BulletMiddleEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float damage) {
+        super(entityType, shooter, world);
+
+        this.damage = damage;
         this.shooter = shooter;
+        this.setNoGravity(true);
     }
 
     @Override
@@ -45,11 +52,7 @@ public class BulletMiddleEntity extends PomkotsThrowableProjectile implements Ge
         }
 
         super.tick();
-
-        this.updateRotationBasedOnVelocity();
-
-        var vel = this.getDeltaMovement();
-        this.setPos(this.getX() + vel.x(), this.getY() + vel.y(), this.getZ() + vel.z());
+        this.hasImpulse = true;
 
         if(this.lifeTicks++ >= MAX_LIFE_TICKS) {
             this.discard();
@@ -63,7 +66,7 @@ public class BulletMiddleEntity extends PomkotsThrowableProjectile implements Ge
             return;
         }
 
-        entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), DAMAGE);
+        entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), damage);
         entity.invulnerableTime = 0;
 
         this.discard();

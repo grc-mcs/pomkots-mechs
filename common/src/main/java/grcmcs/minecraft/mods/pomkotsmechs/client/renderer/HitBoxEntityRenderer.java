@@ -1,7 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.HitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.HitBoxEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;

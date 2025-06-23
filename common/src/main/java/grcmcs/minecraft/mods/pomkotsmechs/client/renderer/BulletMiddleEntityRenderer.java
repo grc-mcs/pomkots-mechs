@@ -21,5 +21,8 @@ public class BulletMiddleEntityRenderer extends GeoEntityRenderer<BulletMiddleEn
     @Override
     public void preApplyRenderLayers(PoseStack poseStack, BulletMiddleEntity animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
         super.preApplyRenderLayers(poseStack, animatable, model, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+
+        model.getBone("bone").get().setRotX((float)Math.toRadians(animatable.getXRot()));
+        model.getBone("bone").get().setRotY((float)Math.toRadians(animatable.getYRot()));
     }
 }

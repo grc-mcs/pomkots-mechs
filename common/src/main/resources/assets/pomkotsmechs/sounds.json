@@ -148,5 +148,55 @@
     "sounds": [
       "pomkotsmechs:se_saber"
     ]
+  },
+  "se_alert": {
+    "sounds": [
+      "pomkotsmechs:se_alert"
+    ]
+  },
+  "se_bossboxopen": {
+    "sounds": [
+      "pomkotsmechs:se_bossboxopen"
+    ]
+  },
+  "se_walk_large": {
+    "sounds": [
+      "pomkotsmechs:se_walk_large"
+    ]
+  },
+  "se_machine": {
+    "sounds": [
+      "pomkotsmechs:se_machine"
+    ]
+  },
+  "se_impact_1": {
+    "sounds": [
+      "pomkotsmechs:se_impact_1"
+    ]
+  },
+  "se_impact_2": {
+    "sounds": [
+      "pomkotsmechs:se_impact_2"
+    ]
+  },
+  "se_chainsaw": {
+    "sounds": [
+      "pomkotsmechs:se_chainsaw"
+    ]
+  },
+  "se_beam1": {
+    "sounds": [
+      "pomkotsmechs:se_beam1"
+    ]
+  },
+  "se_beam2": {
+    "sounds": [
+      "pomkotsmechs:se_beam2"
+    ]
+  },
+  "se_charge": {
+    "sounds": [
+      "pomkotsmechs:se_charge"
+    ]
   }
 }

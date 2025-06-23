@@ -35,7 +35,7 @@ public class BulletMachineEntity extends PomkotsThrowableProjectile implements G
     }
 
     public BulletMachineEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float damage) {
-        super(entityType, world);
+        super(entityType, shooter, world);
         this.setNoGravity(true);
         this.noPhysics = true;
         this.shooter = shooter;
@@ -68,7 +68,8 @@ public class BulletMachineEntity extends PomkotsThrowableProjectile implements G
             damage += (10 - (float)lifeTicks) * damage / 20;
         }
 
-        entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), damage);
+//        entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), damage);
+        ProjectileUtil.hurt(entity, this, this.shooter, damage);
         entity.invulnerableTime = 0;
 
         this.discard();

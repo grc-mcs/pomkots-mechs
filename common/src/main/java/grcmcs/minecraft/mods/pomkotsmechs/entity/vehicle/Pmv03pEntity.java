@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
+import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
@@ -237,7 +238,7 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
             var muzzlPos = new Vec3(-1.0, 3.5F, 0.8F);
             var worldMuzzlPos = muzzlPos.add(0, 0, 3).yRot((float) Math.toRadians((-1.0) * this.getYRot()));
 
-            MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_HORIZONTAL.get(), world, this);
+            MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_HORIZONTAL.get(), world, this, BattleBalance.MECH_MISSILE_DAMAGE, BattleBalance.MECH_MISSILE_GENERIC_SPEED);
 
             be.setPos(offset.add(worldMuzzlPos));
 

@@ -7,6 +7,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.model.Pmvc01EntityModel;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -134,7 +135,14 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
 
     private Vec3 getMainCameraPosition(BakedGeoModel model, Pmvc01Entity entity, float partialTick, float scale) {
         if (model != null) {
-            GeoBone vcSeat = model.getBone("maincam").get();
+            GeoBone vcSeat = null;
+
+            if (Utils.shouldRenderCockpit(entity)) {
+                vcSeat = model.getBone("eyecam").get();
+            } else {
+                vcSeat = model.getBone("maincam").get();
+            }
+
             Vector3d seatPos = vcSeat.getLocalPosition();
 
             return new Vec3(

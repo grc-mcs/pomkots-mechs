@@ -19,7 +19,7 @@ public class BlockProjectileEntity extends PomkotsThrowableProjectile {
     private int lifeTicks = 0;
 
     public BlockProjectileEntity(EntityType<? extends BlockProjectileEntity> type, Level world) {
-        super(type, world);
+        super(type, null, world);
         this.setNoGravity(true);
     }
 

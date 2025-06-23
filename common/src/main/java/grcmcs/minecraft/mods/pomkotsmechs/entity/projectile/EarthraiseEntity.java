@@ -2,8 +2,9 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb01Entity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.HitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.Pmb01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.HitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -91,7 +92,7 @@ public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, 
 
     private void atarihantei() {
         for (var ent : this.level().getEntities(null, this.getBoundingBox())) {
-            if (ent.equals(shooter) || ent instanceof HitBoxEntity) {
+            if (ent.equals(shooter) || ent instanceof HitBoxEntity|| ent instanceof BossHitBoxEntity) {
                 continue;
             }
 
@@ -100,7 +101,7 @@ public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, 
                     le.knockback(3, knockbackVec.x, knockbackVec.z);
                 }
                 le.invulnerableTime = 20;
-                le.hurt(this.damageSources().generic(), BattleBalance.BOSS_EARTHRAISE_DAMAGE);
+                le.hurt(this.damageSources().generic(), 30);
             }
         }
 
@@ -148,6 +149,16 @@ public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, 
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
 
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
+    }
+
+    @Override
+    public boolean ignoreExplosion() {
+        return true;
     }
 
     @Override

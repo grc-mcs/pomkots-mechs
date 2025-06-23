@@ -1,25 +1,15 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal;
 
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.BaseSmallMonsterEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.levelgen.Heightmap;
 
-public class MaintainAltitudeGoal extends Goal {
-    private final Mob mob; // 飛行するモンスター
+public class MaintainAltitudeGoal extends SmallMobGoalBase {
     private final double targetAltitude; // 地面からの目標高度
-    private final double movementSpeed;
 
-    public MaintainAltitudeGoal(Mob mob, double targetAltitude, double movementSpeed) {
-        this.mob = mob;
+    public MaintainAltitudeGoal(BaseSmallMonsterEntity mob, double targetAltitude, float movementSpeed) {
+        super(mob, movementSpeed);
         this.targetAltitude = targetAltitude;
-        this.movementSpeed = movementSpeed;
-    }
-
-    @Override
-    public boolean canUse() {
-        // このタスクを常に実行
-        return true;
     }
 
     @Override
@@ -32,10 +22,10 @@ public class MaintainAltitudeGoal extends Goal {
         // 目標高度と現在の高度を比較してモンスターの高度を調整
         if (isInRangeLower(currentAltitude)) {
             // 目標より低い場合は上昇
-            mob.setDeltaMovement(mob.getDeltaMovement().add(0.0, movementSpeed, 0.0));
+            mob.setDeltaMovement(mob.getDeltaMovement().add(0.0, speedModifier, 0.0));
         } else if (isInRangeUpper(currentAltitude)) {
             // 目標より高い場合は下降
-            mob.setDeltaMovement(mob.getDeltaMovement().add(0.0, -movementSpeed, 0.0));
+            mob.setDeltaMovement(mob.getDeltaMovement().add(0.0, -speedModifier, 0.0));
         }
     }
 

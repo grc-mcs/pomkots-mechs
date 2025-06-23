@@ -1,5 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.mixin;
 
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.Pmv03EntityRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv03Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
@@ -22,6 +24,12 @@ public abstract class CameraMixin {
         if (viewEntity instanceof Player player) {
             // プレイヤーが巨大ロボに乗っているかを判定
             if (player.getVehicle() instanceof Pmvc01Entity pmg && !thirdPerson) {
+                Vec3 bonePos = pmg.getMainCameraPosition();
+
+                // カメラ位置をボーン位置に設定
+                setPosition(pmg.getPosition(partialTick).add(bonePos));
+
+            } else if (player.getVehicle() instanceof Pmv03Entity pmg && !thirdPerson) {
                 Vec3 bonePos = pmg.getMainCameraPosition();
 
                 // カメラ位置をボーン位置に設定

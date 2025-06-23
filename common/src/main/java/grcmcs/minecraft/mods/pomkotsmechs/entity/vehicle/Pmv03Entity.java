@@ -52,8 +52,8 @@ public class Pmv03Entity extends PomkotsVehicleBase {
     @Override
     protected void registerActions() {
         super.registerActions();
-        this.actionController.registerAction(ACT_R_RIFLE, new Action(20, 7, 2), ActionController.ActionType.R_ARM_MAIN);
-        this.actionController.registerAction(ACT_L_RIFLE, new Action(20, 7, 2), ActionController.ActionType.L_ARM_MAIN);
+        this.actionController.registerAction(ACT_R_RIFLE, new Action(20, 6, 8), ActionController.ActionType.R_ARM_MAIN);
+        this.actionController.registerAction(ACT_L_RIFLE, new Action(20, 6, 8), ActionController.ActionType.L_ARM_MAIN);
         this.actionController.registerAction(ACT_MISSILE, new Action(60, 0, 20), ActionController.ActionType.R_SHL_MAIN);
     }
 
@@ -93,7 +93,7 @@ public class Pmv03Entity extends PomkotsVehicleBase {
             var offset = posHistory.getFirst();
 
             // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
-            var muzzlPos = new Vec3(3 * isRight, 4.0F, 5F);
+            var muzzlPos = new Vec3(2.8 * isRight, 6.0F, 5F);
             muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
             be.setPos(offset.add(muzzlPos));
 
@@ -107,50 +107,6 @@ public class Pmv03Entity extends PomkotsVehicleBase {
         }
     }
 
-    private void fireGatring(Level world) {
-        if (!world.isClientSide()) {
-            BulletEntity be = new BulletEntity(PomkotsMechs.BULLET.get(), world, this);
-
-            // 原因不明なんだけど、getPosした時の座標と、レンダリングされてる座標で3tick分ぐらい乖離がある気配がする
-            // ので、3tick前の座標をオフセットにする
-            // なんかaddVelocity周りが悪さしてる…？
-            var offset = posHistory.getFirst();
-
-            // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
-            var muzzlPos = new Vec3(-1.65, 2.0F, 3.5F);
-            muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
-            be.setPos(offset.add(muzzlPos));
-
-            float[] angle = getShootingAngle(be, true);
-
-            be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), 0.9F, 2F);
-
-            world.addFreshEntity(be);
-        } else {
-            if (tickCount % 7 == 0) {
-                playSoundEffect(PomkotsMechs.SE_GATLING_EVENT.get());
-            }
-        }
-    }
-
-    private void addHitParticles(Entity target) {
-        var offset = new Vec3(target.position().x, target.getBoundingBox().getCenter().y, target.position().z);
-
-        for (int i = 0; i < 40; i++) {
-            // ランダムな速度を生成
-            double velocityX = random.nextDouble() * 4.3 - 1;
-            double velocityY = random.nextDouble() * 4.3 - 1;
-            double velocityZ = random.nextDouble() * 4.3 - 1;
-
-            // パーティクルをクライアント側で発生させる
-            this.level().addAlwaysVisibleParticle(PomkotsMechs.SPARK.get(),
-                    true,
-                    offset.x(), offset.y(), offset.z(), // 位置
-                    velocityX, velocityY, velocityZ // 速度
-            );
-        }
-    }
-
     private void fireMissile(Level world, int slot) {
         if (!world.isClientSide()) {
             // 原因不明なんだけど、getPosした時の座標と、レンダリングされてる座標で3tick分ぐらい乖離がある気配がする
@@ -159,7 +115,7 @@ public class Pmv03Entity extends PomkotsVehicleBase {
             var offset = posHistory.getFirst();
 
             // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
-            var muzzlPos = new Vec3(-1.0, 7F, 0.8F);
+            var muzzlPos = new Vec3(-1.5, 11F, 2F);
             var worldMuzzlPos = muzzlPos.add(0, 0, -slot * 0.3).yRot((float) Math.toRadians((-1.0) * this.getYRot()));
 
             LivingEntity target = null;
@@ -197,7 +153,6 @@ public class Pmv03Entity extends PomkotsVehicleBase {
 
     @Override
     protected PlayState controllAnimationWeapons(AnimationState<PomkotsVehicleBase> event) {
-
         return null;
     }
 
@@ -242,6 +197,20 @@ public class Pmv03Entity extends PomkotsVehicleBase {
         } else if ("se_onground".equals(event.getKeyframeData().getSound())) {
             this.playSoundEffect(PomkotsMechs.SE_JUMP_EVENT.get());
         }
+    }
+
+    protected Vec3 mainCameraPosition = null;
+
+    public Vec3 getMainCameraPosition() {
+        if (mainCameraPosition == null) {
+            return Vec3.ZERO;
+        } else {
+            return mainCameraPosition;
+        }
+    }
+
+    public void setMainCameraPosition(Vec3 pos) {
+        this.mainCameraPosition = pos;
     }
 
     @Override

@@ -1,23 +1,21 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.GenericMobGoal;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.MaintainAltitudeGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.FlyingMobGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.SimpleMobAttackGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.BulletMiddleEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.MissileEnemyEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -28,77 +26,68 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 // Flying Mob
-public class Pms02Entity extends GenericPomkotsMonster implements GeoEntity, GeoAnimatable {
+public class Pms02Entity extends BaseSmallMonsterEntity implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     public static final float DEFAULT_SCALE = 1.0f;
-    public static final Logger LOGGER = LoggerFactory.getLogger(PomkotsMechs.MODID);
+
+    @Override
+    public String getMechName() {
+        return "pms02";
+    }
 
     public Pms02Entity(EntityType<? extends GenericPomkotsMonster> entityType, Level world) {
         super(entityType, world);
-
-        this.setMaxUpStep(BattleBalance.MOB_STEP_UP);
-        this.setSpeed(1F);
-        this.setPersistenceRequired();
         this.setNoGravity(true);
-        this.setYRot(0F);
-        this.noCulling = true;
+    }
+
+    @Override
+    public void tick() {
+        this.setNoGravity(true);
+        super.tick();
     }
 
     @Override
     protected void registerGoals() {
         super.registerGoals();
 
-        this.goalSelector.addGoal(1, new MaintainAltitudeGoal(this, 30, 0.3F));
-        this.goalSelector.addGoal(2, new GenericMobGoal(this, 0.8F) {
-            protected void startRandomWalk(float speedModifier) {
-                Vec3 rnd = DefaultRandomPos.getPos(this.mob, 10, 7);
-                if (rnd != null) {
-                    this.mob.getNavigation().moveTo(rnd.x, rnd.y, rnd.z, this.speedModifier);
-                    this.walkCount = 1;
-
-                }
-            }
-            protected void startWalk(LivingEntity target, float speedModifier) {
-                this.mob.getNavigation().moveTo(target, this.speedModifier);
-                this.walkCount = 1;
-            }
-        });
+        this.goalSelector.addGoal(1, new FlyingMobGoal(this, getMechData().speed,  20, 100, 10, 30));
+        this.goalSelector.addGoal(1, new SimpleMobAttackGoal(this, 0.5F));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
-        this.goalSelector.addGoal(4, new RandomStrollGoal(this, 0.8));
-        this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
     }
 
     @Override
     public void doAttack() {
-        if (this.isServerSide()) {
+        if (this.isServerSide() && this.getTarget() != null) {
             this.rotateToTarget(this.getTarget());
 
-            long pattern = this.level().getGameTime() % 3;
-
+            int pattern = this.random.nextInt(3);
             if (pattern == 0) {
                 for (int i = 0; i < 2; i++) {
-                    MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(), this);
+                    for (int j = 0; j < 2; j++) {
+                        MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(), this,
+                                getMechData().missileDamage, getMechData().missileSpeed);
 
-                    var offset = this.position();
+                        var offset = this.position();
 
-                    // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
-                    var muzzlPos = new Vec3(1 - i * 2, 3.0F, 0);
-                    muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+                        // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
+                        var muzzlPos = new Vec3(1 - i * 2, 4.4F, 0 - j * 2F);
+                        muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
 
-                    be.setPos(offset.add(muzzlPos));
-                    be.shootFromRotation(be, -10, this.getYRot() -30 + i * 60, this.getFallFlyingTicks(), 0.9F, 0F);
+                        be.setPos(offset.add(muzzlPos));
+                        be.shootFromRotation(be, -20, this.getYRot() - 30 + i * 60, this.getFallFlyingTicks(), 1.9F, 0F);
 
-                    this.level().addFreshEntity(be);
+                        this.level().addFreshEntity(be);
+                    }
                 }
 
             } else {
                 for (int i = 0; i < 2; i++) {
-                    BulletMiddleEntity be = new BulletMiddleEntity(PomkotsMechs.BULLETMIDDLE.get(), this.level(), this);
+                    BulletMiddleEntity be = new BulletMiddleEntity(PomkotsMechs.BULLETMIDDLE.get(), this.level(), this, getMechData().bulletDamage);
 
                     var offset = this.position();
 
                     // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
-                    var muzzlPos = new Vec3(1 - i * 2, 3.0F, 0);
+                    var muzzlPos = new Vec3(1 - i * 2, -2.0F, 0);
                     muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
 
                     be.setPos(offset.add(muzzlPos));
@@ -107,7 +96,8 @@ public class Pms02Entity extends GenericPomkotsMonster implements GeoEntity, Geo
                     be.yRotO = this.getYRot();
                     be.xRotO = this.getXRot();
 
-                    be.shootFromRotation(be, this.getXRot(), this.getYRot(), this.getFallFlyingTicks(), 0.9F, 0F);
+                    float[] angle = Utils.getShootingAngle(be, this.getTarget(), true);
+                    be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
 
                     this.level().addFreshEntity(be);
                 }
@@ -122,11 +112,6 @@ public class Pms02Entity extends GenericPomkotsMonster implements GeoEntity, Geo
         return 30;
     }
 
-//    @Override
-//    protected PathNavigation createNavigation(Level level) {
-//        return new FlyingPathNavigation(this, level);
-//    }
-
     @Override protected float getFlyingSpeed() {
         return 0.6f;
     }
@@ -139,22 +124,40 @@ public class Pms02Entity extends GenericPomkotsMonster implements GeoEntity, Geo
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "basic_move", 0, event -> {
-            if (event.isMoving()) {
-                return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pms02.idle"));
+            if (isClosed()) {
+                return PlayState.STOP;
+            } else if (event.isMoving()) {
+                return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pms.idle"));
 
             } else {
-                return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pms02.idle"));
+                return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pms.idle"));
 
             }
         }));
 
         controllers.add(new AnimationController<>(this, "shoot_controller", state -> PlayState.STOP)
-                .triggerableAnim("shoot", RawAnimation.begin().thenPlay("animation.pms02.idle"))
+                .triggerableAnim("shoot", RawAnimation.begin().thenPlay("animation.pms.idle"))
+                .triggerableAnim("close", RawAnimation.begin().thenPlayAndHold("animation.pms.close"))
+                .triggerableAnim("open", RawAnimation.begin().thenPlay("animation.pms.boot"))
         );
+    }
+
+    @Override
+    protected void fireOpenAnimation() {
+        this.triggerAnim("shoot_controller", "open");
+    }
+
+    @Override
+    protected void fireCloseAnimation() {
+        this.triggerAnim("shoot_controller", "close");
     }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.geoCache;
+    }
+
+    public static boolean canSpawn(EntityType<Pms02Entity> type, ServerLevelAccessor world, MobSpawnType reason, BlockPos pos, RandomSource random) {
+        return GenericPomkotsMonster.canSpawnCommon(type, world, reason, pos, random);
     }
 }

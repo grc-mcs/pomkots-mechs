@@ -19,7 +19,7 @@ public class PomkotsDataPackManager {
         return singleton;
     }
 
-    private PomkotsDataPack dataPackServer = new PomkotsDataPack();
+    private final PomkotsDataPack dataPackServer = new PomkotsDataPack();
     private PomkotsDataPack dataPackClient = new PomkotsDataPack();
 
     public PomkotsDataPack getDataPack() {
@@ -31,10 +31,21 @@ public class PomkotsDataPackManager {
     }
 
     public void loadDataPack(ResourceManager manager) {
+        dataPackServer.reset();
+
+        loadAllPartsData(manager);
+        loadAllEnemyData(manager);
+
+        if (Platform.getEnvironment() == Env.CLIENT && !dataPackServer.isEmpty()) {
+            dataPackClient = dataPackServer;
+        }
+
+        PomkotsMechs.LOGGER.info("DP:" + dataPackServer);
+    }
+
+    private void loadAllPartsData(ResourceManager manager) {
         ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "parts.json");
         List<Resource> resources;
-
-        dataPackServer.reset();
 
         try {
             resources = manager.getResourceStack(path);
@@ -48,7 +59,7 @@ public class PomkotsDataPackManager {
                 JsonObject json = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
 
                 if (json != null) {
-                    load(json);
+                    loadRootPartsData(json);
                 } else {
                     PomkotsMechs.LOGGER.error("No parts on a parts pack:" + resource);
                 }
@@ -58,7 +69,7 @@ public class PomkotsDataPackManager {
         }
     }
 
-    private void load(JsonObject json) {
+    private void loadRootPartsData(JsonObject json) {
         var root = json.get("mech_parts").getAsJsonObject();
         if (root == null) {
             return;
@@ -67,8 +78,6 @@ public class PomkotsDataPackManager {
         for (var item: root.asMap().entrySet()) {
             loadPartsData(item.getValue(), item.getKey());
         }
-
-        PomkotsMechs.LOGGER.info("" + dataPackServer);
     }
 
     private void loadPartsData(JsonElement itemEle, String itemName) {
@@ -130,6 +139,78 @@ public class PomkotsDataPackManager {
         }
 
         dataPackServer.addPartsData(itemName, data);
+    }
+
+
+    private void loadAllEnemyData(ResourceManager manager) {
+        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "enemies.json");
+        List<Resource> resources;
+
+        try {
+            resources = manager.getResourceStack(path);
+        } catch (Exception e) {
+            PomkotsMechs.LOGGER.error("Failed to load resource stack:" + path, e);
+            return;
+        }
+
+        for (Resource resource : resources) {
+            try (InputStream stream = resource.open()) {
+                JsonObject json = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
+
+                if (json != null) {
+                    loadRootEnemyData(json);
+                } else {
+                    PomkotsMechs.LOGGER.error("No enemy on a enemies pack:" + resource);
+                }
+            } catch (IOException e) {
+                PomkotsMechs.LOGGER.error("Failed to load a enemies pack:" + resource, e);
+            }
+        }
+    }
+
+    private void loadRootEnemyData(JsonObject json) {
+        var root = json.get("enemy_data").getAsJsonObject();
+        if (root == null) {
+            return;
+        }
+
+        for (var enemy: root.asMap().entrySet()) {
+            loadEnemyData(enemy.getValue(), enemy.getKey());
+        }
+    }
+
+    private void loadEnemyData(JsonElement enemyEle, String enemyName) {
+        PomkotsDataPack.EnemyData data = new PomkotsDataPack.EnemyData();
+
+        data.id = enemyName;
+        data.speed = getFloat(enemyEle, "speed");
+        data.maxStepUp = getFloat(enemyEle, "max_step_up");
+        data.knockBackResistance = getFloat(enemyEle, "knock_back_resistance");
+        data.followRange = getFloat(enemyEle, "follow_range");
+        data.health = getInt(enemyEle, "health");
+        data.baseDamageModifier = getFloat(enemyEle, "base_damage_modifier");
+        data.explosionDamageModifier = getFloat(enemyEle, "explosion_damage_modifier");
+        data.armor = getFloat(enemyEle, "armor");
+        data.armorToughness = getFloat(enemyEle, "armor_toughness");
+        data.bulletDamage = getFloat(enemyEle, "bullet_damage");
+        data.bulletSpeed = getFloat(enemyEle, "bullet_speed");
+        data.missileDamage = getFloat(enemyEle, "missile_damage");
+        data.missileSpeed = getFloat(enemyEle, "missile_speed");
+        data.grenadeDamage = getFloat(enemyEle, "grenade_damage");
+        data.grenadeSpeed = getFloat(enemyEle, "grenade_speed");
+        data.grenadeExplosionScale = getFloat(enemyEle, "grenade_explosion_scale");
+        data.meleeDamage = getFloat(enemyEle, "melee_damage");
+        data.meleeSpeed = getFloat(enemyEle, "melee_speed");
+        data.laserDamage = getFloat(enemyEle, "laser_damage");
+        data.laserSpeed = getFloat(enemyEle, "laser_speed");
+        data.exAttack1Damage = getFloat(enemyEle, "ex_attack_1_damage");
+        data.exAttack1Speed = getFloat(enemyEle, "ex_attack_1_speed");
+        data.exAttack2Damage = getFloat(enemyEle, "ex_attack_2_damage");
+        data.exAttack2Speed = getFloat(enemyEle, "ex_attack_2_speed");
+        data.exAttack3Damage = getFloat(enemyEle, "ex_attack_3_damage");
+        data.exAttack3Speed = getFloat(enemyEle, "ex_attack_3_speed");
+
+        dataPackServer.addEnemyData(enemyName, data);
     }
 
     private int getInt(JsonElement parent, String name) {

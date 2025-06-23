@@ -136,13 +136,19 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(ItemStack stack) {
-            return mode == 1;
+            if (mode == 1) {
+                return true;
+            } else {
+                return stack.getItem() instanceof BasePartsItem.Fuel || stack.getItem() instanceof BasePartsItem.Magazine;
+            }
         }
 
-        @Override
-        public boolean mayPickup(Player player) {
-            return mode == 1;
-        }
+//        @Override
+//        public boolean mayPickup(Player player) {
+//            if (mode == 1) {
+//                return true;
+//            }
+//        }
     }
 
     public static class MechPartsCustomSlot extends MechCustomSlot {

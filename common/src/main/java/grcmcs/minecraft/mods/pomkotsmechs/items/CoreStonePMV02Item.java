@@ -41,7 +41,7 @@ public class CoreStonePMV02Item extends Item {
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (target instanceof Pmv01Entity robot) {
+        if (target instanceof Pmv02Entity robot) {
             // ロボットの体力を回復
             robot.heal(20.0F);
             robot.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 1, 3)); // 回復エフェクト

@@ -364,6 +364,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
             if (player.isDeadOrDying()) {
                 player.getAbilities().mayfly = true;
             }
+            player.invulnerableTime = 40;
         }
 
         lockTargets.clearLockTargets();
@@ -427,13 +428,13 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
             this.registerAnimationSoundHandlers(soundKeyframeEvent);
         }));
 
-        controllers.add(new AnimationController<>(this, "fly", 0, event -> {
+        controllers.add(new AnimationController<>(this, "fly", 1, event -> {
             return controllAnimationFlyingMotion(event);
         }).setSoundKeyframeHandler(soundKeyframeEvent -> {
             this.registerAnimationSoundHandlers(soundKeyframeEvent);
         }));
 
-        controllers.add(new AnimationController<>(this, "rotation", 3, event -> {
+        controllers.add(new AnimationController<>(this, "rotation", 0, event -> {
             return controllAnimationRotation(event);
         }));
 
@@ -511,7 +512,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
                 } else if (sidewayIntention > 0) {
                     return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".left"));
                 } else {
-                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".forward"));
                 }
             }
         } else {

@@ -1,9 +1,6 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom;
 
-import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb01Entity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.KujiraEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PomkotsThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ProjectileUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
@@ -30,6 +27,7 @@ public class BulletGrenadeEntity extends PomkotsThrowableProjectile implements G
     private int lifeTicks = 0;
     private float damage = 0;
     private LivingEntity shooter = null;
+    private int explosionScale = 10;
 
     public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level world) {
         this(entityType, world, null);
@@ -40,11 +38,14 @@ public class BulletGrenadeEntity extends PomkotsThrowableProjectile implements G
     }
 
     public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float damage) {
-        super(entityType, world);
+        super(entityType, shooter, world);
         this.shooter = shooter;
         this.damage = damage;
     }
 
+    public void setExplosionScale(int scale) {
+        this.explosionScale = scale;
+    }
 
     @Override
     public void tick() {
@@ -87,9 +88,9 @@ public class BulletGrenadeEntity extends PomkotsThrowableProjectile implements G
         Level world = level();
         if (!world.isClientSide) {
             if (Utils.isBlockDestructionAllowed(shooter)) {
-                world.explode(this,  pos.x, pos.y, pos.z, 10, false, Level.ExplosionInteraction.BLOCK);
+                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
             } else {
-                world.explode(this,  pos.x, pos.y, pos.z, 10, false, Level.ExplosionInteraction.NONE);
+                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE);
             }
         } else {
             addParticles(this.position());

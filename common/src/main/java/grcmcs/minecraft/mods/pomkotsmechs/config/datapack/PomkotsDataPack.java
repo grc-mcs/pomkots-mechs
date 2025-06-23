@@ -9,6 +9,7 @@ import java.util.Map;
 public class PomkotsDataPack implements Serializable {
 
     private final Map<String, PartsData> partsData = new HashMap<>();
+    private final Map<String, EnemyData> enemyData = new HashMap<>();
 
     public PartsData getPartsData(String partsName) {
         return partsData.get(partsName);
@@ -20,11 +21,16 @@ public class PomkotsDataPack implements Serializable {
 
     public void reset() {
         partsData.clear();
+        enemyData.clear();
+    }
+
+    public boolean isEmpty() {
+        return partsData.isEmpty();
     }
 
     @Override
     public String toString() {
-        return partsData.toString();
+        return "{" + partsData.toString() + "," + enemyData.toString() + "}";
     }
 
     public static class PartsData implements Serializable {
@@ -36,7 +42,7 @@ public class PomkotsDataPack implements Serializable {
 
         @Override
         public String toString() {
-            return "{" + id + "," + weight + "," + levels.toString();
+            return "{" + id + "," + weight + "," + levels.toString() + "}";
         }
     }
 
@@ -75,6 +81,52 @@ public class PomkotsDataPack implements Serializable {
         @Override
         public String toString() {
             return "[" + durability + "," + maxWeight + "," + speedModifier + "," + jumpModifier + "," + damage + "," + missileMaxNum + "," + missileLockInterval + "]";
+        }
+    }
+
+    public EnemyData getEnemyData(String enemyName) {
+        return enemyData.get(enemyName);
+    }
+
+    public void addEnemyData(String enemyName, EnemyData data) {
+        enemyData.put(enemyName, data);
+    }
+
+    public static class EnemyData implements Serializable {
+        // 共通
+        public String id;
+        public float followRange;
+        public float speed;
+        public float maxStepUp;
+        public float knockBackResistance;
+        public float health;
+        public float baseDamageModifier;
+        public float explosionDamageModifier;
+        public float armor;
+        public float armorToughness;
+        public float bulletDamage;
+        public float bulletSpeed;
+        public float missileDamage;
+        public float missileSpeed;
+        public float grenadeDamage;
+        public float grenadeSpeed;
+        public float grenadeExplosionScale;
+        public float meleeDamage;
+        public float meleeSpeed;
+        public float laserDamage;
+        public float laserSpeed;
+        public float exAttack1Damage;
+        public float exAttack1Speed;
+        public float exAttack2Damage;
+        public float exAttack2Speed;
+        public float exAttack3Damage;
+        public float exAttack3Speed;
+
+        @Override
+        public String toString() {
+            return "{" +
+                    id + "," + health + "," + armor
+                    +"}";
         }
     }
 }

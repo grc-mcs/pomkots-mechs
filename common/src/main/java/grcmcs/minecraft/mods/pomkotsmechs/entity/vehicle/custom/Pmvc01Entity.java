@@ -73,7 +73,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     public static AttributeSupplier.Builder createMobAttributes() {
         return LivingEntity.createLivingAttributes()
                 .add(Attributes.ATTACK_KNOCKBACK)
-                .add(Attributes.MAX_HEALTH, BattleBalance.MECH_HEALTH);
+                .add(Attributes.MAX_HEALTH, BattleBalance.MECH_HEALTH)
+                .add(Attributes.ARMOR, 20);
     }
 
     public Pmvc01Entity(EntityType<? extends LivingEntity> entityType, Level world) {
@@ -768,7 +769,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
         this.setTextureColor(compound.getInt(PomkotsMechs.nbtName("TextureColor")));
 
-        this.syncAllParameter2Client();
+        this.syncAllParameter2Client(false);
         this.readAmmoSaveData(compound);
 
         this.fuel = compound.getInt(PomkotsMechs.nbtName("FuelNow"));
@@ -1313,6 +1314,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     }
 
     protected void syncAllParameter2Client() {
+        syncAllParameter2Client(true);
+    }
+
+    protected void syncAllParameter2Client(boolean updateHealth) {
         this.entityData.set(P_HEAD, this.getHeadPartsFromInventory());
         this.entityData.set(P_ARMS, this.getArmPartsFromInventory());
         this.entityData.set(P_BODY, this.getBodyPartsFromInventory());
@@ -1329,11 +1334,11 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.entityData.set(W_EXTENSION1, this.getExtension1FromInventory());
         this.entityData.set(W_EXTENSION2, this.getExtension2FromInventory());
 
-        this.updateMechParams();
+        this.updateMechParams(updateHealth);
         this.registerWeapons();
     }
 
-    private void updateMechParams() {
+    private void updateMechParams(boolean updateHealth) {
         MechParam param = new MechParam();
 
         sumPartsParameter(this.getHeadPartsFromInventory(), param);
@@ -1365,8 +1370,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
         this.syncFuels();
 
-        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newHealth);
-        this.setHealth(Math.min(this.getHealth(), newHealth));
+        if (updateHealth) {
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newHealth);
+            this.setHealth(Math.min(this.getHealth(), newHealth));
+        }
     }
 
 //    public static void updateMaxHealth(MechEntity mech) {
@@ -1597,5 +1604,9 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                 level.addFreshEntity(e);
             }
         }
+    }
+
+    @Override
+    protected void checkInsideBlocks() {
     }
 }

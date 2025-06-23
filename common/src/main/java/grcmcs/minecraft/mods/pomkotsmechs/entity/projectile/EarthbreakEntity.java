@@ -2,8 +2,8 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb01Entity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.HitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.Pmb01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.HitBoxEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
@@ -68,7 +68,7 @@ public class EarthbreakEntity extends ThrowableProjectile implements GeoEntity, 
                     le.addDeltaMovement(new Vec3(0, 5, 0));
                 }
                 le.invulnerableTime = 20;
-                le.hurt(this.damageSources().generic(), BattleBalance.BOSS_EARTHBREAK_DAMAGE);
+                le.hurt(this.damageSources().generic(), 60);
             }
         }
 
@@ -107,6 +107,16 @@ public class EarthbreakEntity extends ThrowableProjectile implements GeoEntity, 
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
 
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
+    }
+
+    @Override
+    public boolean ignoreExplosion() {
+        return true;
     }
 
     @Override

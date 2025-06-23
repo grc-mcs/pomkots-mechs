@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.model;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb02Entity;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
@@ -18,6 +19,11 @@ public class Pmb02EntityModel extends GeoModel<Pmb02Entity> {
 
     @Override
     public ResourceLocation getTextureResource(Pmb02Entity animatable) {
-        return new ResourceLocation(PomkotsMechs.MODID, "textures/entity/pmb02.png");
+        if (animatable.getAiMode() == BaseBossEntity.AI_MODE_INACTIVE) {
+            return new ResourceLocation(PomkotsMechs.MODID, "textures/entity/pmb01inactive.png");
+
+        } else {
+            return new ResourceLocation(PomkotsMechs.MODID, "textures/entity/pmb02.png");
+        }
     }
 }
