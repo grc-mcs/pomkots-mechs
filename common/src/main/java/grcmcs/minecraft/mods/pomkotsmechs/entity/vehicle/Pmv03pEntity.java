@@ -273,16 +273,10 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
         }
     }
 
-    protected PlayState controllAnimationFlyingMotion(AnimationState<PomkotsVehicleBase> event) {
-        if (this.isMainMode()) {
-            return null;
-        } else {
-            return super.controllAnimationFlyingMotion(event);
-        }
-    }
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
 
-    protected PlayState controllAnimationRotation(AnimationState<PomkotsVehicleBase> event) {
-        if (this.isMainMode()) {
+        controllers.add(new AnimationController<>(this, "rotation", 6, event -> {
             if (this.getDriverInput() != null) {
                 if (this.getDriverInput().isRightPressed()) {
                     return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".rightfly"));
@@ -291,14 +285,14 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
                 }
             }
             return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".centerfly"));
-        } else {
-            return super.controllAnimationRotation(event);
-        }
+        }));
+
+        addExtraAnimationController(controllers);
     }
 
     @Override
     protected void addExtraAnimationController(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "props", 0, event -> {
+        controllers.add(new AnimationController<>(this, "props", 6, event -> {
             if (this.isVehicle()) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".prop"));
             }
@@ -307,7 +301,7 @@ public class Pmv03pEntity extends PomkotsVehicleBase {
             this.registerAnimationSoundHandlers(soundKeyframeEvent);
         }));
 
-        controllers.add(new AnimationController<>(this, "tires", 0, event -> {
+        controllers.add(new AnimationController<>(this, "tires", 6, event -> {
             if (event.isMoving() && event.getAnimatable().onGround()) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".tire"));
             }

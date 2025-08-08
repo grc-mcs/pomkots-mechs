@@ -64,7 +64,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
         this.setPersistenceRequired();
         this.setNoGravity(false);
         this.setYRot(0F);
-        this.noCulling = true;
+        this.noCulling = false;
         this.goalDice = new GoalDice(this);
 
         this.registerTargetSelectorGoals();

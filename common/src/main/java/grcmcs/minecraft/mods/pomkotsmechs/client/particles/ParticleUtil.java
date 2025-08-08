@@ -60,14 +60,44 @@ public class ParticleUtil {
                     offset.x(), offset.y(), offset.z(), // 位置
                     velocityX, velocityY, velocityZ // 速度
             );
-
-
         }
 
         for (int i = 0; i < 3; i++) {
             level.addAlwaysVisibleParticle(PomkotsMechs.MISSILE_SMOKE.get(), true,
                     offset.x(), offset.y() + random.nextDouble(), offset.z(), // 位置
                     0, random.nextDouble(), 0 // 速度
+            );
+        }
+    }
+
+    public static void addSparkParticlesMedium(Vec3 offset, Level level) {
+        RandomSource random = level.getRandom();
+
+        for (int i = 0; i < 20; i++) {
+            // ランダムな速度を生成
+            double velocityX = random.nextDouble() * 2.0 - 1;
+            double velocityY = random.nextDouble() * 2.0 - 1;
+            double velocityZ = random.nextDouble() * 2.0 - 1;
+
+            level.addAlwaysVisibleParticle(PomkotsMechs.SPARK.get(), true,
+                    offset.x(), offset.y(), offset.z(), // 位置
+                    velocityX, velocityY, velocityZ // 速度
+            );
+        }
+    }
+
+    public static void addSparkParticlesSmall(Vec3 offset, Level level) {
+        RandomSource random = level.getRandom();
+
+        for (int i = 0; i < 5; i++) {
+            // ランダムな速度を生成
+            double velocityX = random.nextDouble() * 2.0 - 1;
+            double velocityY = random.nextDouble() * 2.0 - 1;
+            double velocityZ = random.nextDouble() * 2.0 - 1;
+
+            level.addAlwaysVisibleParticle(PomkotsMechs.SPARK.get(), true,
+                    offset.x(), offset.y(), offset.z(), // 位置
+                    velocityX, velocityY, velocityZ // 速度
             );
         }
     }

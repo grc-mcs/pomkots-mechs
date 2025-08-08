@@ -828,6 +828,11 @@
 					]
 				},
 				{
+					"name": "extension_attachment_spine",
+					"parent": "spine",
+					"pivot": [0, 39.25, 8.75]
+				},
+				{
 					"name": "right_upper_leg",
 					"parent": "hips",
 					"pivot": [-15.75, 36.75, -3.75],

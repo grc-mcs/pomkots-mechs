@@ -313,7 +313,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
     }
 
     @Override protected float getFlyingSpeed() {
-        if (isNoGravity() && isServerSide()) {
+        if (isServerSide() && isNoGravity()) {
             if (this.actionController.isBoost()) {
                 return 0.4f;
             } else {

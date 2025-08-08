@@ -101,6 +101,32 @@ public class DriverInput {
         return (this.keyPressStatus & UserInteractionManager.Keys.JUMP.getKeyID()) != 0;
     }
 
+    public boolean isExtension1Pressed() {
+        return (this.keyPressStatus & UserInteractionManager.Keys.EXT1.getKeyID()) != 0;
+    }
+
+    public boolean isExtension1Released() {
+        if (this.prevInput != null) {
+            return ((this.prevInput.keyPressStatus & UserInteractionManager.Keys.EXT1.getKeyID()) != 0)
+                    && ((this.keyPressStatus & UserInteractionManager.Keys.EXT1.getKeyID()) == 0);
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isExtension2Pressed() {
+        return (this.keyPressStatus & UserInteractionManager.Keys.EXT2.getKeyID()) != 0;
+    }
+
+    public boolean isExtension2Released() {
+        if (this.prevInput != null) {
+            return ((this.prevInput.keyPressStatus & UserInteractionManager.Keys.EXT2.getKeyID()) != 0)
+                    && ((this.keyPressStatus & UserInteractionManager.Keys.EXT2.getKeyID()) == 0);
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public String toString() {
         return "key status:" + keyPressStatus;

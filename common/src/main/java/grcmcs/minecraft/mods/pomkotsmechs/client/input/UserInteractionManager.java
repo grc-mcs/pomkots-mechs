@@ -28,14 +28,16 @@ public class UserInteractionManager {
         BACK               ((short)0b0000000000000010, GLFW.GLFW_KEY_DELETE, "none"),
         LEFT               ((short)0b0000000000000100, GLFW.GLFW_KEY_DELETE, "none"),
         RIGHT              ((short)0b0000000000001000, GLFW.GLFW_KEY_DELETE, "none"),
-        EVASION            ((short)0b0000000000010000, GLFW.GLFW_KEY_DELETE, "none"),
+        EVASION            ((short)0b0000000000010000, InputConstants.KEY_L, "evasion"),
         JUMP               ((short)0b0000000000100000, InputConstants.KEY_B, "jump"),
-        WEAPON_ARM_R       ((short)0b0000000001000000, GLFW.GLFW_KEY_DELETE, "none"),
-        WEAPON_ARM_L       ((short)0b0000000010000000, GLFW.GLFW_KEY_DELETE, "none"),
+        WEAPON_ARM_R       ((short)0b0000000001000000, InputConstants.KEY_J, "weapon_arm_r"),
+        WEAPON_ARM_L       ((short)0b0000000010000000, InputConstants.KEY_K, "weapon_arm_l"),
         WEAPON_SHOULDER_R  ((short)0b0000000100000000, InputConstants.KEY_P, "weapon_shld_r"),
         WEAPON_SHOULDER_L  ((short)0b0000001000000000, InputConstants.KEY_O, "weapon_shld_l"),
         LOCK               ((short)0b0000010000000000, InputConstants.KEY_U, "lock"),
-        MODE               ((short)0b0000100000000000, InputConstants.KEY_Y, "mode");
+        MODE               ((short)0b0000100000000000, InputConstants.KEY_Y, "mode"),
+        EXT1               ((short)0b0001000000000000, InputConstants.KEY_N, "ext1"),
+        EXT2               ((short)0b0010000000000000, InputConstants.KEY_M, "ext2");
 
         private final short keyID;
         private final int id;

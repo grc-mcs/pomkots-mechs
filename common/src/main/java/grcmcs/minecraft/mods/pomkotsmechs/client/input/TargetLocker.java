@@ -44,6 +44,7 @@ public class TargetLocker {
     }
 
     private Minecraft minecraft = Minecraft.getInstance();
+    private TargetFinder finder = new TargetFinder();
     private Entity targetSoft = null;
     private Entity targetHard = null;
     public Map<Integer, Entity> targetMulti = new HashMap<>();
@@ -103,7 +104,7 @@ public class TargetLocker {
             // ソフトロックを試す
             if (bot.shouldLockWeak(driverInput)) {
                 if (targetSoft == null) {
-                    lockOnTargetSoft(getCrossHairTarget());
+                    lockOnTargetSoft(getCrossHairTarget2());
                 } else {
                     if (!isInLockonTraceRange(targetSoft, COSINE_THRESHOLD)) {
                         unlockTargetSoft();
@@ -133,8 +134,12 @@ public class TargetLocker {
         return targetSoft;
     }
 
+    public Entity getCrossHairTarget2() {
+        return finder.findTargetEntity(minecraft.player);
+    }
+
     public Entity getCrossHairTarget() {
-        var list = getEntitiesAroundPlayer(minecraft.player, 80);
+        var list = getEntitiesAroundPlayer(minecraft.player, 150);
 
         for (var ent: list) {
             if (isInLockonTraceRange(ent, COSINE_THRESHOLD2)) {
@@ -189,7 +194,7 @@ public class TargetLocker {
             target = targetSoft;
 
         } else {
-            var ent = getCrossHairTarget();
+            var ent = getCrossHairTarget2();
             if (ent != null) {
                 target = ent;
             }
@@ -312,12 +317,14 @@ public class TargetLocker {
 
         if (targetSoft != null) {
             res = targetSoft;
-        } else if (getCrossHairTarget() != null) {
+        } else {
             res = getCrossHairTarget();
-        } else  {
-            Player p = minecraft.player;
-            var list = getEntitiesAroundPlayer(p, 50);
-            res = getClosestEntityInLookDirection(p, list);
+
+            if (res == null) {
+                Player p = minecraft.player;
+                var list = getEntitiesAroundPlayer(p, 50);
+                res = getClosestEntityInLookDirection(p, list);
+            }
         }
 
         return res;

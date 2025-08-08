@@ -508,6 +508,20 @@
       "level_param": [
         {}
     ]},
+    "hoverunit": {
+      "type": "extension",
+      "description": "Hover Unit",
+      "weight": 0,
+      "level_param": [
+        {}
+      ]},
+    "railslider": {
+      "type": "extension",
+      "description": "Enable Rail Slide",
+      "weight": 0,
+      "level_param": [
+        {}
+      ]},
     "magazinerifle": {
       "type": "magazine",
       "description": "Magazine for Rifle",

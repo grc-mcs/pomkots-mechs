@@ -3,9 +3,12 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchMenu;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.rail.*;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
@@ -13,7 +16,10 @@ import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.CachedBoneFinder;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.CircuitHardLockItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.CircuitSoftLockItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.HoverUnitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.RailSliderItem;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -23,6 +29,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -34,6 +41,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -51,10 +59,7 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.keyframe.event.SoundKeyframeEvent;
 import software.bernie.geckolib.core.object.PlayState;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInventoryScreen, Container, MenuProvider {
@@ -111,11 +116,41 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             if (this.isAlive() && this.isVehicle() && tickCount % 200 == 0) {
                 syncFuels();
             }
+
+            if (isHovering()) {
+                this.setNoGravity(true);
+            }
         }
 
         this.tickAmmos();
         super.tick();
+
+        if (this.isServerSide()) {
+            if (this.isBoundToRail()) {
+                Vec3 currentVelocity = this.getDeltaMovement();
+                railBindComponent.moveRobotOnRail(this, currentVelocity);
+            }
+        }
     }
+
+    // レール系機能ここから
+    private final RailBindComponent railBindComponent = new RailBindComponent();
+
+    public boolean isBoundToRail() {
+        return this.entityData.get(IS_BOUND_TO_RAIL);
+    }
+
+    public boolean tryBindToRail() {
+        var bp = railBindComponent.findRailBlockBelow(this.level(), this.blockPosition());
+        this.entityData.set(IS_BOUND_TO_RAIL, bp != null);
+
+        return bp != null;
+    }
+
+    public void unbindFromRail() {
+        this.entityData.set(IS_BOUND_TO_RAIL, false);
+    }
+    // レール系機能おわり
 
     @Override
     public void setDeltaMovement(Vec3 movement) {
@@ -127,13 +162,24 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     public boolean canWork() {
-        return !this.getHeadParts().isEmpty()
+        var res = !this.getHeadParts().isEmpty()
                 && !this.getBodyParts().isEmpty()
                 && !this.getArmParts().isEmpty()
                 && !this.getLegsParts().isEmpty()
                 && !this.getBooster().isEmpty()
                 && !this.getGenerator().isEmpty()
                 && this.consumeFuel();
+
+        if (!res) {
+            resetExtensionUnitStatus();
+        }
+
+        return res;
+    }
+
+    public void resetExtensionUnitStatus() {
+        this.isHovering = false;
+        this.unbindFromRail();
     }
 
     @Override
@@ -171,6 +217,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected static final int ACT_LEFT_HAND = 3;
     protected static final int ACT_RIGHT_SHOULDER = 4;
     protected static final int ACT_LEFT_SHOULDER = 5;
+    protected static final int ACT_BIND_RAIL = 6;
 
     @Override
     protected void registerActions() {
@@ -179,6 +226,9 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.actionController.registerAction(ACT_LEFT_HAND, new ActionWeapon(this, INV_WEAPON_LEFT_HAND), ActionController.ActionType.L_ARM_MAIN);
         this.actionController.registerAction(ACT_RIGHT_SHOULDER, new ActionWeapon(this, INV_WEAPON_RIGHT_SHOULDER), ActionController.ActionType.R_SHL_MAIN);
         this.actionController.registerAction(ACT_LEFT_SHOULDER, new ActionWeapon(this, INV_WEAPON_LEFT_SHOULDER), ActionController.ActionType.L_SHL_MAIN);
+
+        this.actionController.registerAction(ACT_BIND_RAIL, new Action(10, 0, 10), ActionController.ActionType.BASE);
+
         this.registerWeapons();
     }
 
@@ -211,6 +261,28 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                 driverInput.isWeaponRightShoulderPressed(), driverInput.isWeaponRightShoulderReleased());
         applyPlayerInputWeapon((ActionWeapon)this.actionController.getAction(ACT_LEFT_SHOULDER),
                 driverInput.isWeaponLeftShoulderPressed(), driverInput.isWeaponLeftShoulderReleased());
+
+        if (driverInput.isExtension1Released()) {
+            applyPlayerInputExtension(getExtension1Weapon());
+        }
+        if (driverInput.isExtension2Released()) {
+            applyPlayerInputExtension(getExtension2Weapon());
+        }
+    }
+
+    protected void applyPlayerInputExtension(ItemStack extensionStack) {
+        if (!extensionStack.isEmpty()) {
+            var extensionItem = extensionStack.getItem();
+            if (extensionItem instanceof HoverUnitItem) {
+                this.isHovering = !this.isHovering;
+            } else if (extensionItem instanceof RailSliderItem) {
+                if (this.isBoundToRail()) {
+                    this.unbindFromRail();
+                } else if (this.tryBindToRail()) {
+                    this.actionController.getAction(ACT_BIND_RAIL).startAction();
+                }
+            }
+        }
     }
 
     protected void applyPlayerInputWeapon(ActionWeapon act, boolean isPressed, boolean isReleased) {
@@ -376,6 +448,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected float getHorizontalBoostAcceleration() {
         if (onGround()) {
             return 0.475F * 12F  * this.getSpeedModifier() * this.getSpeedModifierEvasion();
+        } else if (isHovering()) {
+            return 0.475F * 10F  * this.getSpeedModifier() * this.getSpeedModifierEvasion();
         } else {
             return 0.475F * 7F  * this.getSpeedModifier() * this.getSpeedModifierEvasion();
         }
@@ -409,6 +483,32 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     }
 
     @Override
+    protected void applyPlayerInputInAirActions(DriverInput driverInput) {
+        if (!this.onGround()) {
+            if (driverInput.isJumpPressed()) {
+                this.setNoGravity(true);
+
+                if (!tryVerticalBoost()) {
+                    if (isServerSide()) {
+                        this.push(0, -0.18 * 0.9800000190734863D, 0);
+                    }
+                }
+            } else if (isServerSide()){
+                if (isHovering()) {
+                    this.handleHovering();
+                } else if (!isBoundToRail()) {
+                    this.push(0, -0.18 * 0.9800000190734863D, 0);
+                }
+            }
+        } else {
+            if (isHovering()) {
+                this.handleHovering();
+            }
+            this.setNoGravity(false);
+        }
+    }
+
+    @Override
     protected boolean tryVerticalBoost() {
         if (useEnergy(this.getEnergyConsumeVertical())) {
             if (isServerSide() && this.getDeltaMovement().y() < getVerticalBoostMaxSpeed()) {
@@ -417,6 +517,50 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             }
         }
         return false;
+    }
+
+    protected boolean isHovering() {
+        return isHovering;
+    }
+
+    private boolean isHovering = false;
+    private final float hoverHeight = 3.0f; // 最低維持高度
+
+    private void handleHovering() {
+        // 地面または液体面までの距離を計算
+        float distanceToGround = getDistanceToGround();
+
+        if (distanceToGround <= hoverHeight) {
+            // 浮上力を適用
+            Vec3 velocity = getDeltaMovement();
+            double upwardForce = (hoverHeight - distanceToGround) * 0.05; // 調整可能
+            setDeltaMovement(velocity.x, velocity.y + upwardForce, velocity.z);
+        } else if (distanceToGround > hoverHeight + 1){
+            this.push(0, -0.18 * 0.9800000190734863D, 0);
+        }
+    }
+
+    private float getDistanceToGround() {
+        Level world = level();
+        double entityY = getY();
+
+        // エンティティの足元から下方向にレイキャスト
+        for (int i = 0; i < 10; i++) {
+            BlockPos checkPos = new BlockPos((int)getX(), (int)Math.floor(entityY - i), (int)getZ());
+            BlockState blockState = world.getBlockState(checkPos);
+
+            // 固体ブロックまたは液体をチェック
+            if (!blockState.isAir() && (blockState.isSolid() ||
+                    blockState.getFluidState().is(FluidTags.WATER) ||
+                    blockState.getFluidState().is(FluidTags.LAVA))) {
+
+                // エンティティの足元から地面までの正確な距離を計算
+                double groundY = checkPos.getY() + 1.0; // ブロックの上面
+                return (float)(entityY - groundY);
+            }
+        }
+
+        return Float.MAX_VALUE; // 地面が見つからない場合
     }
 
     /**************************************************************************************
@@ -577,6 +721,66 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      ******************************************************************************************/
 
     @Override
+    protected PlayState controllAnimationBasicMove(AnimationState<PomkotsVehicleBase> event) {
+        if (this.actionController.getAction(ACT_JUMP).isInAction()) {
+            if (this.actionController.getAction(ACT_JUMP).isOnStart()) {
+                event.getController().forceAnimationReset();
+            }
+            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".jump"));
+
+        } else if (this.actionController.getAction(ACT_BIND_RAIL).isInAction()) {
+            if (this.actionController.getAction(ACT_BIND_RAIL).isOnStart()) {
+                event.getController().forceAnimationReset();
+            }
+            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".bindrail"));
+        }
+
+        if (event.isMoving()) {
+            if (this.isBoundToRail() && this.getDeltaMovement().length() > 2) {
+                var legPos1 = new Vec3(-1, 0, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+                var legPos2 = new Vec3(1, 0, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+
+                ParticleUtil.addSparkParticlesSmall(legPos1, this.level());
+                ParticleUtil.addSparkParticlesSmall(legPos2, this.level());
+            }
+
+            if (this.actionController.getAction(ACT_EVASION).isInAction()) {
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".evasion"));
+            } else if (this.actionController.isBoost()) {
+                return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".dash"));
+            } else {
+                if (this.isBoundToRail()) {
+                    return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".dash"));
+                } else if (this.isNoGravity()) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".idle"));
+                } else {
+                    return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".walk"));
+                }
+            }
+        } else {
+            if (this.isBoundToRail()) {
+                return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".dash"));
+            } else if (this.yRotO != this.getYRot()) {
+                return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".walk"));
+            } else {
+                event.getController().forceAnimationReset();
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".idle"));
+            }
+        }
+    }
+
+    @Override
+    protected PlayState controllAnimationFlyingMotion(AnimationState<PomkotsVehicleBase> event) {
+        if (justLanded(event.getAnimatable())) {
+            return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".onground"));
+        } else if (event.getAnimatable().onGround() || this.isBoundToRail()) {
+            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
+        } else {
+            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".flylegs"));
+        }
+    }
+
+    @Override
     protected PlayState controllAnimationWeapons(AnimationState<PomkotsVehicleBase> event) {
         return null;
     }
@@ -644,6 +848,13 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             this.playSoundEffect(PomkotsMechs.SE_BOOSTER_EVENT.get());
         } else if ("se_onground".equals(event.getKeyframeData().getSound())) {
             this.playSoundEffect(PomkotsMechs.SE_JUMP_EVENT.get());
+        } else if ("se_gashan".equals(event.getKeyframeData().getSound())) {
+            this.playSoundEffect(PomkotsMechs.SE_GASHAN.get());
+            var legPos1 = new Vec3(-1, 0, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+            var legPos2 = new Vec3(1, 0, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+
+            ParticleUtil.addSparkParticles(legPos1, this.level());
+            ParticleUtil.addSparkParticles(legPos2, this.level());
         }
     }
 
@@ -813,6 +1024,14 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         else {
             return InteractionResult.FAIL;
         }
+    }
+
+    @Override
+    public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        if (passenger instanceof Player) {
+            this.resetExtensionUnitStatus();
+        }
+        return super.getDismountLocationForPassenger(passenger);
     }
 
     private InteractionResult interactWithContainerVehicle(Player player) {
@@ -1267,6 +1486,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected static final EntityDataAccessor<Integer> FUEL_MAX = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> FUEL_NOW = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
 
+    protected static final EntityDataAccessor<Boolean> IS_BOUND_TO_RAIL = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
+
     protected static final EntityDataAccessor<Integer> TEXTURE_COLOR = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
 
     @Override
@@ -1309,6 +1530,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
         this.entityData.define(FUEL_MAX, 0);
         this.entityData.define(FUEL_NOW, 0);
+
+        this.entityData.define(IS_BOUND_TO_RAIL, false);
 
         this.entityData.define(TEXTURE_COLOR, 0);
     }

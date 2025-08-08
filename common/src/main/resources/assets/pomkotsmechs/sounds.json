@@ -198,5 +198,10 @@
     "sounds": [
       "pomkotsmechs:se_charge"
     ]
+  },
+  "se_gashan": {
+    "sounds": [
+      "pomkotsmechs:se_gashan"
+    ]
   }
 }

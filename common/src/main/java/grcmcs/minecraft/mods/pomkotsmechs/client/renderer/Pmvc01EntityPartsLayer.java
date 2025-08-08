@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.HoverUnitItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -37,6 +38,8 @@ public class Pmvc01EntityPartsLayer <T extends Pmvc01Entity> extends GeoRenderLa
             this.renderWeapon("right", "shoulder", animatable.getRightShoulderWeapon(), poseStack,  animatable,  bone,  renderType,  bufferSource,  buffer,  partialTick,  packedLight,  packedOverlay);
         } else if ("weapon_left_shoulder".equals(bone.getName())) {
             this.renderWeapon("left", "shoulder", animatable.getLeftShoulderWeapon(), poseStack,  animatable,  bone,  renderType,  bufferSource,  buffer,  partialTick,  packedLight,  packedOverlay);
+        } else if ("extension_attachment_spine".equals(bone.getName())) {
+            this.renderExtensions(animatable, poseStack,  animatable,  bone,  renderType,  bufferSource,  buffer,  partialTick,  packedLight,  packedOverlay);
         }
     }
 
@@ -57,6 +60,40 @@ public class Pmvc01EntityPartsLayer <T extends Pmvc01Entity> extends GeoRenderLa
                     packedLight, packedOverlay, animatable.getId());
             w.setSide(null);
             w.setParentEntity(null);
+
+            poseStack.popPose();
+        }
+    }
+
+    private void renderExtensions(Pmvc01Entity animatabale, PoseStack poseStack, T animatable, GeoBone bone, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
+        var ext1Stack = animatabale.getExtension1Weapon();
+        var ext2Stack = animatabale.getExtension2Weapon();
+
+        HoverUnitItem hover = null;
+        ItemStack hoverStack = null;
+
+        if (!ext1Stack.isEmpty() && ext1Stack.getItem() instanceof HoverUnitItem hui) {
+            hover = hui;
+            hoverStack = ext1Stack;
+        }
+
+        if (!ext2Stack.isEmpty() && ext2Stack.getItem() instanceof HoverUnitItem hui) {
+            hover = hui;
+            hoverStack = ext2Stack;
+        }
+
+        if (hover != null) {
+            poseStack.pushPose();
+
+            RenderUtils.translateAndRotateMatrixForBone(poseStack, bone);
+
+            hover.setParentEntity(animatable);
+            hover.setSide("right");
+            Minecraft.getInstance().getItemRenderer().renderStatic(animatable, hoverStack,
+                    ItemDisplayContext.NONE, false, poseStack, bufferSource, animatable.level(),
+                    packedLight, packedOverlay, animatable.getId());
+            hover.setSide(null);
+            hover.setParentEntity(null);
 
             poseStack.popPose();
         }

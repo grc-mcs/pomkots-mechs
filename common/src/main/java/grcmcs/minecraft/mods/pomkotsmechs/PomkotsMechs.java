@@ -30,6 +30,8 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.*;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.*;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.HoverUnitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.RailSliderItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.fuel.PelletItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.boosters.HanedaItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.boosters.KansaiItem;
@@ -300,6 +302,8 @@ public class PomkotsMechs {
 	// EXTENSIONS
 	public static final RegistrySupplier<Item> SOFT_LOCK_CIRCUIT = ITEMS.register("circuitsoftlock", () -> new CircuitSoftLockItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> HARD_LOCK_CIRCUIT = ITEMS.register("circuithardlock", () -> new CircuitHardLockItem(new Item.Properties().stacksTo(1)));
+	public static final RegistrySupplier<Item> HOVER_UNIT = ITEMS.register("hoverunit", () -> new HoverUnitItem(new Item.Properties().stacksTo(1)));
+	public static final RegistrySupplier<Item> RAIL_SLIDER = ITEMS.register("railslider", () -> new RailSliderItem(new Item.Properties().stacksTo(1)));
 
 	// WEAPONS
 
@@ -423,6 +427,8 @@ public class PomkotsMechs {
 
 				output.accept(new ItemStack(SOFT_LOCK_CIRCUIT.get()));
 				output.accept(new ItemStack(HARD_LOCK_CIRCUIT.get()));
+				output.accept(new ItemStack(HOVER_UNIT.get()));
+				output.accept(new ItemStack(RAIL_SLIDER.get()));
 
 				output.accept(new ItemStack(PELLET.get()));
 			})
@@ -631,6 +637,7 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<SoundEvent> SE_BEAM1 = SOUNDS.register(id("se_beam1"), () -> SoundEvent.createVariableRangeEvent(id("se_beam1")));
 	public static final RegistrySupplier<SoundEvent> SE_BEAM2 = SOUNDS.register(id("se_beam2"), () -> SoundEvent.createVariableRangeEvent(id("se_beam2")));
 	public static final RegistrySupplier<SoundEvent> SE_CHARGE = SOUNDS.register(id("se_charge"), () -> SoundEvent.createVariableRangeEvent(id("se_charge")));
+	public static final RegistrySupplier<SoundEvent> SE_GASHAN = SOUNDS.register(id("se_gashan"), () -> SoundEvent.createVariableRangeEvent(id("se_gashan")));
 
 	public static PomkotsConfig CONFIG;
 
