@@ -1,12 +1,16 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal;
 
 // HateTargetGoal.java
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb99Entity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Team;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +24,7 @@ public class HateTargetGoal extends Goal {
     private int recheckDelay;
 
     // ヘイト管理の設定値
-    private static final float HATE_DECAY_RATE = 100f; // 毎秒のヘイト減衰量
+    private static final float HATE_DECAY_RATE = 200f; // 毎秒のヘイト減衰量
     private static final float PROXIMITY_HATE_RATE = 1.0f; // 近接時の毎秒ヘイト増加量
     private static final float DISTANCE_DECAY_MULTIPLIER = 10.0f; // 距離による減衰倍率
     private static final int RECHECK_INTERVAL = 20; // ターゲット再選択間隔（tick）
@@ -126,6 +130,10 @@ public class HateTargetGoal extends Goal {
         // 自分自身は対象外
         if (mob.isSelf(entity)) return false;
 
+        // ボス同士の同士討ちは避ける
+        // @JOKE
+        if (entity instanceof BaseBossEntity && !(entity instanceof Pmb99Entity)) return false;
+
         // チーム判定
         Team mobTeam = mob.getTeam();
         Team entityTeam = entity.getTeam();
@@ -215,7 +223,30 @@ public class HateTargetGoal extends Goal {
             }
         }
 
+        if (mob.isInRaid()) {
+            if (raidTarget == null) {
+                raidTarget = findRaidTarget();
+            }
+            if (highestHate < 300 && raidTarget != null) {
+                return raidTarget;
+            }
+        }
+
         return bestTarget;
+    }
+
+    private RaidObjectiveEntity raidTarget = null;
+
+    private RaidObjectiveEntity findRaidTarget() {
+        double targetRange = mob.getAttribute(Attributes.FOLLOW_RANGE).getBaseValue();
+
+        if (!(mob.level() instanceof ServerLevel level)) return null;
+        Vec3 pos = mob.position();
+        AABB area = new AABB(pos.x - targetRange, pos.y - 100, pos.z - targetRange,
+                pos.x + targetRange, pos.y + 100, pos.z + targetRange);
+        List<RaidObjectiveEntity> list = level.getEntitiesOfClass(RaidObjectiveEntity.class, area,
+                e -> e.isAlive() && !e.isRemoved());
+        return list.isEmpty() ? null : list.get(0);
     }
 
     /**

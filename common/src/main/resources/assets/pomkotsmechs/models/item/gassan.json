@@ -16,8 +16,5 @@
   "texture_size": [
     32,
     32
-  ],
-  "textures": {
-    "particle": "entity/parts/gray.png"
-  }
+  ]
 }

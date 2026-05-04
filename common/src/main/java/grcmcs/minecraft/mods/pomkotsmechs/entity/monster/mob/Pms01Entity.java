@@ -1,14 +1,21 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob;
 
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.ChargingMobGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RaidTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -111,7 +118,6 @@ public class Pms01Entity extends BaseSmallMonsterEntity implements GeoEntity, Ge
         super.registerGoals();
 
         this.goalSelector.addGoal(1, new ChargingMobGoal(this, getMechData().speed));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
     }
 
     @Override

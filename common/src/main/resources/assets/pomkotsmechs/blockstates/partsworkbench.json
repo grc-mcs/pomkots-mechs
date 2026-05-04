@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "pomkotsmechs:block/partsworkbench", "y": 0 },
+    "facing=east":  { "model": "pomkotsmechs:block/partsworkbench", "y": 90 },
+    "facing=south": { "model": "pomkotsmechs:block/partsworkbench", "y": 180 },
+    "facing=west":  { "model": "pomkotsmechs:block/partsworkbench", "y": 270 }
+  }
+}

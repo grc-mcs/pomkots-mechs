@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.TakaoItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
@@ -24,8 +25,6 @@ public class TakaoItem extends BasePartsItem.WeaponArm {
         var world = mechInterface.getWorld();
 
         if (isOnFire) {
-            Utils.isDestructiveBLock("");
-
             Entity driver = mechInterface.getDrivingPassenger();
             var pilePos1 = new Vec3(6.5 * mechInterface.isRight(), 4.0F, 18F).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot())).add(mechInterface.position());
             var pilePos2 = new Vec3(-6.5 * mechInterface.isRight(), -4F, -4F).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot())).add(mechInterface.position());
@@ -48,13 +47,17 @@ public class TakaoItem extends BasePartsItem.WeaponArm {
                         }
                         float damage = this.getDamage(mechInterface.getItemStack());
 
+                        var chargeModifier = 1;
                         if (tick > 60) {
-                            damage = damage * 3;
+                            chargeModifier = 3;
                         } else if (tick > 40) {
-                            damage = damage * 2;
+                            chargeModifier = 2;
                         }
 
-                        le.hurt(ds, damage);
+                        if (le instanceof BossHitBoxEntity hit) {
+                            hit.addStunPoint(10 * chargeModifier);
+                        }
+                        le.hurt(ds, damage * chargeModifier);
                     } else {
                         mechInterface.addHitParticles(le);
                     }
@@ -92,8 +95,13 @@ public class TakaoItem extends BasePartsItem.WeaponArm {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_HAND;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_HAND;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.MELEE;
     }
 
     @Override

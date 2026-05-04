@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
@@ -84,9 +85,9 @@ public class GrenadeLargeEntity extends PomkotsThrowableProjectile implements Ge
         Level world = level();
         if (!world.isClientSide) {
             if (ProjectileUtil.isDestructionAllowed(this)) {
-                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
+                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK, this.level());
             } else {
-                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE);
+                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE, this.level());
             }
 
             ExplosionEntity e = new ExplosionEntity(PomkotsMechs.EXPLOSION.get(), world);

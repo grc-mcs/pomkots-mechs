@@ -45,11 +45,15 @@ public class KawasemiItem extends BasePartsItem.WeaponShoulder {
                         int i = tick / 2 - 1;
                         var worldMuzzlPos = muzzlPos.add(1 * (i / 2 - 0.5),1 * (i % 2),0).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
 
-                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), world, mechInterface.getMechEntity(), (LivingEntity) target, this.getDamage(mechInterface.getItemStack()), BattleBalance.MECH_MISSILE_GENERIC_SPEED);
+                        MissileGenericEntity be = new MissileGenericEntity(
+                                PomkotsMechs.MISSILE_GENERIC.get(), world, mechInterface.getMechEntity(),
+                                (LivingEntity) target, this.getDamage(mechInterface.getItemStack()),
+                                BattleBalance.MECH_MISSILE_GENERIC_SPEED2);
 
                         be.setPos(offset.add(worldMuzzlPos));
 
-                        be.shootFromRotation(be, -10, mechInterface.getYRot(), mechInterface.getFallFlyingTicks(), BattleBalance.MECH_MISSILE_GENERIC_SPEED, 0F);
+                        be.shootFromRotation(be, -10, mechInterface.getYRot(), mechInterface.getFallFlyingTicks(),
+                                BattleBalance.MECH_MISSILE_GENERIC_SPEED2, 0F);
 
                         world.addFreshEntity(be);
                     }
@@ -69,8 +73,13 @@ public class KawasemiItem extends BasePartsItem.WeaponShoulder {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_SHOULDER;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_SHOULDER;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.MISSILE;
     }
 
     @Override
@@ -91,10 +100,5 @@ public class KawasemiItem extends BasePartsItem.WeaponShoulder {
     @Override
     public String getPartsSeriesName() {
         return "kawasemi";
-    }
-
-    @Override
-    public String getWeaponCategory() {
-        return "missile";
     }
 }

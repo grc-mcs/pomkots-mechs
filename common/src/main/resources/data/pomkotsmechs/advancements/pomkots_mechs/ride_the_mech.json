@@ -1,0 +1,34 @@
+{
+  "display": {
+    "icon": { "item": "pomkotsmechs:pomkots_wrench" },
+    "title": { "translate": "text.pomkotsmechs.advancement.ride_the_mech.title" },
+    "description": { "translate": "text.pomkotsmechs.advancement.ride_the_mech.desc" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": true
+  },
+  "parent": "pomkotsmechs:pomkots_mechs/root",
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    ["complete"]
+  ],
+  "rewards": {
+    "recipes": [
+      "pomkotsmechs:consumable_fuel_pellet",
+      "pomkotsmechs:consumable_repair_kit",
+      "pomkotsmechs:magazine_gatling",
+      "pomkotsmechs:magazine_grenade",
+      "pomkotsmechs:magazine_machinegun",
+      "pomkotsmechs:magazine_missile",
+      "pomkotsmechs:magazine_missile_large",
+      "pomkotsmechs:magazine_rifle",
+      "pomkotsmechs:magazine_shotgun",
+      "pomkotsmechs:material_p_titanium_ingot"
+    ]
+  }
+}

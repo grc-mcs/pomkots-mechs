@@ -5,19 +5,28 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonsterPercistant;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BaseBossGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.GoalDice;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.HateTargetGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RaidTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
@@ -25,6 +34,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
@@ -40,16 +50,20 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BaseBossEntity extends GenericPomkotsMonster implements GeoEntity, GeoAnimatable, PomkotsControllable {
+public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant implements GeoEntity, GeoAnimatable, PomkotsControllable {
     public static final float DEFAULT_SCALE = 1f;
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+
+    public boolean isCarrying = false;
 
     protected final BossActionController actionController;
     protected final List<BossHitBoxEntity> hitBoxes = new ArrayList<>();
     public final GoalDice goalDice;
 
     protected HateTargetGoal hateTargetGoal = null;
+
+    protected float gravity = 0.98F;
 
     public BossActionController getActionController() {
         return actionController;
@@ -64,15 +78,23 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
         this.setPersistenceRequired();
         this.setNoGravity(false);
         this.setYRot(0F);
-        this.noCulling = false;
+//        this.noCulling = true;
         this.goalDice = new GoalDice(this);
 
         this.registerTargetSelectorGoals();
     }
 
     protected void registerTargetSelectorGoals() {
+//        this.targetSelector.addGoal(1, new RaidTargetGoal<RaidObjectiveEntity>(
+//                this,
+//                RaidObjectiveEntity.class, // 拠点中心を表すエンティティ
+//                this.getAttribute(Attributes.FOLLOW_RANGE).getBaseValue(),                 // 探索範囲
+//                200,                  // プレイヤーを追うtick数
+//                this::isInRaid // レイド中判定
+//        ));
+
         this.hateTargetGoal = new HateTargetGoal(this, this.getAttributeValue(Attributes.FOLLOW_RANGE), 30);
-        this.targetSelector.addGoal(1, hateTargetGoal);
+        this.targetSelector.addGoal(2, hateTargetGoal);
     }
 
     protected void registerAdditionalHitBox(BossHitBoxEntity box) {
@@ -81,7 +103,17 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
 
     @Override
     public void tick() {
+//        if (this.getAiMode() == AI_MODE_INACTIVE) {
+//            this.noCulling = false;
+//        } else {
+//            this.noCulling = true;
+//        }
+
         if (this.isServerSide()) {
+            if (this.isCarrying && this.onGround()) {
+                this.isCarrying = false;
+            }
+
             this.updateAiMode();
 
             var offset = this.position();
@@ -96,6 +128,8 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
                     hitBox.setPos(hitBox.getRelativeParentPos().add(offset));
                 }
             }
+
+            this.updateStunPoint();
         }
 
         super.tick();
@@ -109,6 +143,10 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
 
         if (this.isServerSide()) {
             goalDice.tick();
+
+            if (!this.onGround() && !this.isNoGravity()) {
+                this.push(0, -0.18 * 0.9800000190734863D, 0);
+            }
         }
     }
 
@@ -178,7 +216,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
     }
 
     public void boot() {
-        this.bootTicks = 100;
+        this.bootTicks = 98;
     }
 
     @Override
@@ -198,13 +236,19 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
             if (source.is(DamageTypes.EXPLOSION)) {
                 amount *= getMechData().explosionDamageModifier;
             }
-            amount *= getMechData().baseDamageModifier;
+
+            if (!this.isStunning()) {
+                amount *= getMechData().baseDamageModifier;
+            } else {
+                amount *= (getMechData().baseDamageModifier);
+            }
 
             ParticleUtil.addParticles(source,this);
 
             if (this.isServerSide() && hateTargetGoal != null) {
                 var cause = getCause(source);
-                if (cause != null && !(cause instanceof Player pl && pl.isCreative())) {
+//                if (cause != null && !(cause instanceof Player pl && pl.isCreative())) {
+                if (cause != null) {
                     this.hateTargetGoal.addDamageHate(cause, amount);
                 }
             }
@@ -266,6 +310,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
         this.bossInfo.addPlayer(player);
+        this.bossInfo.setVisible(false);
     }
 
     @Override
@@ -281,7 +326,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
     }
 
     public void choiMove() {
-        this.setDeltaMovement(new Vec3(0,0,0.01).yRot((float) Math.toRadians((-1.0) * this.getYRot())));
+        this.addDeltaMovement(new Vec3(0,0,0.001).yRot((float) Math.toRadians((-1.0) * this.getYRot())));
     }
 
     public void rotateToTarget(LivingEntity target) {
@@ -364,6 +409,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putBoolean(PomkotsMechs.nbtName("BossActivated"), isActivated);
+        compound.putBoolean(PomkotsMechs.nbtName("IsCarrying"), isCarrying);
     }
 
     @Override
@@ -372,9 +418,21 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
 
         if (compound.contains(PomkotsMechs.nbtName("BossActivated"))) {
             isActivated = compound.getBoolean(PomkotsMechs.nbtName("BossActivated"));
-
         } else {
             isActivated = true;
+        }
+
+        if (compound.contains(PomkotsMechs.nbtName("IsCarrying"))) {
+            isCarrying = compound.getBoolean(PomkotsMechs.nbtName("IsCarrying"));
+        } else {
+            isCarrying = false;
+        }
+    }
+
+    public void setActivated(boolean value) {
+        this.isActivated = value;
+        if (!value) {
+            bootTicks = -1;
         }
     }
 
@@ -382,12 +440,15 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
 
     private static final EntityDataAccessor<Boolean> MODE = SynchedEntityData.defineId(BaseBossEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> AI_MODE = SynchedEntityData.defineId(BaseBossEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> STUN_POINT = SynchedEntityData.defineId(BaseBossEntity.class, EntityDataSerializers.INT);
+
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(MODE, true);
         this.entityData.define(AI_MODE, AI_MODE_BATTLE_PHASE_1);
+        this.entityData.define(STUN_POINT, 0);
     }
 
     private void setMainMode(boolean value) {
@@ -400,6 +461,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
 
     protected int aiMode = AI_MODE_BATTLE_PHASE_1;
 
+    public static final int AI_MODE_CARRYING = -3;
     public static final int AI_MODE_INACTIVE = -2;
     public static final int AI_MODE_PATROL = -1;
     public static final int AI_MODE_BATTLE_PHASE_1 = 1;
@@ -418,7 +480,9 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
     protected void updateAiMode() {
         int nextMode;
 
-        if (isActivated) {
+        if (isCarrying) {
+            nextMode = AI_MODE_CARRYING;
+        } else if (isActivated) {
             if (aiMode > 0) {
                 // aiModeが0より大きい＝戦闘モードの時はHPによって状態を返す
                 float healthPercentage = this.getHealth() / this.getMaxHealth();
@@ -439,15 +503,103 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
             nextMode = AI_MODE_INACTIVE;
         }
 
+        if (isServerSide()) {
+            var currentMode = this.getAiMode();
+
+            if (currentMode == AI_MODE_INACTIVE && nextMode != AI_MODE_INACTIVE) {
+                // フェードイン 20 ticks, 表示 60 ticks, フェードアウト 20 ticks
+                ClientboundSetTitlesAnimationPacket timesPacket =
+                        new ClientboundSetTitlesAnimationPacket(20, 60, 20);
+
+                // メインタイトル
+                ClientboundSetTitleTextPacket titlePacket =
+                        new ClientboundSetTitleTextPacket(this.getDisplayName());
+
+                // サブタイトル
+                ClientboundSetSubtitleTextPacket subtitlePacket =
+                        new ClientboundSetSubtitleTextPacket(Component.literal("Activated!!"));
+
+                // 全プレイヤーに送信
+                for (ServerPlayer player : bossInfo.getPlayers()) {
+                    player.connection.send(timesPacket);
+                    player.connection.send(titlePacket);
+                    player.connection.send(subtitlePacket);
+                }
+
+                bossInfo.setPlayBossMusic(true);
+            }
+        }
+
         setAiMode(nextMode);
     }
 
-    private void setAiMode(int value) {
+    public void setAiMode(int value) {
         this.entityData.set(AI_MODE, value);
     }
 
     public int getAiMode() {
         return this.entityData.get(AI_MODE);
+    }
+
+    public static final int STUN_STUN_START = 200;
+    public static final int STUN_MAX = STUN_STUN_START + 100;
+
+    public void addStunPoint(int point) {
+        int current = getStunPoint();
+
+        if (current < STUN_STUN_START) {
+            current += point;
+            if (current >= STUN_STUN_START) {
+                current = STUN_MAX;
+                this.onStun();
+
+                this.getAttribute(Attributes.ARMOR).setBaseValue(0);
+
+                this.goalSelector.getRunningGoals().forEach(WrappedGoal::stop);
+            }
+        }
+
+        setStunPoint(current);
+    }
+
+    public void updateStunPoint() {
+        var stunPoint = getStunPoint();
+        if (stunPoint > 0 && this.tickCount % 5 == 0) {
+            if (stunPoint < STUN_STUN_START) {
+                stunPoint -= 1;
+            } else {
+                stunPoint -= 5;
+            }
+
+            if (stunPoint == STUN_STUN_START + 10) {
+                this.getAttribute(Attributes.ARMOR).setBaseValue(mechData.armor);
+                this.offStun();
+            } else if (stunPoint == STUN_STUN_START) {
+                stunPoint = 0;
+            }
+
+            this.setStunPoint(stunPoint);
+        }
+    }
+
+    protected void onStun() {
+
+    }
+
+    protected void offStun() {
+
+    }
+
+    public void setStunPoint(int value) {
+        this.entityData.set(STUN_POINT, value);
+    }
+
+    public int getStunPoint() {
+        return this.entityData.get(STUN_POINT);
+    }
+
+    public boolean isStunning() {
+        return getStunPoint() >= STUN_STUN_START;
     }
 
     // 移動判定系 ===============================================================================================
@@ -510,43 +662,50 @@ public abstract class BaseBossEntity extends GenericPomkotsMonster implements Ge
 
     protected void playSounds(SoundKeyframeEvent event) {
         if ("saber".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_SABER.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_SABER.get());
         } else if ("missile".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_MISSILE_EVENT.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_MISSILE_EVENT.get());
         } else if ("canon".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_GRENADE_EVENT.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_GRENADE_EVENT.get());
         } else if ("dash".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_BOOSTER_EVENT.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_BOOSTER_EVENT.get());
         } else if ("walk_large".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_WALK_LARGE.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_WALK_LARGE.get());
         } else if ("mech".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_MACHINE.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_MACHINE.get());
         } else if ("jump".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_WALK_LARGE.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_WALK_LARGE.get());
         } else if ("onground".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_WALK_LARGE.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_WALK_LARGE.get());
         } else if ("gatling".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_HIT_EVENT.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_HIT_EVENT.get());
         } else if ("stomp".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_BOSSDOWN_EVENT.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_BOSSDOWN_EVENT.get());
         } else if ("chainsaw".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_CHAINSAW.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_CHAINSAW.get());
         } else if ("impact1".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_IMPACT_1.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_IMPACT_1.get());
         } else if ("impact2".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_IMPACT_2.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_IMPACT_2.get());
         } else if ("laser1".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_BEAM1.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_BEAM1.get());
         } else if ("laser2".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_BEAM2.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_BEAM2.get());
         } else if ("grenade".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_GRENADE_EVENT.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_GRENADE_EVENT.get());
         } else if ("gashon".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_STEP.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_STEP.get());
         } else if ("roller".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_ROLLER1.get(), this, 0.2F);
+            this.playSoundEffect(PomkotsMechs.SE_ROLLER1.get(), 0.2F);
         } else if ("charge".equals(event.getKeyframeData().getSound())) {
-            Utils.playSoundEffect(PomkotsMechs.SE_CHARGE.get(), this);
+            this.playSoundEffect(PomkotsMechs.SE_CHARGE.get());
+        } else if ("se_heri".equals(event.getKeyframeData().getSound())) {
+            this.playSoundEffect(PomkotsMechs.SE_HERI.get());
         }
+    }
+
+    @Override
+    public AABB getBoundingBoxForCulling() {
+        return this.getBoundingBox().inflate(20, 0.0, 20);
     }
 }

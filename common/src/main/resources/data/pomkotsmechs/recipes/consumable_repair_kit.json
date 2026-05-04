@@ -1,0 +1,22 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "A": {
+            "item": "pomkotsmechs:p_titanium_nugget"
+        },
+        "B": {
+            "item": "minecraft:iron_ingot"
+        }
+    },
+    "pattern": [
+        "AAA",
+        "ABA",
+        "BBB"
+    ],
+    "result": {
+        "item": "pomkotsmechs:repairkit",
+        "count": 1
+    },
+    "show_notification": true
+}

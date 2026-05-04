@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.client.renderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.model.Pms06EntityModel;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.Pms04Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.Pms06Entity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -14,14 +15,13 @@ import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 public class Pms06EntityRenderer extends GeoEntityRenderer<Pms06Entity> {
     public Pms06EntityRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new Pms06EntityModel());
-
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override
-    public void actuallyRender(PoseStack poseStack, Pms06Entity animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
-        RenderUtils.renderAdditionalHud(poseStack, animatable, this.entityRenderDispatcher.cameraOrientation(), bufferSource);
+    public void render(Pms06Entity entity, float entityYaw, float partialTick,
+                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
+        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+        RenderUtils.renderMobBars(entity, poseStack, bufferSource, this.entityRenderDispatcher, 1.3F);
     }
 }

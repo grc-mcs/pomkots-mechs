@@ -1,35 +1,53 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RaidTargetGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class BaseSmallMonsterEntity extends GenericPomkotsMonster {
+    public static AttributeSupplier.Builder createMobAttributes() {
+        return LivingEntity.createLivingAttributes()
+                .add(Attributes.ATTACK_KNOCKBACK)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 1.0F)
+                .add(Attributes.FOLLOW_RANGE, 100);
+    }
+
     protected BaseSmallMonsterEntity(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
 
         this.setMaxUpStep(getMechData().maxStepUp);
         this.setSpeed(getMechData().speed);
 
-        this.setPersistenceRequired();
         this.setNoGravity(false);
         this.setYRot(0F);
-        this.noCulling = true;
+//        this.noCulling = true;
     }
 
     private int closedTick = 0;
 
     @Override
     public void tick() {
+        if (this.firstTick && this.isInEvent()) {
+            this.noCulling = true;
+        }
+
         super.tick();
 
         if (isServerSide() && isClosed()) {
@@ -81,43 +99,60 @@ public abstract class BaseSmallMonsterEntity extends GenericPomkotsMonster {
     }
 
     @Override
-    public boolean isPersistenceRequired() {
-        return isPersistence;
-    }
-
-    protected boolean isPersistence = false;
-
-    public void setPersistence(boolean b) {
-        this.isPersistence = b;
-    }
-
-    @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
-        compound.putBoolean(PomkotsMechs.nbtName("IsPersistence"), isPersistence);
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
-        this.isPersistence = compound.getBoolean(PomkotsMechs.nbtName("IsPersistence"));
     }
 
-    protected void addHitParticles(Entity target) {
-        var offset = new Vec3(target.position().x, target.getBoundingBox().getCenter().y, target.position().z);
+    @Override
+    protected void registerGoals() {
+        super.registerGoals();
+        this.registerBaseGoals();
+    }
 
-        for (int i = 0; i < 40; i++) {
-            // ランダムな速度を生成
-            double velocityX = random.nextDouble() * 4.3 - 1;
-            double velocityY = random.nextDouble() * 4.3 - 1;
-            double velocityZ = random.nextDouble() * 4.3 - 1;
+    protected void registerBaseGoals() {
+        this.targetSelector.addGoal(1, new RaidTargetGoal<RaidObjectiveEntity>(
+                this,
+                RaidObjectiveEntity.class, // 拠点中心を表すエンティティ
+                this.getAttribute(Attributes.FOLLOW_RANGE).getBaseValue(),
+                200,
+                this::isInRaid
+        ));
+        this.targetSelector.addGoal(2, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal(this, Player.class, true, this::predicate));
+    }
 
-            // パーティクルをクライアント側で発生させる
-            this.level().addAlwaysVisibleParticle(PomkotsMechs.SPARK.get(),
-                    true,
-                    offset.x(), offset.y(), offset.z(), // 位置
-                    velocityX, velocityY, velocityZ // 速度
-            );
+    public boolean predicate(Object target) {
+        if (target instanceof Player p) {
+            boolean ridingMech = p.getVehicle() instanceof PomkotsVehicleBase;
+
+            if (ridingMech) {
+                return true;
+
+            } else if (p.distanceTo(this) <= this.getAttribute(Attributes.FOLLOW_RANGE).getBaseValue() * 0.25) {
+                double dx = p.getX() - this.getX();
+                double dz = p.getZ() - this.getZ();
+                Vec3 look = this.getLookAngle();
+                double dot = dx * look.x + dz * look.z;
+
+                if (dot > 0) {
+                    if (p.getMainHandItem().is(PomkotsMechs.CARTON.get())) {
+                        return p.isSprinting();
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
         }
-    }
+    };
 }

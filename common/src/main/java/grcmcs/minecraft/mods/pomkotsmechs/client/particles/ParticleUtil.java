@@ -49,7 +49,7 @@ public class ParticleUtil {
     public static void addSparkParticles(Vec3 offset, Level level) {
         RandomSource random = level.getRandom();
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 15; i++) {
             // ランダムな速度を生成
             double velocityX = random.nextDouble() * 2.0 - 1;
             double velocityY = random.nextDouble() * 2.0 - 1;

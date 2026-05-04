@@ -3,8 +3,11 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.*;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.EarthbreakEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.EarthraiseEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.WaveHorizontalEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletGrenadeEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEnemyEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -34,9 +37,14 @@ public class Pmb04Entity extends BaseBossEntity {
         actionController.registerAction("saber_tate", new BossActionController.BossAction(40,16, this::saber_tate));
         actionController.registerAction("saber_upper", new BossActionController.BossAction(40,20, this::saber_upper));
         actionController.registerAction("saber_circle", new BossActionController.BossAction(40,30, this::saber_circle));
+        actionController.registerAction("wave_horizontal", new BossActionController.BossAction(40,30, this::wave_horizontal));
+
         actionController.registerAction("saber_jump", new BossActionController.BossAction(80,60, this::saber_jump));
         actionController.registerAction("gatling", new BossActionController.BossAction(40,5, this::gatlingAction));
-        actionController.registerAction("missile", new BossActionController.BossAction(40,20, this::missileHorizontalAction));
+
+        actionController.registerAction("missile", new BossActionController.BossAction(40,21, this::missileHorizontalAction));
+        actionController.registerAction("missilev", new BossActionController.BossAction(40,21, this::missileVerticalAction));
+
         actionController.registerAction("onground", new BossActionController.BossAction(20,15, this::onGroundAction));
 
         this.registerActionGoal(
@@ -44,15 +52,16 @@ public class Pmb04Entity extends BaseBossEntity {
                 AI_MODE_ALL,
                 10
         );
+
         this.registerActionGoal(
-                new BossAerialDiveGoal(
-                    this,           // ボスエンティティ
-                    15,           // 必要な高度差（5ブロック以上低い時に発動）
-                    3,           // 初動ジャンプ強度
-                    1,           // ブースター上昇速度
-                    3,           // 空中移動速度
-                    3.0,           // 急降下速度
-                    60            // 最大追跡時間（10秒）
+                new BossAerialDiveGoal2(
+                        this,   // ボスエンティティ
+                        10,           // 必要な高度差（5ブロック以上低い時に発動）
+                        3,           // riseSpeed
+                        3,           // flySpeed
+                        3,           // diveSpeed
+                        20,           // targetHeight
+                        100            // 最大追跡時間（10秒）
                 ),
                 AI_MODE_ALL,
                 10
@@ -70,14 +79,21 @@ public class Pmb04Entity extends BaseBossEntity {
                 0,30,
                 10
         );
+
+        this.registerActionGoal(
+                new SimpleBossAttackGoal(actionController.getAction("wave_horizontal"), this, false),
+                new int[]{AI_MODE_BATTLE_PHASE_2, AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
+                10
+        );
+
         this.registerActionGoal(
                 new BossDashGoal(
                     this,           // ボスエンティティ
-                    getMechData().speed * 4,           // ダッシュ速度
+                    getMechData().speed * 8,           // ダッシュ速度
                     15.0,          // 最大回転速度（度/ティック）
                     40,           // 開始距離
                     20,           // 停止距離
-                    30,            // 最大継続時間（3秒）
+                    10,            // 最大継続時間（3秒）
                     0.3            // ホーミング強度（0.0-1.0）
                 ),
                 AI_MODE_ALL,
@@ -87,12 +103,18 @@ public class Pmb04Entity extends BaseBossEntity {
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("saber_jump"), this, false),
                 new int[]{AI_MODE_BATTLE_PHASE_2, AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
-                10
+                20
         );
+
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("missile"), this, true, true),
                 new int[]{AI_MODE_BATTLE_PHASE_2, AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
-                10
+                15
+        );
+        this.registerActionGoal(
+                new SimpleBossAttackGoal(actionController.getAction("missilev"), this, true, true),
+                AI_MODE_ALL,
+                15
         );
 
         this.registerActionGoal(
@@ -111,14 +133,14 @@ public class Pmb04Entity extends BaseBossEntity {
 
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("gatling"), this, true, 5, true),
-                new int[]{AI_MODE_BATTLE_PHASE_4},
-                10
+                new int[]{AI_MODE_BATTLE_PHASE_2, AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
+                15
         );
 
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("saber_upper"), this, false),
-                new int[]{AI_MODE_BATTLE_PHASE_4},
-                10
+                new int[]{AI_MODE_BATTLE_PHASE_2, AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
+                15
         );
 
         this.setNoGravity(false);
@@ -165,6 +187,35 @@ public class Pmb04Entity extends BaseBossEntity {
                     new Vec3(-20, -3F, -20F),
                     getMechData().meleeDamage * 2 / 3,
                     2);
+        }
+    }
+
+    private void wave_horizontal(BossActionController.BossAction action) {
+        var target = this.getTarget();
+        if (target == null) {
+            return;
+        }
+
+        if (action.onStartOfAction()) {
+            this.triggerAnim("action_controller", "saber_circle");
+
+        } else if (action.currentActionTick == 8) {
+            WaveHorizontalEntity be = new WaveHorizontalEntity(PomkotsMechs.WAVE_HOR.get(), this.level());
+
+            be.setNoGravity(true);
+
+            var offset = this.position();
+
+            var muzzlPos = new Vec3(0, 8, 10);
+            muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+
+            be.setPos(offset.add(muzzlPos));
+
+            float[] angle = Utils.getShootingAngle(be, target, true);
+
+            be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
+
+            this.level().addFreshEntity(be);
         }
     }
 
@@ -219,7 +270,7 @@ public class Pmb04Entity extends BaseBossEntity {
             double horizontalDistance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
 
             // 重力を考慮した弾道計算
-            double gravity = 0.08; // Minecraftの重力値
+            double gravity = this.gravity; // Minecraftの重力値
             double velocityY = Math.sqrt(gravity * Math.max(4.0, deltaY + 4.0));
             double time = Math.sqrt(2 * (deltaY + velocityY * velocityY / (2 * gravity)) / gravity);
 
@@ -243,7 +294,101 @@ public class Pmb04Entity extends BaseBossEntity {
                 this.rangeAttack(
                         new Vec3(20, 10F, 20F),
                         new Vec3(-20, -6F, -20F),
-                        getMechData().meleeDamage * 1.5F,
+                        getMechData().meleeDamage * 3F,
+                        2);
+
+                this.triggerAnim("action_controller", "saber_jump2");
+                action.currentActionTick = action.maxActionTick - 11;
+            }
+        }
+    }
+
+    private void saber_jump2(BossActionController.BossAction action) {
+        float attackRange = 20;
+        var target = this.getTarget();
+        if (target == null) {
+            return;
+        }
+
+        if (action.onStartOfAction()) {
+            this.triggerAnim("action_controller", "saber_jump1");
+
+        } else if (action.currentActionTick > 2 && action.currentActionTick < 10) {
+            this.rotateToTarget(target);
+            this.hasImpulse = true;
+
+        } else if (action.currentActionTick == 10) {
+
+            Vec3 startPos = this.position();
+            Vec3 targetPos = target.position();
+
+            double dx = targetPos.x - startPos.x;
+            double dy = targetPos.y - startPos.y;
+            double dz = targetPos.z - startPos.z;
+
+            // ===== ここが新設計 =====
+            int flightTicks = 8; // ← ここを調整するだけで速さが変わる
+            double gravity = 0.18;
+
+            // XZは線形
+            double vx = dx / flightTicks;
+            double vz = dz / flightTicks;
+
+            // Yは重力込みで逆算
+            double vy = (dy + gravity * flightTicks * (flightTicks + 1) / 2.0)
+                    / flightTicks;
+
+            // 念のため水平速度制限
+            double maxHSpeed = 12.0;
+            double hSpeed = Math.sqrt(vx * vx + vz * vz);
+            if (hSpeed > maxHSpeed) {
+                vx = vx / hSpeed * maxHSpeed;
+                vz = vz / hSpeed * maxHSpeed;
+            }
+
+            this.setDeltaMovement(vx, vy, vz);
+            this.hasImpulse = true;
+        }
+//
+//        } else if (action.currentActionTick == 10) {
+//            // ターゲット位置への弾道計算
+//            Vec3 startPos = this.position();
+//            Vec3 targetPos = target.position();
+//
+//            // 高さの差を考慮
+//            double deltaX = targetPos.x - startPos.x;
+//            double deltaY = targetPos.y - startPos.y;
+//            double deltaZ = targetPos.z - startPos.z;
+//            double horizontalDistance = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
+//
+//            // 重力を考慮した弾道計算
+//            double gravity = 0.08; // Minecraftの重力値
+//            double velocityY = Math.sqrt(gravity * Math.max(4.0, deltaY + 4.0));
+//            double time = Math.sqrt(2 * (deltaY + velocityY * velocityY / (2 * gravity)) / gravity);
+//
+//            double velocityX = deltaX / time;
+//            double velocityZ = deltaZ / time;
+//
+//            // 速度制限（あまりに高速にならないように）
+//            double maxHorizontalSpeed = 20;
+//            double horizontalSpeed = Math.sqrt(velocityX * velocityX + velocityZ * velocityZ);
+//            if (horizontalSpeed > maxHorizontalSpeed) {
+//                velocityX = velocityX / horizontalSpeed * maxHorizontalSpeed;
+//                velocityZ = velocityZ / horizontalSpeed * maxHorizontalSpeed;
+//            }
+//
+//            // ジャンプ実行
+//            this.setDeltaMovement(velocityX, velocityY, velocityZ);
+//            this.hasImpulse = true;
+//
+//        }
+
+        else if (action.currentActionTick > 11 && action.currentActionTick < action.maxActionTick - 12) {
+            if (this.onGround() || this.distanceToSqr(target) <= attackRange * attackRange || action.onEndOfAction()) {
+                this.rangeAttack(
+                        new Vec3(20, 10F, 20F),
+                        new Vec3(-20, -6F, -20F),
+                        getMechData().meleeDamage * 3F,
                         2);
                 this.triggerAnim("action_controller", "saber_jump2");
                 action.currentActionTick = action.maxActionTick - 11;
@@ -265,6 +410,7 @@ public class Pmb04Entity extends BaseBossEntity {
                     getMechData().bulletDamage);
             be.setNoGravity(true);
             be.setExplosionScale(1);
+            be.setStunPoint(2);
 
             var offset = this.position();
 
@@ -273,13 +419,11 @@ public class Pmb04Entity extends BaseBossEntity {
 
             be.setPos(offset.add(muzzlPos));
 
-            if (!Utils.isObstructed(this.level(), be, target)) {
-                float[] angle = Utils.getShootingAngle(be, target, true);
+            float[] angle = Utils.getShootingAngle(be, target, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
+            be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
 
-                this.level().addFreshEntity(be);
-            }
+            this.level().addFreshEntity(be);
         }
     }
 
@@ -296,8 +440,8 @@ public class Pmb04Entity extends BaseBossEntity {
             for (int row = 0; row < 4; row++) {
                 for (int col = 0; col < 1; col++) {
                     for (int side = -1; side < 2; side += 2) {
-                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
-                                getMechData().missileDamage, getMechData().missileSpeed);
+                        MissileGenericEnemyEntity be = new MissileGenericEnemyEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
+                                getMechData().missileDamage, getMechData().missileSpeed * 2);
                         be.setMaxRotationAnglePerTick(2);
 
                         var offset = this.position();
@@ -311,14 +455,51 @@ public class Pmb04Entity extends BaseBossEntity {
 
                         be.setPos(offset.add(muzzlPos));
 
-                        if (!Utils.isObstructed(this.level(), be, target)) {
-                            float[] angle = Utils.getShootingAngle(be, target, true);
+                        float[] angle = Utils.getShootingAngle(be, target, true);
 
-                            be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
-                                    getMechData().missileSpeed, 0F);
+                        be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
 
-                            this.level().addFreshEntity(be);
-                        }
+                        this.level().addFreshEntity(be);
+                    }
+                }
+            }
+        }
+    }
+
+    private void missileVerticalAction(BossActionController.BossAction action) {
+        var target = this.getTarget();
+        if (target == null) {
+            return;
+        }
+
+        if (action.onStartOfAction()) {
+            this.triggerAnim("action_controller", "missile");
+
+        } else if (action.currentActionTick == 15) {
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 1; col++) {
+                    for (int side = -1; side < 2; side += 2) {
+                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
+                                getMechData().missileDamage, getMechData().missileSpeed * 2);
+                        be.setMaxRotationAnglePerTick(7);
+
+                        var offset = this.position();
+
+                        // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
+                        float slotZ = - row * 0.8F;
+
+                        var muzzlPos = new Vec3(side * 10, 16, slotZ);
+                        muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+
+                        be.setPos(offset.add(muzzlPos));
+
+                        float[] angle = Utils.getShootingAngle(be, target, true);
+
+                        be.shootFromRotation(be, -80, angle[1], this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
+
+                        this.level().addFreshEntity(be);
                     }
                 }
             }
@@ -348,6 +529,16 @@ public class Pmb04Entity extends BaseBossEntity {
         }
     }
 
+    @Override
+    protected void onStun() {
+        this.triggerAnim("action_controller", "on_stun");
+    }
+
+    @Override
+    protected void offStun() {
+        this.triggerAnim("action_controller", "off_stun");
+    }
+
     private final AnimationController<Pmb04Entity> trigger = new AnimationController<>(this, "action_controller", state -> PlayState.STOP)
             .triggerableAnim("saber_tate", RawAnimation.begin().thenPlay("animation.pmb01.attacktate"))
             .triggerableAnim("saber_upper", RawAnimation.begin().thenPlay("animation.pmb01.attackupper"))
@@ -367,9 +558,13 @@ public class Pmb04Entity extends BaseBossEntity {
 
             .triggerableAnim("stop", RawAnimation.begin().thenPlay("animation.pmb01.stop"))
             .triggerableAnim("boot", RawAnimation.begin().thenPlay("animation.pmb01.boot"))
+
+            .triggerableAnim("on_stun", RawAnimation.begin().thenPlay("animation.pmb01.hurt").thenPlayAndHold("animation.pmb01.down"))
+            .triggerableAnim("off_stun", RawAnimation.begin().thenPlay("animation.pmb01.up"))
+
             .setSoundKeyframeHandler(this::playSounds);
 
-    private final AnimationController<Pmb04Entity> base = new AnimationController<>(this, "basic_move", 1, event -> {
+    private final AnimationController<Pmb04Entity> base = new AnimationController<>(this, "basic_move", 0, event -> {
         if (!trigger.isPlayingTriggeredAnimation()) {
             if (this.getAiMode() == AI_MODE_INACTIVE) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pmb01.inactive"));

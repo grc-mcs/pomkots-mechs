@@ -1,7 +1,9 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RollerDashGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import net.minecraft.core.BlockPos;
@@ -49,7 +51,6 @@ public class Pms08Entity extends BaseSmallMonsterEntity implements GeoEntity, Ge
                 30,
                 20
         ));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
     }
 
     private boolean hasBeenKilled = true;

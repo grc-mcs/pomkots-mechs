@@ -166,14 +166,12 @@ public class Pmb02Entity extends BaseBossEntity {
 
                 be.setPos(offset.add(muzzlPos));
 
-                if (!Utils.isObstructed(this.level(), be, target)) {
-                    float[] angle = Utils.getShootingAngle(be, target, true);
+                float[] angle = Utils.getShootingAngle(be, target, true);
 
-                    be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
-                            getMechData().bulletSpeed, 0F);
+                be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
+                        getMechData().bulletSpeed, 0F);
 
-                    this.level().addFreshEntity(be);
-                }
+                this.level().addFreshEntity(be);
             }
         }
     }
@@ -198,14 +196,12 @@ public class Pmb02Entity extends BaseBossEntity {
 
                 be.setPos(offset.add(muzzlPos));
 
-                if (!Utils.isObstructed(this.level(), be, target)) {
-                    float[] angle = Utils.getShootingAngle(be, target, true);
+                float[] angle = Utils.getShootingAngle(be, target, true);
 
-                    be.shootFromRotation(be, -15, angle[1], this.getFallFlyingTicks(),
-                            getMechData().missileSpeed, 0F);
+                be.shootFromRotation(be, -15, angle[1], this.getFallFlyingTicks(),
+                        getMechData().missileSpeed, 0F);
 
-                    this.level().addFreshEntity(be);
-                }
+                this.level().addFreshEntity(be);
             }
         }
     }
@@ -240,14 +236,12 @@ public class Pmb02Entity extends BaseBossEntity {
 
                         be.setPos(offset.add(muzzlPos));
 
-                        if (!Utils.isObstructed(this.level(), be, target)) {
-                            float[] angle = Utils.getShootingAngle(be, target, true);
+                        float[] angle = Utils.getShootingAngle(be, target, true);
 
-                            be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
-                                    getMechData().missileSpeed, 0F);
+                        be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
 
-                            this.level().addFreshEntity(be);
-                        }
+                        this.level().addFreshEntity(be);
                     }
                 }
             }
@@ -282,14 +276,12 @@ public class Pmb02Entity extends BaseBossEntity {
 
                         be.setPos(offset.add(muzzlPos));
 
-                        if (!Utils.isObstructed(this.level(), be, target)) {
-                            float[] angle = Utils.getShootingAngle(be, target, true);
+                        float[] angle = Utils.getShootingAngle(be, target, true);
 
-                            be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
-                                    getMechData().missileSpeed, 0F);
+                        be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
 
-                            this.level().addFreshEntity(be);
-                        }
+                        this.level().addFreshEntity(be);
                     }
                 }
             }
@@ -324,14 +316,12 @@ public class Pmb02Entity extends BaseBossEntity {
 
                         be.setPos(offset.add(muzzlPos));
 
-                        if (!Utils.isObstructed(this.level(), be, target)) {
-                            float[] angle = Utils.getShootingAngle(be, target, true);
+                        float[] angle = Utils.getShootingAngle(be, target, true);
 
-                            be.shootFromRotation(be, -80, angle[1], this.getFallFlyingTicks(),
-                                    getMechData().missileSpeed, 0F);
+                        be.shootFromRotation(be, -80, angle[1], this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
 
-                            this.level().addFreshEntity(be);
-                        }
+                        this.level().addFreshEntity(be);
                     }
                 }
             }
@@ -367,7 +357,7 @@ public class Pmb02Entity extends BaseBossEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "basic_move", 1, event -> {
+        controllers.add(new AnimationController<>(this, "basic_move", 0, event -> {
             if (this.getAiMode() == AI_MODE_INACTIVE) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pmb02.inactive"));
 

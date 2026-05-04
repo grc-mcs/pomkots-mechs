@@ -7,6 +7,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -20,12 +21,23 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class PomkotsCubeBlock extends ChestBlock {
+import java.util.function.Supplier;
+
+public class PomkotsCubeBlock extends ChestBlock implements PomkotsUnbreakableBlock {
 
     public PomkotsCubeBlock() {
-        super(BlockBehaviour.Properties.of()
-                .strength(2.5f)
+        this(BlockBehaviour.Properties.of()
+                .strength(-1.0F, 3600000.0F)
                 .sound(SoundType.METAL), PomkotsMechs.POMKOTS_CUBE_BLOCK_ENTITY::get);
+    }
+
+    public PomkotsCubeBlock(BlockBehaviour.Properties properties, Supplier<BlockEntityType<? extends ChestBlockEntity>> supplier) {
+        super(properties, supplier);
+    }
+
+    @Override
+    public float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+        return 0.0F;
     }
 
     @Override
@@ -83,10 +95,11 @@ public class PomkotsCubeBlock extends ChestBlock {
             } else {
                 switch (cubeBe.getMode()) {
                     case PomkotsCubeBlockEntity.MODE_BLUE:
+                        cubeBe.openBox(player);
                         return super.use(state, level, pos, player, hand, hit);
                     default:
-                        cubeBe.openBox();
-                        return InteractionResult.FAIL;
+                        cubeBe.openBox(player);
+                        return InteractionResult.CONSUME;
                 }
             }
         } else {

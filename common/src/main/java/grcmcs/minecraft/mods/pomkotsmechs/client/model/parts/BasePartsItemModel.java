@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class BasePartsItemModel<T extends BasePartsItem> extends GeoModel<T> {
-    public static List<String> BASE_COLORS = List.of("gray", "darkgray", "white", "red", "green", "lightgreen","blue", "orange");
+    public static List<String> BASE_COLORS = List.of("gray", "darkgray", "white", "red", "green", "lightgreen","blue", "orange", "rusty");
     public static Map<String, Integer> COLOR_INDEX_MAP;
 
     static {

@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.TsurugiItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
@@ -11,6 +12,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -64,6 +67,10 @@ public class TsurugiItem extends BasePartsItem.WeaponArm {
                         } else {
                             ds = mechInterface.damageSources().generic();
                         }
+
+                        if (le instanceof BossHitBoxEntity hit) {
+                            hit.addStunPoint(30);
+                        }
                         le.hurt(ds, this.getDamage(mechInterface.getItemStack()));
                     } else {
                         mechInterface.addHitParticles(le);
@@ -96,13 +103,27 @@ public class TsurugiItem extends BasePartsItem.WeaponArm {
     }
 
     @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity ent, int slotIndex, boolean bl) {
+        super.inventoryTick(stack, level, ent, slotIndex, bl);
+
+        if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+            GeoItem.getOrAssignId(stack, serverLevel);
+        }
+    }
+
+    @Override
     public TsurugiItemRenderer newRenderer() {
         return new TsurugiItemRenderer();
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_ARM;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_ARM;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.MELEE;
     }
 
     @Override

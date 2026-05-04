@@ -23,5 +23,7 @@ public class KujiraEntityRenderer extends GeoEntityRenderer<KujiraEntity> {
         super.preApplyRenderLayers(poseStack, animatable, model, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
         this.scaleHeight = 2.0F;
         this.scaleWidth = 2.0F;
+//        model.getBone("bone").get().setRotY((float)Math.toRadians(animatable.getYRot()));
+
     }
 }

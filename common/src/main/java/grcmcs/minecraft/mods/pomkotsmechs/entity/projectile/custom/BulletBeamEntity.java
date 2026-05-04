@@ -22,24 +22,23 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class BulletBeamEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
+public class BulletBeamEntity extends PomkotsCustomThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private static final int MAX_LIFE_TICKS = 20;
-    private int lifeTicks = 0;
-    private float damage;
-    private LivingEntity shooter = null;
+
     private float explosionScale = 5;
 
     public BulletBeamEntity(EntityType<? extends ThrowableProjectile> entityType, Level level) {
-        this(entityType, level, null);
+        this(entityType, level, null, 20, BattleBalance.MECH_BEAM_DAMAGE, 10);
     }
 
-    public BulletBeamEntity(EntityType<? extends ThrowableProjectile> entityType, Level level, LivingEntity shooter) {
-        this(entityType, level, shooter, BattleBalance.MECH_BEAM_DAMAGE);
+    public BulletBeamEntity(EntityType<? extends ThrowableProjectile> entityType, Level level, LivingEntity shooter, float damage) {
+        this(entityType, level, shooter, 20, damage, 10);
     }
 
-    public BulletBeamEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float damage) {
-        super(entityType, shooter, world);
+    public BulletBeamEntity(EntityType<? extends ThrowableProjectile> entityType, Level level, LivingEntity shooter, int maxLifeTicks, float damage, int stun) {
+        super(entityType, level, shooter,
+                maxLifeTicks, damage,stun);
+
         this.setNoGravity(true);
         this.noCulling = true;
         this.noPhysics = true;
@@ -59,61 +58,14 @@ public class BulletBeamEntity extends PomkotsThrowableProjectile implements GeoE
 
     @Override
     public void tick() {
-        // 弾速が早すぎると、ティック間にすり抜けちゃうのでレイキャスティングで補完
-        var hitResult = ProjectileUtil.raycastBoundingCheck(this);
-        if (hitResult.getType() != HitResult.Type.MISS) {
-            this.onHit(hitResult);
-        }
-
         super.tick();
-
-//        var vel = this.getDeltaMovement();
-//        this.setPos(this.getX() + vel.x(), this.getY() + vel.y(), this.getZ() + vel.z());
         this.hasImpulse = true;
-
-        if(this.lifeTicks++ >= MAX_LIFE_TICKS) {
-            this.discard();
-        }
     }
 
     @Override
     protected void onHitEntity(EntityHitResult entityHitResult) {
-        handleEntityHit(entityHitResult.getEntity());
-    }
-
-    public void handleEntityHit(Entity entity) {
-        if (entity.equals(shooter) || entity instanceof BulletBeamEntity) {
-            return;
-        }
-
-        entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), damage);
-        entity.invulnerableTime = 0;
-
+        super.onHitEntity(entityHitResult);
         this.discard();
-    }
-
-    @Override
-    protected void onHitBlock(BlockHitResult blockHitResult) {
-        this.discard();
-    }
-
-
-    private void createExplosion(Vec3 pos) {
-        Level world = level();
-        if (!world.isClientSide) {
-            if (Utils.isBlockDestructionAllowed(shooter)) {
-                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
-            } else {
-                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE);
-            }
-        }
-    }
-
-    @Override
-    public void onClientRemoval() {
-        if (this.level().isClientSide) {
-            ParticleUtil.addSparkParticles(this.position(), this.level());
-        }
     }
 
     @Override
@@ -131,5 +83,4 @@ public class BulletBeamEntity extends PomkotsThrowableProjectile implements GeoE
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.geoCache;
     }
-
 }

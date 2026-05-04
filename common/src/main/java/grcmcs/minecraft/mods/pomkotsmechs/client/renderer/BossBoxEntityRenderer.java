@@ -9,12 +9,10 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
-import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 
 public class BossBoxEntityRenderer extends GeoEntityRenderer<BossBoxEntity> {
     public BossBoxEntityRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new BossBoxEntityModel());
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override

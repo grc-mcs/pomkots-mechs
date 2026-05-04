@@ -3,7 +3,9 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret.goal.ContinuousAttackGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEnemyEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.world.entity.EntityType;
@@ -32,6 +34,11 @@ public class Pmt02Entity extends BaseTurretEntity {
         super(entityType, world);
     }
 
+    protected void registerTargetSelectorGoals() {
+        super.registerTargetSelectorGoals();
+        this.goalSelector.addGoal(1, new ContinuousAttackGoal(this, 0.8F, 16, 60, 4));
+    }
+
     public void tick() {
         super.tick();
 
@@ -55,8 +62,8 @@ public class Pmt02Entity extends BaseTurretEntity {
     public void doAttack() {
         var target = this.getTarget();
         if (target != null) {
-            MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
-                    getMechData().missileDamage, getMechData().missileSpeed);
+            MissileGenericEnemyEntity be = new MissileGenericEnemyEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
+                    getMechData().missileDamage, getMechData().missileSpeed * 2);
 
             var offset = this.position();
 
@@ -78,14 +85,6 @@ public class Pmt02Entity extends BaseTurretEntity {
                 this.level().addFreshEntity(be);
             }
         }
-    }
-
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-
-        this.goalSelector.addGoal(1, new ContinuousAttackGoal(this, 0.8F, 25, 60, 3));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
     }
 
     @Override

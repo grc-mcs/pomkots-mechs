@@ -92,7 +92,7 @@ public class BossActionController {
             return !isInAction() && !isInCooltime();
         }
 
-        private void startAction() {
+        public void startAction() {
             currentActionTick = 1;
             continueFlag = false;
             currentLoopNum = 0;

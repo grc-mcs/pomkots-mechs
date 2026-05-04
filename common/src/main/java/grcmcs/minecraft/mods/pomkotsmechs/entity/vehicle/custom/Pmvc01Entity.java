@@ -1,10 +1,15 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.block.MechWorkbenchBlockEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchMenu;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
+import grcmcs.minecraft.mods.pomkotsmechs.client.sound.PomkotsSoundManager;
+import grcmcs.minecraft.mods.pomkotsmechs.client.sound.SoundConfig;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.misc.BlockPlacementPreviewEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb99Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.rail.*;
@@ -14,14 +19,19 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.CachedBoneFinder;
-import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.CircuitHardLockItem;
-import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.CircuitSoftLockItem;
-import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.HoverUnitItem;
-import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.RailSliderItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.*;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons.AmagiItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons.ShoutouItem;
+import grcmcs.minecraft.mods.pomkotsmechs.save.PomkotsMechsSaveData;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -29,8 +39,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -39,14 +55,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.entity.EntityInLevelCallback;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -74,16 +94,21 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     private NonNullList<ItemStack> itemStacks;
 
     private int fuel = 0;
+    private int inAirTicks = 0;
+
+    private BlockPlacementPreviewEntity blockPreviewEntity = null;
 
     public static AttributeSupplier.Builder createMobAttributes() {
         return LivingEntity.createLivingAttributes()
                 .add(Attributes.ATTACK_KNOCKBACK)
                 .add(Attributes.MAX_HEALTH, BattleBalance.MECH_HEALTH)
-                .add(Attributes.ARMOR, 20);
+                .add(Attributes.ARMOR, 18);
     }
 
     public Pmvc01Entity(EntityType<? extends LivingEntity> entityType, Level world) {
         super(entityType, world);
+
+        this.noCulling = false;
         this.itemStacks = NonNullList.withSize(CONTAINER_SIZE, ItemStack.EMPTY);
     }
 
@@ -101,28 +126,92 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      * エンティティ基本関係の処理
      ******************************************************************************************/
 
+
     @Override
     public void tick() {
+        if (this.firstTick) {
+            firstTickEvent();
+        }
+
+        // @JOKE
+        if (this.actionController.getAction(ACT_GATTAI).isInAction()) {
+            this.setNoGravity(true);
+
+            super.tick();
+
+            var act = this.actionController.getAction(ACT_GATTAI);
+            if (this.isServerSide()) {
+                if (act.currentFireTime < 15) {
+                    this.setDeltaMovement(0, 0, 0);
+                } else  {
+                    this.setDeltaMovement(0, -2, 0);
+
+                    if (this.onGround()) {
+                        act.reset();
+                        this.setNoGravity(false);
+                    }
+
+                    var ents = level().getEntitiesOfClass(Pmb99Entity.class, this.getBoundingBox());
+                    if (!ents.isEmpty()) {
+                        var tgt = ents.get(0);
+                        this.startRiding(tgt);
+                        act.reset();
+                    }
+                }
+            } else {
+                if (act.currentFireTime < 15) {
+                } else  {
+                    if (this.onGround()) {
+                        act.reset();
+                        this.setNoGravity(false);
+                    }
+
+                    var ents = level().getEntitiesOfClass(Pmb99Entity.class, this.getBoundingBox());
+                    if (!ents.isEmpty() || this.getVehicle() != null) {
+                        this.playSoundEffect(PomkotsMechs.SE_GASHAN.get());
+
+                        var p1 = new Vec3(-1, 7, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+                        var p2 = new Vec3(1, 7, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+                        var p3 = new Vec3(-1, 7, 1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+                        var p4 = new Vec3(1, 7, 1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+
+                        ParticleUtil.addSparkParticles(p1, this.level());
+                        ParticleUtil.addSparkParticles(p2, this.level());
+                        ParticleUtil.addSparkParticles(p3, this.level());
+                        ParticleUtil.addSparkParticles(p4, this.level());
+
+                        act.reset();
+                    }
+                }
+            }
+
+            return;
+        }
+
+        if (onGroundPrev) {
+            inAirTicks = 0;
+        } else {
+            inAirTicks++;
+        }
+
+        handleMechActivationAction();
+
         if (areWeaponsChanged()) {
             registerWeapons();
         }
 
         if (this.isServerSide()) {
-            if (Double.isNaN(this.getSpeedModifier())) {
-                this.syncAllParameter2Client();
-                this.initializeAmmoManager(false);
-            }
-
-            if (this.isAlive() && this.isVehicle() && tickCount % 200 == 0) {
+            if (this.isAlive() && this.isVehicle() && tickCount % 20 == 0) {
                 syncFuels();
             }
 
-            if (isHovering()) {
+            if (isHovering() && this.isServerSide()) {
                 this.setNoGravity(true);
             }
         }
 
         this.tickAmmos();
+        this.resetAllActionsWhenNotActive();
         super.tick();
 
         if (this.isServerSide()) {
@@ -130,7 +219,180 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                 Vec3 currentVelocity = this.getDeltaMovement();
                 railBindComponent.moveRobotOnRail(this, currentVelocity);
             }
+
+            if (this.isBuildMode()) {
+                if (this.getDrivingPassenger() instanceof Player player) {
+                    updateBuildModePreview(player);
+                } else {
+                    setBuildMode(false);
+                }
+            }
+
+            if (this.havingEntity().isPresent()) {
+                var tgt = ((ServerLevel)level()).getEntity(this.havingEntity().get());
+                if (tgt != null && tgt.isAlive()) {
+                    tgt.setDeltaMovement(Vec3.ZERO);
+                    var pos = this.position();
+                    tgt.moveTo(pos.x, pos.y + 7.5, pos.z);
+                    var rot = this.getYRot();
+                    tgt.setYRot(rot);
+                    tgt.setYBodyRot(rot);
+                    tgt.setYHeadRot(rot);
+                    tgt.yRotO = rot;
+                } else {
+                    this.setHavingEntity(Optional.empty());
+                }
+            }
+        } else {
+            if (this.onGround()) {
+                if (this.actionController.getAction(ACT_EVASION).isInAction()) {
+                    spawnMovingParticles(6, 3, true);
+                } else if (this.actionController.isBoost() || isSuperBoost()) {
+                    spawnMovingParticles(20, 0.8F,true);
+                }
+            }
         }
+    }
+
+    private void spawnMovingParticles(int amount, float height, boolean smoke) {
+        var offset = this.position();
+
+        var pos1 = new Vec3(1, 0F, 0);
+        pos1 = pos1.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+        pos1 = offset.add(pos1);
+
+        var pos2 = new Vec3(-1, 0F, 0);
+        pos2 = pos2.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+        pos2 = offset.add(pos2);
+
+        for (int i = 0; i < amount; i++) {
+            double dx = (random.nextDouble() - 0.5);
+            double dz = (random.nextDouble() - 0.5);
+            double vy = random.nextDouble() * height + 1;
+
+            if (i < 3) {
+                this.level().addAlwaysVisibleParticle(
+                        PomkotsMechs.MECH_DUST_HEAVY.get(),
+                        true,
+                        pos1.x + dx,
+                        pos1.y,
+                        pos1.z + dz,
+                        0, vy, 0
+                );
+
+                this.level().addAlwaysVisibleParticle(
+                        PomkotsMechs.MECH_DUST_HEAVY.get(),
+                        true,
+                        pos2.x + dx,
+                        pos2.y,
+                        pos2.z + dz,
+                        0, vy, 0
+                );
+            }
+
+            if (smoke) {
+                double sy = random.nextDouble() * 0.2 + 0.1;
+                this.level().addAlwaysVisibleParticle(PomkotsMechs.MECH_DUST.get(), true,
+                        pos1.x() + dz, pos1.y(), pos1.z() + dx, // 位置
+                        0, sy, 0 // 速度
+                );
+                this.level().addAlwaysVisibleParticle(PomkotsMechs.MECH_DUST.get(), true,
+                        pos2.x()  + dz, pos2.y(), pos2.z() + dx, // 位置
+                        0, sy, 0 // 速度
+                );
+            }
+        }
+    }
+
+    private void resetAllActionsWhenNotActive() {
+        if (this.isBroken() || !this.canWork(false) || !this.isVehicle()) {
+            for (Action a: actionController.getAllActions()) {
+                if (a.isInAction()) {
+                    a.reset();
+                }
+            }
+        }
+    }
+
+    private void updateBuildModePreview(Player player) {
+        Vec3 newPos;
+
+        var hitResult = player.pick(20,0,true);
+        if (hitResult.getType() == HitResult.Type.BLOCK) {
+            // 配置先のブロック位置
+            var blockHitResult = (BlockHitResult)hitResult;
+            var blockPos = blockHitResult.getBlockPos().relative(blockHitResult.getDirection());
+
+            newPos = new Vec3(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        } else {
+            Vec3 look = player.getLookAngle();
+            Vec3 eyePos = player.getEyePosition(1.0F);
+
+            newPos = eyePos.add(look.scale(20));
+        }
+
+        // プレビューを更新
+        if (this.blockPreviewEntity != null) {
+            this.blockPreviewEntity.moveTo(newPos);
+        }
+    }
+
+    protected void firstTickEvent() {
+        // サーバ内の情報をクライアントサイドに全て同期する
+        if (this.isServerSide()) {
+            this.syncAllParameter2Client();
+            this.initializeAmmoManager(false);
+        }
+
+        // パーツのアニメーションを有効化させるために一回だけInventory Tickを実行しとく
+        tickAllParts();
+    }
+
+    protected void tickAllParts() {
+        for (var parts: itemStacks) {
+            if (parts.getItem() instanceof BasePartsItem) {
+                parts.inventoryTick(this.level(), this, 0, false);
+            }
+        }
+    }
+
+    private boolean prevCanwork = false;
+    private boolean prevBroken = false;;
+    private boolean prevLocked = false;
+
+    private void handleMechActivationAction() {
+        if (this.firstTick) {
+            this.prevLocked = this.isLocked();
+            this.prevBroken = this.isBroken();
+            this.prevCanwork = this.canWork(false);
+        }
+
+        if (this.isBroken()) {
+            if (!prevBroken) {
+                actionController.getAction(ACT_DEACTIVATE).startAction();
+                if (this.isClientSide()) {
+                    this.playSoundEffect(PomkotsMechs.SE_EXPLOSION_EVENT.get());
+                }
+            } else if (this.getMaxHealth() == this.getHealth()) {
+                this.setBroken(false);
+                actionController.getAction(ACT_INACTIVATE).startAction();
+            }
+
+            if (actionController.getAction(ACT_DEACTIVATE).isInAction() && this.isClientSide()) {
+                this.spawnDestructionParticles();
+            }
+        } else {
+            boolean canWork = this.canWork(false);
+            if (prevCanwork && !canWork || !prevLocked && isLocked()) {
+                actionController.getAction(ACT_DEACTIVATE).startAction();
+            } else if (!prevCanwork && canWork || prevLocked && !isLocked()) {
+                actionController.getAction(ACT_INACTIVATE).startAction();
+            }
+
+            prevCanwork = canWork;
+        }
+        this.prevBroken = this.isBroken();
+        this.prevLocked = this.isLocked();
     }
 
     // レール系機能ここから
@@ -155,23 +417,34 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     @Override
     public void setDeltaMovement(Vec3 movement) {
         if (Double.isNaN(movement.x) || Double.isNaN(movement.y) || Double.isNaN(movement.z)) {
-            movement = new Vec3(0,0,0);
+//            movement = new Vec3(0,0,0);
+            PomkotsMechs.LOGGER.info("" + movement);
+            return;
         }
         super.setDeltaMovement(movement);
     }
 
     @Override
     public boolean canWork() {
+        return canWork(true);
+    }
+
+    public boolean canWork(boolean consumeFuel) {
         var res = !this.getHeadParts().isEmpty()
                 && !this.getBodyParts().isEmpty()
                 && !this.getArmParts().isEmpty()
                 && !this.getLegsParts().isEmpty()
-                && !this.getBooster().isEmpty()
-                && !this.getGenerator().isEmpty()
-                && this.consumeFuel();
+                && !this.getGenerator().isEmpty();
+
+        if (consumeFuel) {
+            res = res && this.consumeFuel();
+        } else {
+            res = res && this.getFuelNow() != 0;
+        }
 
         if (!res) {
             resetExtensionUnitStatus();
+            setBoost(false);
         }
 
         return res;
@@ -180,6 +453,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     public void resetExtensionUnitStatus() {
         this.isHovering = false;
         this.unbindFromRail();
+        this.setSuperBoost(false);
     }
 
     @Override
@@ -187,6 +461,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         return false;
     }
 
+    @Override
+    public boolean isCustomNameVisible() {
+        return false;
+    }
     /******************************************************************************************
      * アクション/武器関係の処理
      ******************************************************************************************/
@@ -218,16 +496,48 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected static final int ACT_RIGHT_SHOULDER = 4;
     protected static final int ACT_LEFT_SHOULDER = 5;
     protected static final int ACT_BIND_RAIL = 6;
+    protected static final int ACT_DEACTIVATE = 7;
+    protected static final int ACT_INACTIVATE = 8;
+    protected static final int ACT_WALL_JUMP = 9;
+    protected static final int ACT_SUPER_BOOST = 10;
+    protected static final int ACT_PLACE_BLOCK = 11;
+
+    protected static final int ACT_RELOAD_RIGHT_HAND = 12;
+    protected static final int ACT_RELOAD_LEFT_HAND = 13;
+    protected static final int ACT_RELOAD_RIGHT_SHOULDER = 14;
+    protected static final int ACT_RELOAD_LEFT_SHOULDER = 15;
+
+    // @JOKE
+    protected static final int ACT_GATTAI = 99;
 
     @Override
     protected void registerActions() {
-        super.registerActions();
+        this.actionController.registerAction(ACT_EVASION, new Action(15, 0, 15), ActionController.ActionType.BASE);
+        this.actionController.registerAction(ACT_JUMP, new Action(10, 6, 4), ActionController.ActionType.BASE);
+
         this.actionController.registerAction(ACT_RIGHT_HAND, new ActionWeapon(this, INV_WEAPON_RIGHT_HAND), ActionController.ActionType.R_ARM_MAIN);
         this.actionController.registerAction(ACT_LEFT_HAND, new ActionWeapon(this, INV_WEAPON_LEFT_HAND), ActionController.ActionType.L_ARM_MAIN);
         this.actionController.registerAction(ACT_RIGHT_SHOULDER, new ActionWeapon(this, INV_WEAPON_RIGHT_SHOULDER), ActionController.ActionType.R_SHL_MAIN);
         this.actionController.registerAction(ACT_LEFT_SHOULDER, new ActionWeapon(this, INV_WEAPON_LEFT_SHOULDER), ActionController.ActionType.L_SHL_MAIN);
 
         this.actionController.registerAction(ACT_BIND_RAIL, new Action(10, 0, 10), ActionController.ActionType.BASE);
+
+        this.actionController.registerAction(ACT_DEACTIVATE, new Action(10, 0, 10), ActionController.ActionType.BASE);
+        this.actionController.registerAction(ACT_INACTIVATE, new Action(10, 0, 10), ActionController.ActionType.BASE);
+
+        this.actionController.registerAction(ACT_WALL_JUMP, new Action(9, 6, 4), ActionController.ActionType.BASE);
+
+        this.actionController.registerAction(ACT_SUPER_BOOST, new Action(60, 14, 6), ActionController.ActionType.BASE);
+
+        this.actionController.registerAction(ACT_PLACE_BLOCK, new Action(21, 15, 5), ActionController.ActionType.BASE);
+
+        this.actionController.registerAction(ACT_RELOAD_RIGHT_HAND, new Action(21, 10, 5), ActionController.ActionType.BASE);
+        this.actionController.registerAction(ACT_RELOAD_LEFT_HAND, new Action(21, 10, 5), ActionController.ActionType.BASE);
+        this.actionController.registerAction(ACT_RELOAD_RIGHT_SHOULDER, new Action(21, 10, 5), ActionController.ActionType.BASE);
+        this.actionController.registerAction(ACT_RELOAD_LEFT_SHOULDER, new Action(21, 10, 5), ActionController.ActionType.BASE);
+
+        // @JOKE
+        this.actionController.registerAction(ACT_GATTAI, new Action(60, 5, 60), ActionController.ActionType.BASE);
 
         this.registerWeapons();
     }
@@ -252,15 +562,62 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     }
 
     @Override
+    protected void applyPlayerInput(DriverInput driverInput) {
+        if (!isBroken()) {
+            getUserIntentionForDirectionFromKey(driverInput);
+
+            this.applyPlayerInputWeapons(driverInput);
+            this.applyPlayerInputBoost(driverInput);
+
+            if (!this.isSuperBoost()) {
+                this.applyPlayerInputEvasion(driverInput);
+                this.applyPlayerInputJump(driverInput);
+                this.applyPlayerInputInAirActions(driverInput);
+            }
+        }
+    }
+
+    @Override
     protected void applyPlayerInputWeapons(DriverInput driverInput) {
-        applyPlayerInputWeapon((ActionWeapon)this.actionController.getAction(ACT_RIGHT_HAND),
-                driverInput.isWeaponRightHandPressed(), driverInput.isWeaponRightHandReleased());
-        applyPlayerInputWeapon((ActionWeapon)this.actionController.getAction(ACT_LEFT_HAND),
-                driverInput.isWeaponLeftHandPressed(), driverInput.isWeaponLeftHandReleased());
-        applyPlayerInputWeapon((ActionWeapon)this.actionController.getAction(ACT_RIGHT_SHOULDER),
-                driverInput.isWeaponRightShoulderPressed(), driverInput.isWeaponRightShoulderReleased());
-        applyPlayerInputWeapon((ActionWeapon)this.actionController.getAction(ACT_LEFT_SHOULDER),
-                driverInput.isWeaponLeftShoulderPressed(), driverInput.isWeaponLeftShoulderReleased());
+        if (this.isBuildMode()) {
+            if (isServerSide() && this.blockPreviewEntity != null) {
+                if (!actionController.getAction(ACT_PLACE_BLOCK).isInAction()) {
+                    if (driverInput.isWeaponRightShoulderReleased()) {
+                        this.blockPreviewEntity.setYRot(this.blockPreviewEntity.getYRot() + 90);
+                    } else if (driverInput.isWeaponLeftShoulderReleased()) {
+                        this.blockPreviewEntity.incrementPatternIndex();
+                    }
+                }
+                if (actionController.getAction(ACT_PLACE_BLOCK).isOnFire()) {
+                    if (level() instanceof ServerLevel l && getDrivingPassenger() instanceof ServerPlayer p) {
+                        this.blockPreviewEntity.placeBlocks(l, p);
+                    }
+                }
+            }
+            if (driverInput.isWeaponRightHandReleased()
+                    && !actionController.getAction(ACT_PLACE_BLOCK).isInAction()
+                    && !actionController.getAction(ACT_PLACE_BLOCK).isInCooltime()
+            ) {
+                actionController.getAction(ACT_PLACE_BLOCK).startAction();
+            }
+        } else {
+            applyPlayerInputWeapon(
+                    (ActionWeapon)this.actionController.getAction(ACT_RIGHT_HAND),
+                    (ActionWeapon)this.actionController.getAction(ACT_LEFT_HAND),
+                    driverInput, driverInput.isWeaponRightHandPressed(), driverInput.isWeaponRightHandReleased(), getAmmoManager(INV_WEAPON_RIGHT_HAND));
+            applyPlayerInputWeapon(
+                    (ActionWeapon)this.actionController.getAction(ACT_LEFT_HAND),
+                    (ActionWeapon)this.actionController.getAction(ACT_RIGHT_HAND),
+                    driverInput, driverInput.isWeaponLeftHandPressed(), driverInput.isWeaponLeftHandReleased(), getAmmoManager(INV_WEAPON_LEFT_HAND));
+            applyPlayerInputWeapon(
+                    (ActionWeapon)this.actionController.getAction(ACT_RIGHT_SHOULDER),
+                    (ActionWeapon)this.actionController.getAction(ACT_LEFT_SHOULDER),
+                    driverInput, driverInput.isWeaponRightShoulderPressed(), driverInput.isWeaponRightShoulderReleased(), getAmmoManager(INV_WEAPON_RIGHT_SHOULDER));
+            applyPlayerInputWeapon(
+                    (ActionWeapon)this.actionController.getAction(ACT_LEFT_SHOULDER),
+                    (ActionWeapon)this.actionController.getAction(ACT_RIGHT_SHOULDER),
+                    driverInput, driverInput.isWeaponLeftShoulderPressed(), driverInput.isWeaponLeftShoulderReleased(), getAmmoManager(INV_WEAPON_LEFT_SHOULDER));
+        }
 
         if (driverInput.isExtension1Released()) {
             applyPlayerInputExtension(getExtension1Weapon());
@@ -270,24 +627,32 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         }
     }
 
-    protected void applyPlayerInputExtension(ItemStack extensionStack) {
-        if (!extensionStack.isEmpty()) {
-            var extensionItem = extensionStack.getItem();
-            if (extensionItem instanceof HoverUnitItem) {
-                this.isHovering = !this.isHovering;
-            } else if (extensionItem instanceof RailSliderItem) {
-                if (this.isBoundToRail()) {
-                    this.unbindFromRail();
-                } else if (this.tryBindToRail()) {
-                    this.actionController.getAction(ACT_BIND_RAIL).startAction();
-                }
-            }
+    protected void applyPlayerInputWeapon(ActionWeapon act, ActionWeapon actLinked, DriverInput driverInput, boolean isPressed, boolean isReleased, AmmoManager ammoManager) {
+        //@JOKE
+        if (this.getVehicle() != null) {
+            return;
         }
-    }
 
-    protected void applyPlayerInputWeapon(ActionWeapon act, boolean isPressed, boolean isReleased) {
+        if (ammoManager.isReloading()) {
+            if (act.isInAction()) {
+                act.reset();
+            }
+            return;
+        } else if (driverInput.isReloadPressed() && isPressed) {
+            ammoManager.startReload();
+            return;
+        }
+
         if (act.getMotion().getType().equals(Motion.MotionType.MULTI_LOCK)) {
             if (isReleased) {
+                // 左右で同じ武器を装備していたらリンクする
+                if (shouldLinkWeapon(act.getWeaponItemSlot(), actLinked.getWeaponItemSlot())
+                        && !actLinked.isInAction()) {
+                    if (isServerSide()) {
+                        lockTargets.syncTargetMulti(act.getWeaponItemSlot(), actLinked.getWeaponItemSlot());
+                    }
+                    actLinked.startAction();
+                }
                 act.startAction();
             }
         } else if (act.getMotion().getType().equals(Motion.MotionType.CONTINUOUS)) {
@@ -306,6 +671,12 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             } else if (act.isInAction() && isReleased && !act.isInFire()) {
                 act.fireAction();
             }
+        } else if (act.getMotion().getType().equals(Motion.MotionType.TOGGLE)) {
+            if (act.canStartAction() && isPressed) {
+                if (act.getMotion().concurrentAvailable() || !isUsingWeapons()) {
+                    act.startAction();
+                }
+            }
         } else {
             if (act.canStartAction() && isPressed) {
                 if (act.getMotion().concurrentAvailable() || !isUsingWeapons()) {
@@ -315,11 +686,71 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         }
     }
 
+    public boolean shouldLinkWeapon(int srcInvSlot, int dstInvSlot) {
+        var srcW = getPart(srcInvSlot);
+        var dstW = getPart(dstInvSlot);
+
+        return srcW.is(dstW.getItem())
+                && srcW.getItem() instanceof BasePartsItem.Weapon w
+                && w.getWeaponCategory() == BasePartsItem.WeaponCategory.MISSILE;
+    }
+
+    private ItemStack getPart(int slot) {
+        return switch (slot) {
+            case INV_WEAPON_RIGHT_HAND -> getRightArmWeapon();
+            case INV_WEAPON_LEFT_HAND -> getLeftArmWeapon();
+            case INV_WEAPON_RIGHT_SHOULDER -> getRightShoulderWeapon();
+            case INV_WEAPON_LEFT_SHOULDER -> getLeftShoulderWeapon();
+            default -> ItemStack.EMPTY;
+        };
+    }
+
     private boolean isUsingWeapons() {
         return this.actionController.getAction(ACT_RIGHT_HAND).isInAction()
                 || this.actionController.getAction(ACT_LEFT_HAND).isInAction()
                 || this.actionController.getAction(ACT_RIGHT_SHOULDER).isInAction()
                 || this.actionController.getAction(ACT_LEFT_SHOULDER).isInAction();
+    }
+
+    protected void applyPlayerInputExtension(ItemStack extensionStack) {
+        if (!extensionStack.isEmpty()) {
+            var extensionItem = extensionStack.getItem();
+            if (extensionItem instanceof HoverUnitItem) {
+                this.isHovering = !this.isHovering;
+            } else if (extensionItem instanceof RailSliderItem) {
+                if (this.isBoundToRail()) {
+                    this.unbindFromRail();
+                } else if (this.tryBindToRail()) {
+                    this.actionController.getAction(ACT_BIND_RAIL).startAction();
+                }
+            } else if (extensionItem instanceof SBUnitProtoTypeItem) {
+                if (this.isSuperBoost()) {
+                    if (this.isServerSide()) {
+                        this.setSuperBoost(false);
+                        this.actionController.setBoost(true);
+                    }
+                } else if (!this.actionController.isInActionAll()){
+                    this.isHovering = false;
+                    this.unbindFromRail();
+                    this.actionController.getAction(ACT_SUPER_BOOST).startAction();
+
+                    if (this.isServerSide()) {
+                        this.actionController.setBoost(false);
+                    }
+                }
+            } else if (extensionItem instanceof BuilderUnitItem && isServerSide()) {
+                this.setBuildMode(!this.isBuildMode());
+
+            } else if (extensionItem instanceof CoreDrillItem && !this.actionController.getAction(ACT_GATTAI).isInAction()) {
+                // @JOKE
+                if (this.getVehicle() != null) {
+                    this.stopRiding();
+                    this.setNoGravity(false);
+                } else {
+                    this.actionController.getAction(ACT_GATTAI).startAction();
+                }
+            }
+        }
     }
 
     @Override
@@ -330,16 +761,28 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         return this.posHistory.getFirst();
     }
 
+    public Vec3 getPosHistory(int index) {
+        if (this.posHistory.isEmpty()) {
+            return this.position();
+        } else if (index >= this.posHistory.size()) {
+            index = this.posHistory.size() - 1;
+        }
+
+        return this.posHistory.get(index);
+    }
+
     public float[] getShootingAngle(Entity bullet, boolean useTarget, boolean useDeviation) {
         var targetPos = getTargetPos(useDeviation);
         var bulletPos = bullet.position();
 
         Vec3 bulletDir = targetPos.subtract(bulletPos).normalize();
 
-        float yaw = (float) (Math.atan2(-bulletDir.x, bulletDir.z) * (180.0 / Math.PI));
-        float pitch = (float) (Math.asin(-bulletDir.y) * (180.0 / Math.PI));
+        float horizontalDist = (float)Math.sqrt(bulletDir.x * bulletDir.x + bulletDir.z * bulletDir.z);
+        float pitch = (float)Math.toDegrees(Math.atan2(bulletDir.y, horizontalDist)) * (float)-1.0;
+        float yaw = (float)Math.toDegrees(Math.atan2(-bulletDir.x, bulletDir.z));
 
         return new float[]{pitch, yaw};
+
     }
 
     protected Vec3 getTargetPos(boolean useDeviation) {
@@ -354,13 +797,13 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
         if (lockTarget != null) {
             if (useDeviation) {
-                targetPos = lockTarget.getBoundingBox().getCenter().add(lockTarget.getDeltaMovement()).add(lockTarget.getDeltaMovement());
+                targetPos = lockTarget.getBoundingBox().getCenter().add(lockTarget.getDeltaMovement()).add(lockTarget.getDeltaMovement()).add(lockTarget.getDeltaMovement()).add(lockTarget.getDeltaMovement());
             } else {
                 targetPos = lockTarget.getBoundingBox().getCenter();
             }
         } else {
             targetPos = getCameraTargetPosition(this.getDrivingPassenger());
-            targetPos = new Vec3(targetPos.x, targetPos.y + this.getPassengersRidingOffset()/2, targetPos.z);
+            targetPos = new Vec3(targetPos.x, targetPos.y, targetPos.z);
         }
 
         return targetPos;
@@ -373,13 +816,13 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             cameraEntity = sp.getCamera();
         }
 
-        HitResult hitResult = cameraEntity.pick(100, 0, true);
+        HitResult hitResult = cameraEntity.pick(200, 0, true);
 
         if (hitResult.getType() == HitResult.Type.MISS) {
-            Vec3 cameraPos = cameraEntity.position();
+            Vec3 cameraPos = cameraEntity.getEyePosition();
             Vec3 cameraDirection = cameraEntity.getLookAngle().normalize();
 
-            return cameraPos.add(cameraDirection.scale(60));
+            return cameraPos.add(cameraDirection.scale(300));
         } else {
             return hitResult.getLocation();
         }
@@ -428,14 +871,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     protected float getFlyingSpeed() {
-        if (isNoGravity()) {
-            if (this.actionController.isBoost()) {
-                return 0.4f * this.getSpeedModifier();
-            } else {
-                return 0.2f * this.getSpeedModifier();
-            }
+        if (this.actionController.isBoost()) {
+            return 0.4f * this.getSpeedModifier();
         } else {
-            return 0.02F;
+            return 0.2f * this.getSpeedModifier();
         }
     }
 
@@ -446,13 +885,19 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     protected float getHorizontalBoostAcceleration() {
-        if (onGround()) {
+        if (this.noHorizontalBoost()) {
+            return 0.475F * 12F  * this.getSpeedModifier() * 1F;
+        } else if (onGround()) {
             return 0.475F * 12F  * this.getSpeedModifier() * this.getSpeedModifierEvasion();
         } else if (isHovering()) {
             return 0.475F * 10F  * this.getSpeedModifier() * this.getSpeedModifierEvasion();
         } else {
             return 0.475F * 7F  * this.getSpeedModifier() * this.getSpeedModifierEvasion();
         }
+    }
+
+    public boolean noHorizontalBoost() {
+        return this.getBooster().isEmpty();
     }
 
     @Override
@@ -475,18 +920,95 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         if (driverInput.isEvasionPressed()
                 && !this.actionController.getAction(ACT_EVASION).isInAction()
                 && !this.actionController.getAction(ACT_EVASION).isInCooltime()
-                && useEnergy(this.getEnergyConsumeEvasion())
-                && this.actionController.getAction(ACT_EVASION).startAction()) {
-            this.startEvasion();
-            this.actionController.setBoost(true);
+                && !this.actionController.getAction(ACT_WALL_JUMP).isInAction()
+        ) {
+
+            if (this.noHorizontalBoost()) {
+                if (this.onGround()) {
+                    this.actionController.getAction(ACT_EVASION).startAction();
+                    this.startEvasion();
+                }
+            } else if (useEnergy(this.getEnergyConsumeEvasion())
+                    && this.actionController.getAction(ACT_EVASION).startAction()) {
+                this.startEvasion();
+                this.actionController.setBoost(true);
+            }
+        }
+    }
+
+    @Override
+    protected void startEvasion() {
+        this.startEvasion(1.0F);
+    }
+
+    protected void startEvasion(float modifier) {
+        if (isServerSide()) {
+            Vec3 vel;
+            if (forwardIntention == 0 && sidewayIntention == 0) {
+                vel = new Vec3(0, 0, 1);
+            } else {
+                vel = new Vec3(sidewayIntention, 0, forwardIntention).normalize();
+            }
+
+            vel = vel.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+            var distance = getHorizontalBoostAcceleration() * modifier;
+            vel = vel.scale(distance);
+
+            this.push(vel.x, vel.y, vel.z);
         }
     }
 
     @Override
     protected void applyPlayerInputInAirActions(DriverInput driverInput) {
+        if (this.actionController.getAction(ACT_SUPER_BOOST).isInAction()) {
+            if (this.actionController.getAction(ACT_SUPER_BOOST).isOnStart() && this.isClientSide()) {
+
+                var muzzlPos = new Vec3(0, 3.4, -4);
+                muzzlPos = this.position().add(muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot())));
+
+                int targetId = this.getId();
+                for (int i = 0; i < 20; i++) {
+                    double px = muzzlPos.x + (this.level().random.nextDouble() - 0.5) * 3.0;
+                    double py = muzzlPos.y + this.level().random.nextDouble() * 3;
+                    double pz = muzzlPos.z + (this.level().random.nextDouble() - 0.5) * 3.0;
+
+                    this.level().addParticle(PomkotsMechs.SPIRAL.get(),
+                            px, py, pz,
+                            targetId, 0, 0);
+                }
+            }
+
+            if (this.actionController.getAction(ACT_SUPER_BOOST).isOnFire() && this.isServerSide()) {
+                this.setSuperBoost(true);
+            }
+            return;
+        }
+
         if (!this.onGround()) {
-            if (driverInput.isJumpPressed()) {
-                this.setNoGravity(true);
+            if (this.actionController.getAction(ACT_WALL_JUMP).isCharging()) {
+                var delta = this.getDeltaMovement();
+                if (isServerSide()) this.setDeltaMovement(delta.x, 0, delta.z);
+            } else if (this.actionController.getAction(ACT_WALL_JUMP).isOnFire()) {
+                if (driverInput.isEvasionPressed()) {
+                    this.actionController.getAction(ACT_EVASION).startAction();
+                    this.startEvasion(2);
+                    if (isServerSide()) this.push(0, 1.5, 0);
+                } else {
+                    if (isServerSide()) this.push(0, 2, 0);
+                }
+
+                if (this.isClientSide()) {
+                    spawnJumpParticles();
+                }
+            } else if (driverInput.isJumpPressed()
+                    && !this.actionController.getAction(ACT_WALL_JUMP).isInCooltime()
+                    && !this.actionController.getAction(ACT_JUMP).isInCooltime()
+                    && this.isTouchingWallSimple()
+                    && !this.actionController.isInActionAll()) {
+                this.actionController.getAction(ACT_WALL_JUMP).startAction();
+
+            } else if (driverInput.isJumpPressed() && !this.getBooster().isEmpty()) {
+//                if (this.isServerSide()) this.setNoGravity(true);
 
                 if (!tryVerticalBoost()) {
                     if (isServerSide()) {
@@ -504,15 +1026,112 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             if (isHovering()) {
                 this.handleHovering();
             }
-            this.setNoGravity(false);
+            if (this.isServerSide()) this.setNoGravity(false);
         }
     }
+
+    public void spawnJumpParticles() {
+        Vec3 pos = this.position();
+        RandomSource random = this.getRandom();
+        double baseY = this.getY() - 0.1;
+
+        for (int i = 0; i < 10; i++) {
+            // ランダムな速度を生成
+            double dx = (random.nextDouble() - 0.5);
+            double dz = (random.nextDouble() - 0.5);
+            double vy = random.nextDouble() * 0.2 + 0.1;
+
+            // パーティクルをクライアント側で発生させる
+            this.level().addAlwaysVisibleParticle(PomkotsMechs.SPARK.get(),
+                    pos.x + dx,
+                    baseY,
+                    pos.z + dz,
+                    0, vy, 0
+            );
+        }
+
+        BlockState dirt = Blocks.DIRT.defaultBlockState();
+        for (int i = 0; i < 30; i++) {
+            double dx = (random.nextDouble() - 0.5);
+            double dz = (random.nextDouble() - 0.5);
+            double vy = random.nextDouble() * 0.2 + 0.1;
+
+            this.level().addParticle(
+                    new BlockParticleOption(ParticleTypes.BLOCK, dirt), // 砂ぼこり系
+                    pos.x + dx,
+                    baseY,
+                    pos.z + dz,
+                    0, vy, 0
+            );
+        }
+    }
+
+    public enum WallSide {
+        FRONT, BACK, LEFT, RIGHT, NONE
+    }
+
+    private boolean isTouchingWallSimple() {
+        Level level = this.level();
+        AABB box = this.getBoundingBox().inflate(0.3);
+
+        return !level.noCollision(this, box);
+
+//        // 現在の移動方向を元に確認
+//        Vec3 motion = this.getDeltaMovement();
+//        double dx = motion.x;
+//        double dz = motion.z;
+//
+//        if (Math.abs(dx) > Math.abs(dz)) {
+//            // 横方向優先
+//            AABB checkBox = box.move(Math.signum(dx) * 0.05, 0, 0);
+//            return !level.noCollision(this, checkBox);
+//        } else {
+//            // 前後方向優先
+//            AABB checkBox = box.move(0, 0, Math.signum(dz) * 0.05);
+//            return !level.noCollision(this, checkBox);
+//        }
+    }
+
+    public WallSide getTouchingWallSide(double checkDistance) {
+        Level level = this.level();
+        AABB box = this.getBoundingBox();
+
+        float yawRad = (float) Math.toRadians(this.getYRot());
+
+        // 向きベクトル
+        double forwardX = -Math.sin(yawRad);
+        double forwardZ = Math.cos(yawRad);
+
+        // 右方向（yaw + 90°）
+        double rightX = Math.cos(yawRad);
+        double rightZ = Math.sin(yawRad);
+
+        // 各方向のチェック
+        boolean front  = !level.noCollision(this, box.move(forwardX * checkDistance, 0, forwardZ * checkDistance));
+        boolean back   = !level.noCollision(this, box.move(-forwardX * checkDistance, 0, -forwardZ * checkDistance));
+        boolean right  = !level.noCollision(this, box.move(rightX * checkDistance, 0, rightZ * checkDistance));
+        boolean left   = !level.noCollision(this, box.move(-rightX * checkDistance, 0, -rightZ * checkDistance));
+
+        // 優先順位を決めて返す（前→左右→後）
+        if (front) return WallSide.FRONT;
+        if (right) return WallSide.RIGHT;
+        if (left)  return WallSide.LEFT;
+        if (back)  return WallSide.BACK;
+
+        return WallSide.NONE;
+    }
+
 
     @Override
     protected boolean tryVerticalBoost() {
         if (useEnergy(this.getEnergyConsumeVertical())) {
             if (isServerSide() && this.getDeltaMovement().y() < getVerticalBoostMaxSpeed()) {
-                this.push(0, getVerticalBoostAcceleration(), 0);
+                if (isHovering) {
+                    this.push(0, getVerticalBoostAcceleration() * 2, 0);
+                } else {
+                    this.push(0, getVerticalBoostAcceleration(), 0);
+                }
+
                 return true;
             }
         }
@@ -533,11 +1152,15 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         if (distanceToGround <= hoverHeight) {
             // 浮上力を適用
             Vec3 velocity = getDeltaMovement();
-            double upwardForce = (hoverHeight - distanceToGround) * 0.05; // 調整可能
-            setDeltaMovement(velocity.x, velocity.y + upwardForce, velocity.z);
-        } else if (distanceToGround > hoverHeight + 1){
-            this.push(0, -0.18 * 0.9800000190734863D, 0);
+//            double upwardForce = (hoverHeight - distanceToGround) * 0.05; // 調整可能
+            double upwardForce = (hoverHeight - distanceToGround) * 0.1; // 調整可能
+            if (isServerSide()) setDeltaMovement(velocity.x, velocity.y + upwardForce, velocity.z);
+        } else if (distanceToGround > hoverHeight + 5){
+            if (isServerSide()) this.push(0, -0.18 * 0.9800000190734863D, 0);
         }
+//        else if (distanceToGround > hoverHeight + 1){
+//            if (isServerSide()) this.push(0, -0.18 * 0.9800000190734863D, 0);
+//        }
     }
 
     private float getDistanceToGround() {
@@ -568,14 +1191,24 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      **************************************************************************************/
 
     private int energy = 0;
+    private int overHeatCooltime = 0;
+    private int OVER_HEAT_COOL_TIME_MAX = 60;
 
     @Override
     public int getEnergy() {
         return this.energy;
     }
 
+    public int getOverHeatCooltime() {
+        return overHeatCooltime;
+    }
+
     @Override
     protected void chargeEnergy() {
+        if (overHeatCooltime-- == 0) {
+            this.setOverHeat(false);
+        }
+
         if (this.energy + this.getEnergyChargePerTick() > this.getMaxEnergy()) {
             this.energy = this.getMaxEnergy();
         } else {
@@ -585,8 +1218,15 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     protected boolean useEnergy(int dec) {
-        if (this.energy - dec < 0) {
+        if (this.isOverHeat()) {
             return false;
+        }
+
+        if (this.energy - dec < 0) {
+            this.energy = 0;
+            this.setOverHeat(true);
+            this.overHeatCooltime = OVER_HEAT_COOL_TIME_MAX;
+            return true;
         } else {
             this.energy -= dec;
             return true;
@@ -602,8 +1242,17 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         return this.entityData.get(Pmvc01Entity.MAX_ENERGY);
     }
 
+    protected boolean isDriverCreativeMode() {
+        var driver = getDrivingPassenger();
+        return driver instanceof Player p && p.getAbilities().instabuild;
+    }
+
     protected boolean consumeFuel() {
         if (this.isServerSide()) {
+            if (isDriverCreativeMode()) {
+                return true;
+            }
+
             if (fuel > 0) {
                 fuel--;
                 return true;
@@ -614,7 +1263,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                     var g = this.getGeneratorFromInventory().getItem();
 
                     if (g instanceof BasePartsItem.Generator gen) {
-                        fuel = gen.getWorkSecPerFuel(this.getGeneratorFromInventory()) * 20 * 2;
+                        fuel = (int)getWorkSecPerFuel() * 20 * 2;
                         fuels.shrink(1);
 
                         return true;
@@ -635,7 +1284,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         int nowFuel = 0;
 
         if (this.getGeneratorFromInventory().getItem() instanceof BasePartsItem.Generator gen) {
-            var tpf = gen.getWorkSecPerFuel(this.getGeneratorFromInventory()) * 20 * 2;
+            var tpf = (int)getWorkSecPerFuel() * 20 * 2;
             maxFuel = tpf * this.getFuelFromInventory().getMaxStackSize();
             nowFuel =  tpf * this.getFuelFromInventory().getCount() + this.fuel;
         }
@@ -650,8 +1299,14 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     public boolean shouldLockMulti(DriverInput driverInput) {
-        boolean res = false;
+        if (this.isBuildMode()) {
+            return false;
+        } else if (this.isGattai() && this.getVehicle() instanceof Pmb99Entity pmb99) {
+            //@JOKE
+            return pmb99.shouldLockMulti(driverInput);
+        }
 
+        boolean res = false;
         if (driverInput.isWeaponRightHandPressed()) {
             res |= isMultiLockEnabledWeapon(this.getRightArmWeapon());
         }
@@ -690,6 +1345,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     public boolean shouldLockWeak(DriverInput driverInput) {
+        if (this.isBuildMode()) {
+            return false;
+        }
+
         boolean hasWeaponInput =
                 driverInput.isWeaponRightHandPressed()
                         || driverInput.isWeaponLeftHandPressed();
@@ -721,8 +1380,185 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      ******************************************************************************************/
 
     @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<PomkotsVehicleBase>(this, "controller", 0, event -> {
+            //@JOKE
+            if (this.actionController.getAction(ACT_GATTAI).isInAction()) {
+                if (this.actionController.getAction(ACT_GATTAI).isOnStart()) {
+                    event.getController().forceAnimationReset();
+                }
+                return event.setAndContinue(
+                        RawAnimation.begin().thenPlay("animation." + getMechName() + ".z_gattai_01")
+                                .thenLoop("animation." + getMechName() + ".z_gattai_02")
+                );
+            } else if (this.getVehicle() != null) {
+                event.getController().forceAnimationReset();
+                return event.setAndContinue(
+                        RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".z_gattai_03")
+                );
+            }
+
+            if (this.actionController.getAction(ACT_DEACTIVATE).isInAction()) {
+                if (this.actionController.getAction(ACT_DEACTIVATE).isOnStart()) {
+                    event.getController().forceAnimationReset();
+                }
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".deactivate"));
+            } else if (this.actionController.getAction(ACT_INACTIVATE).isInAction()) {
+                if (this.actionController.getAction(ACT_INACTIVATE).isOnStart()) {
+                    event.getController().forceAnimationReset();
+                }
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".inactivate"));
+            }
+
+            if (this.isBroken() && prevBroken) {
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".idle_deactive"));
+            }
+
+            if (this.isLocked() && prevLocked) {
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".idle_deactive"));
+            }
+
+            if (!this.canWork(false)) {
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".idle_deactive"));
+            }
+
+            if (this.getDrivingPassenger() == null) {
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".idle"));
+            }
+
+            PlayState res = controllAnimationWeapons(event);
+
+            if (res != null) {
+                return res;
+            }
+
+            return controllAnimationBasicMove(event);
+        }).setSoundKeyframeHandler(soundKeyframeEvent -> {
+            this.registerAnimationSoundHandlers(soundKeyframeEvent);
+        }));
+
+        controllers.add(new AnimationController<PomkotsVehicleBase>(this, "fly", 1, event -> {
+            return controllAnimationFlyingMotion(event);
+        }).setSoundKeyframeHandler(soundKeyframeEvent -> {
+            this.registerAnimationSoundHandlers(soundKeyframeEvent);
+        }));
+
+        controllers.add(new AnimationController<PomkotsVehicleBase>(this, "rotation", 1, event -> {
+            return controllAnimationRotation(event);
+        }));
+
+
+        controllers.add(new AnimationController<>(this, "boosters", 1, event -> {
+            //@JOKE
+            if (this.isGattai()) {
+                return PlayState.STOP;
+            }
+
+            DriverInput driverInput = this.getDriverInput();
+
+            if (this.isSuperBoost()) {
+                this.playSoundEffectWithFade("boost", PomkotsMechs.SE_BOOST.get(),0.8F, 20, 10);
+
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_super"));
+
+            } else if (this.actionController.getAction(ACT_EVASION).isInAction()) {
+                if (this.actionController.getAction(ACT_EVASION).isOnStart()) {
+                    event.getController().forceAnimationReset();
+
+                    if (this.sidewayIntention > 0) {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_dash_left"));
+                    } else if (sidewayIntention < 0) {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_dash_right"));
+                    } else {
+                        return PlayState.CONTINUE;
+                    }
+                }
+                return PlayState.CONTINUE;
+            } else if (driverInput != null && driverInput.isJumpPressed() && this.isInAirInternal() && !this.getBooster().isEmpty()) {
+                this.playSoundEffectWithFade("boost", PomkotsMechs.SE_BOOST.get(),0.6F, 40, 10);
+
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_vertical"));
+
+            } else if (this.isBoost()) {
+                if (onGround() || inAirTicks < 10) {
+                    this.playSoundEffectWithFade("dash", PomkotsMechs.SE_DASH.get(),0.6F, 20, 10);
+                } else {
+                    this.stopSoundEffectWithFade("dash");
+                }
+                this.stopSoundEffectWithFade("boost");
+
+                if (this.forwardIntention > 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_dash_front"));
+                } else if (this.sidewayIntention > 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_dash_left"));
+                } else if (sidewayIntention < 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_dash_right"));
+                } else {
+                    return PlayState.CONTINUE;
+                }
+            }
+
+            this.stopAllSoundEffectWithFade();
+            return PlayState.STOP;
+
+        }).setSoundKeyframeHandler(soundKeyframeEvent -> {
+            this.registerAnimationSoundHandlers(soundKeyframeEvent);
+        }));
+
+        controllers.add(new AnimationController<>(this, "boosters_quick", 0, event -> {
+            //@JOKE
+            if (this.isGattai()) {
+                return PlayState.STOP;
+            }
+
+            if (this.actionController.getAction(ACT_EVASION).isInAction()) {
+                if (this.actionController.getAction(ACT_EVASION).isOnStart()) {
+                    if (this.getBooster() == null || this.getBooster().isEmpty()) {
+                        return PlayState.STOP;
+                    }
+
+                    event.getController().forceAnimationReset();
+
+                    if (forwardIntention > 0) {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_quick"));
+                    } else if (this.sidewayIntention > 0) {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_quick_left"));
+                    } else if (sidewayIntention < 0) {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".booster_quick_right"));
+                    } else {
+                        return PlayState.CONTINUE;
+                    }
+                }
+
+                return PlayState.CONTINUE;
+            }
+
+            return PlayState.STOP;
+        }));
+
+        addExtraAnimationController(controllers);
+    }
+
+    //@JOKE
+    public boolean isGattai() {
+        return this.getVehicle() instanceof Pmb99Entity;
+    }
+
+    @Override
     protected PlayState controllAnimationBasicMove(AnimationState<PomkotsVehicleBase> event) {
-        if (this.actionController.getAction(ACT_JUMP).isInAction()) {
+        if (this.actionController.getAction(ACT_SUPER_BOOST).isInAction()) {
+            if (this.actionController.getAction(ACT_SUPER_BOOST).isOnStart()) {
+                event.getController().forceAnimationReset();
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".super_boost"));
+            }
+            return PlayState.CONTINUE;
+        } else if (this.actionController.getAction(ACT_WALL_JUMP).isInAction()) {
+            if (this.actionController.getAction(ACT_WALL_JUMP).isOnStart()) {
+                event.getController().forceAnimationReset();
+            }
+            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".jump"));
+
+        } else if (this.actionController.getAction(ACT_JUMP).isInAction()) {
             if (this.actionController.getAction(ACT_JUMP).isOnStart()) {
                 event.getController().forceAnimationReset();
             }
@@ -745,13 +1581,28 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             }
 
             if (this.actionController.getAction(ACT_EVASION).isInAction()) {
+                if (this.noHorizontalBoost()) {
+                    if (this.sidewayIntention > 0) {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".evasion_left"));
+
+                    } else if (sidewayIntention < 0) {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".evasion_right"));
+
+                    } else if (forwardIntention < 0) {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".evasion_back"));
+
+                    } else {
+                        return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".evasion_front"));
+
+                    }
+                }
                 return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".evasion"));
-            } else if (this.actionController.isBoost()) {
+            } else if (this.actionController.isBoost() || this.isSuperBoost()) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".dash"));
             } else {
                 if (this.isBoundToRail()) {
                     return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".dash"));
-                } else if (this.isNoGravity()) {
+                } else if (this.isInAirInternal()) {
                     return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".idle"));
                 } else {
                     return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".walk"));
@@ -760,10 +1611,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         } else {
             if (this.isBoundToRail()) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".dash"));
-            } else if (this.yRotO != this.getYRot()) {
-                return event.setAndContinue(RawAnimation.begin().thenLoop("animation." + getMechName() + ".walk"));
             } else {
-                event.getController().forceAnimationReset();
                 return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".idle"));
             }
         }
@@ -771,12 +1619,63 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     protected PlayState controllAnimationFlyingMotion(AnimationState<PomkotsVehicleBase> event) {
-        if (justLanded(event.getAnimatable())) {
+        var anim = event.getController().getCurrentAnimation();
+
+        if (anim != null && anim.animation() != null && ("animation." + getMechName() + ".onground").equals(anim.animation().name()) && !event.getController().hasAnimationFinished()) {
+            return PlayState.CONTINUE;
+        } else if (justLanded(event.getAnimatable())) {
+            event.getController().forceAnimationReset();
             return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".onground"));
-        } else if (event.getAnimatable().onGround() || this.isBoundToRail()) {
+        }
+
+        if (event.getAnimatable().onGround() || this.isBoundToRail() || this.actionController.getAction(ACT_WALL_JUMP).isInAction()) {
+            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
+        } else if (event.isMoving() && !event.getAnimatable().isBoost() && inAirTicks < 5 && this.getDeltaMovement().y <= 0) {
             return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
         } else {
             return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".flylegs"));
+        }
+    }
+
+    protected boolean justLanded(Entity ent) {
+        return this.onGround() && !this.onGroundPrev && inAirTicks > 5;
+    }
+
+    private boolean isInAirInternal() {
+        return  isNoGravity() || (!this.onGround() && inAirTicks > 5);
+    }
+
+    @Override
+    protected PlayState controllAnimationRotation(AnimationState<PomkotsVehicleBase> event) {
+        if (event.isMoving()) {
+            if (this.isInAirInternal() && !this.actionController.isBoost() && !this.actionController.getAction(ACT_EVASION).isInAction()) {
+                if (this.forwardIntention > 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".frontfly"));
+                } else if (forwardIntention < 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".backfly"));
+                } else if (this.sidewayIntention < 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".rightfly"));
+                } else if (sidewayIntention > 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".leftfly"));
+                } else {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
+                }
+            } else if (this.actionController.getAction(ACT_EVASION).isInAction() && this.noHorizontalBoost()){
+                return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
+            } else {
+                if (this.sidewayIntention < 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".right"));
+                } else if (sidewayIntention > 0) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".left"));
+                } else {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".forward"));
+                }
+            }
+        } else {
+            if (!this.actionController.isInActionAll()) {
+                event.getController().forceAnimationReset();
+            }
+            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
         }
     }
 
@@ -788,6 +1687,26 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     @Override
     protected void addExtraAnimationController(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "right_hand", 0, event -> {
+            if (this.isBuildMode()) {
+                var act = this.actionController.getAction(ACT_PLACE_BLOCK);
+                if (act.isInAction()) {
+                    if (act.isOnStart()) {
+                        event.getController().forceAnimationReset();
+                    }
+
+                    return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".w_build_place"));
+                }
+                return PlayState.STOP;
+            }
+
+            var relAct = this.actionController.getAction(ACT_RELOAD_RIGHT_HAND);
+            if (relAct.isInAction()) {
+                if (relAct.isOnStart()) {
+                    event.getController().forceAnimationReset();
+                }
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".w_reload_right_hand"));
+            }
+
             var act = (ActionWeapon)this.actionController.getAction(ACT_RIGHT_HAND);
             if (act.isInAction()) {
                 if (act.isOnStart()) {
@@ -796,11 +1715,25 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
                 return event.setAndContinue(RawAnimation.begin().thenPlay(act.getMotion().getAnimationName(act, "right")));
             } else {
+                if (act.getMotion().getType() == Motion.MotionType.TOGGLE && act.isToggleOnStart()) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold(act.getMotion().getAnimationName(act, "right")));
+                }
+
                 return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
             }
+        }).setSoundKeyframeHandler(soundKeyframeEvent -> {
+            this.registerAnimationSoundHandlers(soundKeyframeEvent);
         }));
 
         controllers.add(new AnimationController<>(this, "left_hand", 0, event -> {
+            var relAct = this.actionController.getAction(ACT_RELOAD_LEFT_HAND);
+            if (relAct.isInAction()) {
+                if (relAct.isOnStart()) {
+                    event.getController().forceAnimationReset();
+                }
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".w_reload_left_hand"));
+            }
+
             var act = (ActionWeapon)this.actionController.getAction(ACT_LEFT_HAND);
             if (act.isInAction()) {
                 if (act.isOnStart()) {
@@ -809,11 +1742,25 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
                 return event.setAndContinue(RawAnimation.begin().thenPlay(act.getMotion().getAnimationName(act, "left")));
             } else {
+                if (act.getMotion().getType() == Motion.MotionType.TOGGLE && act.isToggleOn()) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold(act.getMotion().getAnimationName(act, "left")));
+                }
+
                 return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
             }
+        }).setSoundKeyframeHandler(soundKeyframeEvent -> {
+            this.registerAnimationSoundHandlers(soundKeyframeEvent);
         }));
 
         controllers.add(new AnimationController<>(this, "right_shoulder", 1, event -> {
+            var relAct = this.actionController.getAction(ACT_RELOAD_RIGHT_SHOULDER);
+            if (relAct.isInAction()) {
+                if (relAct.isOnStart()) {
+                    event.getController().forceAnimationReset();
+                }
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".w_reload_right_shoulder"));
+            }
+
             var act = (ActionWeapon)this.actionController.getAction(ACT_RIGHT_SHOULDER);
             if (act.isInAction()) {
                 if (act.isOnStart()) {
@@ -822,11 +1769,25 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
                 return event.setAndContinue(RawAnimation.begin().thenPlay(act.getMotion().getAnimationName(act, "right")));
             } else {
+                if (act.getMotion().getType() == Motion.MotionType.TOGGLE && act.isToggleOnStart()) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold(act.getMotion().getAnimationName(act, "right")));
+                }
+
                 return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
             }
+        }).setSoundKeyframeHandler(soundKeyframeEvent -> {
+            this.registerAnimationSoundHandlers(soundKeyframeEvent);
         }));
 
         controllers.add(new AnimationController<>(this, "left_shoulder", 1, event -> {
+            var relAct = this.actionController.getAction(ACT_RELOAD_LEFT_SHOULDER);
+            if (relAct.isInAction()) {
+                if (relAct.isOnStart()) {
+                    event.getController().forceAnimationReset();
+                }
+                return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".w_reload_left_shoulder"));
+            }
+
             var act = (ActionWeapon)this.actionController.getAction(ACT_LEFT_SHOULDER);
             if (act.isInAction()) {
                 if (act.isOnStart()) {
@@ -835,26 +1796,112 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
                 return event.setAndContinue(RawAnimation.begin().thenPlay(act.getMotion().getAnimationName(act, "left")));
             } else {
+                if (act.getMotion().getType() == Motion.MotionType.TOGGLE && act.isToggleOnStart()) {
+                    return event.setAndContinue(RawAnimation.begin().thenPlayAndHold(act.getMotion().getAnimationName(act, "left")));
+                }
                 return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
             }
+        }).setSoundKeyframeHandler(soundKeyframeEvent -> {
+            this.registerAnimationSoundHandlers(soundKeyframeEvent);
         }));
+    }
+
+    public void spawnReloadParticles(Vec3 spawnLocalPos, boolean isRightArm) {
+        Vec3 lookVec = this.getLookAngle();
+
+        var origin = spawnLocalPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+        origin = this.position().add(origin);
+
+        // 右方向ベクトル（XZ平面）
+        Vec3 right = lookVec.cross(new Vec3(0, 1, 0)).normalize().scale(1.5);
+
+        if (!isRightArm) {
+            right = right.scale(-1);
+        }
+
+        RandomSource rand = this.getRandom();
+
+        // ===== 煙（上方向） =====
+        for (int i = 0; i < 6; i++) {
+            double vx = (rand.nextDouble() - 0.5) * 0.05;
+            double vy = 0.1 + rand.nextDouble() * 0.1;
+            double vz = (rand.nextDouble() - 0.5) * 0.05;
+
+            this.level().addAlwaysVisibleParticle(ParticleTypes.SMOKE, true,
+                    origin.x(), origin.y(), origin.z(), // 位置
+                    vx, vy, vz // 速度
+            );
+        }
+
+        // ===== 火花（横方向） =====
+        for (int i = 0; i < 4; i++) {
+            Vec3 dir = right.scale(0.3 + rand.nextDouble() * 0.2);
+
+            this.level().addAlwaysVisibleParticle(PomkotsMechs.SPARK.get(), true,
+                    origin.x(), origin.y(), origin.z(), // 位置
+                    dir.x, 0.1 + rand.nextDouble() * 0.1, dir.z // 速度
+            );
+        }
+
+        // ===== 空マガジン（黒い四角） =====
+        for (int i = 0; i < 1; i++) {
+            Vec3 dir = right.scale(0.3 + rand.nextDouble() * 0.2);
+
+            var partType = PomkotsMechs.MAGAZINE_LEFT.get();
+            if (isRightArm) {
+                partType = PomkotsMechs.MAGAZINE_RIGHT.get();
+            }
+
+            this.level().addAlwaysVisibleParticle(partType, true,
+                    origin.x(), origin.y(), origin.z(), // 位置
+                    dir.x * 3F, 0.1 + rand.nextDouble() * 0.2, dir.z * 3F // 速度
+            );
+        }
     }
 
     @Override
     protected void registerAnimationSoundHandlers(SoundKeyframeEvent event) {
-        if ("se_jump".equals(event.getKeyframeData().getSound())) {
+        var sound = event.getKeyframeData().getSound();
+
+        if ("se_jump".equals(sound)) {
             this.playSoundEffect(PomkotsMechs.SE_JUMP_EVENT.get());
-        } else if ("se_booster".equals(event.getKeyframeData().getSound())) {
+        } else if ("se_booster".equals(sound)) {
             this.playSoundEffect(PomkotsMechs.SE_BOOSTER_EVENT.get());
-        } else if ("se_onground".equals(event.getKeyframeData().getSound())) {
+        } else if ("se_onground".equals(sound)) {
             this.playSoundEffect(PomkotsMechs.SE_JUMP_EVENT.get());
-        } else if ("se_gashan".equals(event.getKeyframeData().getSound())) {
+        } else if ("se_gashan".equals(sound)) {
             this.playSoundEffect(PomkotsMechs.SE_GASHAN.get());
             var legPos1 = new Vec3(-1, 0, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
             var legPos2 = new Vec3(1, 0, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
 
             ParticleUtil.addSparkParticles(legPos1, this.level());
             ParticleUtil.addSparkParticles(legPos2, this.level());
+        } else if ("se_step".equals(sound)) {
+            this.playSoundEffect(PomkotsMechs.SE_STEP.get(), 0.1F);
+            this.spawnMovingParticles(5, 0.8F, false);
+        } else if ("se_machine".equals(sound)) {
+            if (!this.isBroken()) {
+                this.playSoundEffect(PomkotsMechs.SE_MACHINE.get());
+            }
+        } else if ("se_charge".equals(sound)) {
+            this.playSoundEffect(PomkotsMechs.SE_BOOST_CHARGE.get(), 1F);
+        } else if ("se_roller1".equals(sound)) {
+            this.playSoundEffect(PomkotsMechs.SE_ROLLER1.get(), 1F);
+        } else if ("se_roller2".equals(sound)) {
+            this.playSoundEffect(PomkotsMechs.SE_ROLLER2.get(), 1F);
+        } else if ("se_lift".equals(sound)) {
+            this.playSoundEffect(PomkotsMechs.SE_LIFT.get(), 1F);
+        } else if ("se_reload".equals(sound)) {
+            if ("right_hand".equals(event.getController().getName())) {
+                spawnReloadParticles(new Vec3(-2,4,1.5), true);
+            } else if ("left_hand".equals(event.getController().getName())) {
+                spawnReloadParticles(new Vec3(2,4,1.5), false);
+            } else if ("right_shoulder".equals(event.getController().getName())) {
+                spawnReloadParticles(new Vec3(-1.5,5,-2), true);
+            } else if ("left_shoulder".equals(event.getController().getName())) {
+                spawnReloadParticles(new Vec3(1.5,5,-2), false);
+            }
+            this.playSoundEffect(PomkotsMechs.SE_RELOAD.get(), 1F);
         }
     }
 
@@ -960,6 +2007,9 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         compound.putInt(PomkotsMechs.nbtName("TextureColor"), this.getTextureColor());
 
         compound.putInt(PomkotsMechs.nbtName("FuelNow"), fuel);
+
+        compound.putBoolean(PomkotsMechs.nbtName("IsBroken"), isBroken());
+        compound.putBoolean(PomkotsMechs.nbtName("IsLocked"), isLocked());
     }
 
     private void addChestVehicleSaveData(CompoundTag compoundTag) {
@@ -980,10 +2030,14 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
         this.setTextureColor(compound.getInt(PomkotsMechs.nbtName("TextureColor")));
 
-        this.syncAllParameter2Client(false);
+        this.syncAllParameter2Client(true);
+//        this.syncAllParameter2Client(false);
+
         this.readAmmoSaveData(compound);
 
         this.fuel = compound.getInt(PomkotsMechs.nbtName("FuelNow"));
+        this.setBroken(compound.getBoolean(PomkotsMechs.nbtName("IsBroken")));
+        this.setLocked(compound.getBoolean(PomkotsMechs.nbtName("IsLocked")));
     }
 
     void readChestVehicleSaveData(CompoundTag compoundTag) {
@@ -997,9 +2051,48 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     }
 
     @Override
+    public void setLevelCallback(EntityInLevelCallback entityInLevelCallback) {
+        EntityInLevelCallback2 hoge = new EntityInLevelCallback2(entityInLevelCallback, this);
+        super.setLevelCallback(hoge);
+    }
+
+    public static class EntityInLevelCallback2 implements EntityInLevelCallback {
+        EntityInLevelCallback del;
+        Pmvc01Entity ent;
+        EntityInLevelCallback2(EntityInLevelCallback delegate, Pmvc01Entity ent) {
+            this.del = delegate;
+            this.ent = ent;
+        }
+
+        public void onMove() {
+            del.onMove();
+        }
+
+        public void onRemove(Entity.RemovalReason removalReason) {
+            del.onRemove(removalReason);
+
+            if (ent.level() instanceof ServerLevel serverLevel && (removalReason == RemovalReason.UNLOADED_TO_CHUNK || removalReason == RemovalReason.UNLOADED_WITH_PLAYER)) {
+                PomkotsMechsSaveData.get(serverLevel).updateMech(ent.getUUID(), serverLevel.dimension(), new ChunkPos(ent.blockPosition()));
+            }
+        }
+    }
+
+    @Override
     public void remove(Entity.RemovalReason removalReason) {
         if (!this.level().isClientSide && removalReason.shouldDestroy()) {
             Containers.dropContents(this.level(), this, this);
+        }
+
+        if (this.blockPreviewEntity != null) {
+            this.blockPreviewEntity.discard();
+        }
+
+        if (this.isServerSide() && this.havingEntity().isPresent()) {
+            var tgt = ((ServerLevel)level()).getEntity(this.havingEntity().get());
+            if (tgt != null && tgt.isAlive()) {
+                tgt.setNoGravity(false);
+            }
+            this.setHavingEntity(Optional.empty());
         }
 
         super.remove(removalReason);
@@ -1009,21 +2102,80 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      * インベントリ関係/メニュー周りの処理
      **************************************************************************************/
 
+    public boolean isLocked(Player player) {
+        if (isLocked()) {
+            if (this.isServerSide()) {
+                player.sendSystemMessage(Utils.string2Component("{text.pomkotsmechs.messages.pmvc01.locked}"));
+            }
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public InteractionResult interact(Player player, InteractionHand interactionHand) {
-        if (this.canAddPassenger(player) && !player.isSecondaryUseActive()) {
-            return super.interact(player, interactionHand);
-        }
-//        else if (this.getPassengers().isEmpty()) {
-//            InteractionResult interactionResult = this.interactWithContainerVehicle(player);
-//            if (interactionResult.consumesAction()) {
-//                this.gameEvent(GameEvent.CONTAINER_OPEN, player);
-//            }
-//            return interactionResult;
-//        }
-        else {
+        ItemStack stack = player.getItemInHand(interactionHand);
+        Level level = this.level();
+
+        if (stack.is(PomkotsMechs.REPAIRKIT_ITEM.get()) || stack.is(PomkotsMechs.KEYCARD_ITEM.get()) || stack.is(PomkotsMechs.MECH_CLONER_ITEM.get())) {
+            return InteractionResult.PASS;
+
+        } else if (this.canAddPassenger(player) && !player.isSecondaryUseActive()) {
+            if (this.isLocked(player)) {
+                return InteractionResult.CONSUME;
+            } else if (this.isBroken()) {
+                if (this.isServerSide()) {
+                    player.sendSystemMessage(Utils.string2Component("{text.pomkotsmechs.messages.pmvc01.broken}"));
+                }
+                return InteractionResult.CONSUME;
+            }
+
+            var res = super.interact(player, interactionHand);
+            this.tickAllParts();
+
+            if (this.isServerSide() && InteractionResult.SUCCESS.equals(res)) {
+                if (this.canWork(true) ) {
+                    Utils.completeAdvancement(PomkotsMechs.id("pomkots_mechs/ride_the_mech"), player);
+                }
+            }
+
+            return res;
+
+        } else {
             return InteractionResult.FAIL;
         }
+    }
+
+    public void healWithEffect(ServerLevel level, float amount) {
+        // 体力回復（LivingEntityを継承していない場合は独自HP管理で加算）
+        this.heal(amount);
+        healEffect(level);
+    }
+
+    public void healEffect(ServerLevel level) {
+        // パーティクルを出す
+        for (int i = 0; i < 5; i++) {
+            double dx = this.getX() + (level.random.nextDouble() - 0.5) * this.getBbWidth();
+            double dy = this.getY() + level.random.nextDouble() * this.getBbHeight();
+            double dz = this.getZ() + (level.random.nextDouble() - 0.5) * this.getBbWidth();
+            level.sendParticles(ParticleTypes.HAPPY_VILLAGER, dx, dy, dz, 1, 0.0, 0.1, 0.0, 0.1);
+        }
+    }
+
+    public void warpEffect(ServerLevel level) {
+        // スパーク＋ポータル粒子をミックス
+        for (int i = 0; i < 20; i++) {
+            double dx = this.getX() + (level.random.nextDouble() - 0.5) * this.getBbWidth();
+            double dy = this.getY() + level.random.nextDouble() * this.getBbHeight();
+            double dz = this.getZ() + (level.random.nextDouble() - 0.5) * this.getBbWidth();
+
+            // 転送エネルギーっぽいキラキラ（END_ROD）
+            level.sendParticles(ParticleTypes.END_ROD, dx, dy, dz, 1, 0.0, 0.1, 0.0, 0.1);
+            level.sendParticles(ParticleTypes.PORTAL, dx, dy, dz, 1, 0.0, 0.1, 0.0, 0.1);
+        }
+
+        // SEを再生
+        level.playSound(null, this.blockPosition(), SoundEvents.ENDERMAN_TELEPORT, SoundSource.PLAYERS, 0.5f, 1.2f);
     }
 
     @Override
@@ -1042,9 +2194,14 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     @Override
     public void openCustomInventoryScreen(Player player) {
         player.openMenu(this);
-        if (!player.level().isClientSide) {
-            this.gameEvent(GameEvent.CONTAINER_OPEN, player);
-        }
+//        if (!player.level().isClientSide) {
+//            this.gameEvent(GameEvent.CONTAINER_OPEN, player);
+//        }
+    }
+
+    private MechWorkbenchBlockEntity consoleAccessor = null;
+    public void setConsoleAccessor(MechWorkbenchBlockEntity ac) {
+        consoleAccessor = ac;
     }
 
     @Override
@@ -1053,16 +2210,25 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         if (this.lootTable != null && player.isSpectator()) {
             return null;
         } else {
+            if (isLocked(player)) {
+                return null;
+            }
+
             this.unpackLootTable(inventory.player);
 
-            int mode = MechWorkbenchMenu.MODE_VIEW;
+            short mode = MechWorkbenchMenu.MODE_VIEW;
             if (this.getPassengers().isEmpty()) {
                 mode = MechWorkbenchMenu.MODE_ASSEMBLE;
             }
 
-            var menu = new MechWorkbenchMenu(i, inventory, this, this, mode);
-            menu.setEntityId(this.getId());
+            var menu = new MechWorkbenchMenu(i, inventory, this, this, mode, consoleAccessor);
+
+            menu.setEntityId(this.getUUID().hashCode());
             menu.setTextureColor(this.getTextureColor());
+            menu.setMode(mode);
+            menu.sendAllDataToRemote();
+
+            consoleAccessor = null;
 
             return menu;
         }
@@ -1247,10 +2413,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      **************************************************************************************/
 
     private final List<AmmoManager> ammoManagers = List.of(
-            new AmmoManager(this::getAmmoRAFromInventory, this::getRightArmWeaponFromInventory, RELOAD_RA, this),
-            new AmmoManager(this::getAmmoLAFromInventory, this::getLeftArmWeaponFromInventory, RELOAD_LA, this),
-            new AmmoManager(this::getAmmoRSFromInventory, this::getRightShoulderWeaponFromInventory, RELOAD_RS, this),
-            new AmmoManager(this::getAmmoLSFromInventory, this::getLeftShoulderWeaponFromInventory, RELOAD_LS, this));
+            new AmmoManager(this::getAmmoRAFromInventory, this::getRightArmWeaponFromInventory, RELOAD_RA, this, actionController.getAction(ACT_RELOAD_RIGHT_HAND)),
+            new AmmoManager(this::getAmmoLAFromInventory, this::getLeftArmWeaponFromInventory, RELOAD_LA, this, actionController.getAction(ACT_RELOAD_LEFT_HAND)),
+            new AmmoManager(this::getAmmoRSFromInventory, this::getRightShoulderWeaponFromInventory, RELOAD_RS, this, actionController.getAction(ACT_RELOAD_RIGHT_SHOULDER)),
+            new AmmoManager(this::getAmmoLSFromInventory, this::getLeftShoulderWeaponFromInventory, RELOAD_LS, this, actionController.getAction(ACT_RELOAD_LEFT_SHOULDER)));
 
     protected void tickAmmos() {
         for (var ammoData: ammoManagers) {
@@ -1299,6 +2465,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     }
 
     public static class AmmoManager {
+        public int RELOAD_TICKS = 60;
+
         private int bulletNum;
         private int bulletNumPerMagazine;
         private int magazineNum;
@@ -1307,15 +2475,18 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         private int prevState;
         private int reloadTicks;
 
+        private Action reloadAction;
+
         private final Supplier<ItemStack> ammoStackSupplier;
         private final Supplier<ItemStack> weaponStackSupplier;
         private final EntityDataAccessor<Integer> reloadStateAccessor;
 
-        AmmoManager(Supplier<ItemStack> ammoStackSupplier, Supplier<ItemStack> weaponStackSupplier, EntityDataAccessor<Integer> r, Pmvc01Entity owner) {
+        AmmoManager(Supplier<ItemStack> ammoStackSupplier, Supplier<ItemStack> weaponStackSupplier, EntityDataAccessor<Integer> r, Pmvc01Entity owner, Action reloadAction) {
             this.ammoStackSupplier = ammoStackSupplier;
             this.weaponStackSupplier = weaponStackSupplier;
             this.reloadStateAccessor = r;
             this.owner = owner;
+            this.reloadAction = reloadAction;
         }
 
         private void initialize(boolean resetBulletNum) {
@@ -1354,6 +2525,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             }
         }
 
+        public boolean isReloading() {
+            return reloadTicks > 0;
+        }
+
         protected void tick() {
             if (owner.isClientSide()) {
                 int state = owner.entityData.get(this.reloadStateAccessor);
@@ -1361,26 +2536,37 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                     deserialize(state);
                     prevState = state;
                 }
-            } else {
-                if (this.reloadTicks > 0) {
-                    this.reloadTicks--;
+            }
 
-                    if (this.reloadTicks == 0) {
-                        doActualReload();
-                    }
+            if (this.reloadTicks > 0) {
+                if (reloadTicks == RELOAD_TICKS && !reloadAction.isInAction()) {
+                    reloadAction.startAction();
+                }
+
+                this.reloadTicks--;
+
+                if (owner.isServerSide() && this.reloadTicks == 0) {
+                    doActualReload(true);
                 }
             }
         }
 
-        private void doActualReload() {
+        private boolean doActualReload(boolean doSync) {
             var ammoStack = this.ammoStackSupplier.get();
 
             if (ammoStack.getCount() > 0 && ammoStack.getItem() instanceof BasePartsItem.Magazine mag) {
                 ammoStack.shrink(1);
                 this.bulletNum = this.bulletNumPerMagazine = mag.getBulletsPerMagazine(ammoStack);
                 this.magazineNum = ammoStack.getCount();
-                syncClient();
+
+                if (doSync) {
+                    syncClient();
+                }
+
+                return true;
             }
+
+            return false;
         }
 
         protected void syncClient() {
@@ -1389,22 +2575,37 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
         protected boolean consumeBullet(int num) {
             if (this.bulletNumPerMagazine > 0) {
-                if (this.bulletNum - num >= 0) {
-                    this.bulletNum -= num;
+                if (this.bulletNum == 0 && this.reloadTicks > 0) {
+                    return false;
+                }
 
-                    if (this.owner.isServerSide() && this.bulletNum == 0 && this.reloadTicks == 0){
-                        this.reloadTicks = 59;
-                    }
-
+                this.bulletNum = Math.max(0, this.bulletNum - num);
+                if (this.bulletNum  > 0) {
                     return true;
-                } else {
-                    if (this.owner.isServerSide() && this.reloadTicks == 0){
-                        this.reloadTicks = 29;
+
+                } else if (weaponStackSupplier.get().getItem() instanceof BasePartsItem.Weapon w
+                        && w.getWeaponCategory() == BasePartsItem.WeaponCategory.MISSILE
+                        && owner.isServerSide()) {
+                    if (doActualReload(false)) {
+                        this.bulletNum -= num;
+                        syncClient();
+                        return true;
+                    } else {
+                        return false;
                     }
+                } else {
+                    startReload();
                     return false;
                 }
             } else {
                 return false;
+            }
+        }
+
+        public void startReload() {
+            if (this.owner.isServerSide() && this.reloadTicks == 0){
+                this.reloadTicks = RELOAD_TICKS;
+                this.syncClient();
             }
         }
 
@@ -1426,12 +2627,18 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             return magazineNum;
         }
 
+        public int getReloadTicks() {
+            return reloadTicks;
+        }
+
         private int serialize() {
             int result = 0;
 
             result |= (bulletNumPerMagazine & 0x3FF) << 22;
             result |= (bulletNum & 0x3FF) << 12;
             result |= (magazineNum & 0x3F) << 6;
+            result |= (reloadTicks & 0x3F);
+
 
             return result;
         }
@@ -1440,6 +2647,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             bulletNumPerMagazine = (serialized >> 22) & 0x3FF;
             bulletNum = (serialized >> 12) & 0x3FF;
             magazineNum = (serialized >> 6) & 0x3F;
+            reloadTicks = serialized & 0x3F;
         }
     }
 
@@ -1490,6 +2698,20 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     protected static final EntityDataAccessor<Integer> TEXTURE_COLOR = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
 
+    protected static final EntityDataAccessor<Boolean> IS_BROKEN = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Boolean> IS_LOCKED = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
+
+    protected static final EntityDataAccessor<Boolean> IS_OVER_HEAT = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
+
+    protected static final EntityDataAccessor<Boolean> IS_SUPER_BOOST = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
+
+    protected static final EntityDataAccessor<Boolean> SHOW_PLAYER_INV_SLOT = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
+
+    protected static final EntityDataAccessor<Boolean> BUILD_MODE = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
+
+    protected static final EntityDataAccessor<Optional<UUID>> HAVING_ENTITY = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.OPTIONAL_UUID);
+
+
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
@@ -1534,6 +2756,19 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.entityData.define(IS_BOUND_TO_RAIL, false);
 
         this.entityData.define(TEXTURE_COLOR, 0);
+
+        this.entityData.define(IS_BROKEN, false);
+        this.entityData.define(IS_LOCKED, false);
+
+        this.entityData.define(IS_OVER_HEAT, false);
+
+        this.entityData.define(IS_SUPER_BOOST, false);
+
+        this.entityData.define(SHOW_PLAYER_INV_SLOT, false);
+
+        this.entityData.define(BUILD_MODE, false);
+
+        this.entityData.define(HAVING_ENTITY, Optional.empty());
     }
 
     protected void syncAllParameter2Client() {
@@ -1557,8 +2792,23 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.entityData.set(W_EXTENSION1, this.getExtension1FromInventory());
         this.entityData.set(W_EXTENSION2, this.getExtension2FromInventory());
 
+        this.updateShowPlaeyrInv();
+
         this.updateMechParams(updateHealth);
         this.registerWeapons();
+    }
+
+    private void updateShowPlaeyrInv() {
+        if (
+                this.getRightArmWeaponFromInventory().getItem() instanceof AmagiItem
+                        || this.getLeftArmWeaponFromInventory().getItem() instanceof AmagiItem
+                        || this.getRightArmWeaponFromInventory().getItem() instanceof ShoutouItem
+                        || this.getLeftArmWeaponFromInventory().getItem() instanceof ShoutouItem
+        ) {
+            this.entityData.set(SHOW_PLAYER_INV_SLOT, true);
+        } else {
+            this.entityData.set(SHOW_PLAYER_INV_SLOT, false);
+        }
     }
 
     private void updateMechParams(boolean updateHealth) {
@@ -1758,6 +3008,78 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         return this.entityData.get(FUEL_NOW);
     }
 
+    public boolean isBroken() {
+        return this.entityData.get(IS_BROKEN);
+    }
+
+    public void setBroken(boolean broken) {
+        this.entityData.set(IS_BROKEN, broken);
+    }
+
+    public boolean isLocked() {
+        return this.entityData.get(IS_LOCKED);
+    }
+
+    public void setLocked(boolean broken) {
+        this.entityData.set(IS_LOCKED, broken);
+    }
+
+    public boolean isOverHeat() {
+        return this.entityData.get(IS_OVER_HEAT);
+    }
+
+    public void setOverHeat(boolean broken) {
+        this.entityData.set(IS_OVER_HEAT, broken);
+    }
+
+    public boolean isSuperBoost() {
+        return this.entityData.get(IS_SUPER_BOOST);
+    }
+
+    public void setSuperBoost(boolean flag) {
+        if (this.isServerSide()) {
+            this.entityData.set(IS_SUPER_BOOST, flag);
+            this.setNoGravity(flag);
+        }
+    }
+
+    public boolean isShowPlayerInventory() {
+        return this.entityData.get(SHOW_PLAYER_INV_SLOT);
+    }
+
+    public boolean isBuildMode() {
+        return this.entityData.get(BUILD_MODE);
+    }
+
+    public void setBuildMode(boolean b) {
+        this.entityData.set(BUILD_MODE, b);
+
+        if (b) {
+            // プレビューエンティティを作成
+            if (this.blockPreviewEntity == null || this.blockPreviewEntity.isRemoved()) {
+                this.blockPreviewEntity = new BlockPlacementPreviewEntity(
+                        this.level(),
+                        this.position()
+                );
+                this.level().addFreshEntity(this.blockPreviewEntity);
+            }
+        } else {
+            // プレビューエンティティを削除
+            if (this.blockPreviewEntity != null) {
+                this.blockPreviewEntity.discard();
+                this.blockPreviewEntity = null;
+            }
+        }
+    }
+
+    public Optional<UUID> havingEntity() {
+        return this.entityData.get(HAVING_ENTITY);
+    }
+
+    public void setHavingEntity(Optional<UUID> b) {
+        this.entityData.set(HAVING_ENTITY, b);
+    }
+
     private static class MechParam {
         int durability;
         int weight;
@@ -1778,19 +3100,21 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      **************************************************************************************/
 
     public boolean isUsingWeapon(BasePartsItem.Weapon w) {
-        String attchPoint = w.getWeaponAttachPoint();
-        String side = w.getSide();
+        BasePartsItem.WeaponInterface.WeaponAttachPoint attchPoint = w.getWeaponAttachPoint();
+        BasePartsItem.AttachSide side = w.getSide();
 
-        if ("right".equals(side)) {
-            if ((BasePartsItem.WeaponInterface.ATTACH_POINT_ARM.equals(attchPoint) || BasePartsItem.WeaponInterface.ATTACH_POINT_HAND.equals(attchPoint))) {
+        if (BasePartsItem.AttachSide.RIGHT == side) {
+            if (BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_ARM == attchPoint
+                    || BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_HAND == attchPoint) {
                 return this.actionController.getAction(ACT_RIGHT_HAND).isInAction();
-            } else if (BasePartsItem.WeaponInterface.ATTACH_POINT_SHOULDER.equals(attchPoint)) {
+            } else if (BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_SHOULDER == attchPoint) {
                 return this.actionController.getAction(ACT_RIGHT_SHOULDER).isInAction();
             }
-        } else if ("left".equals(side)) {
-            if ((BasePartsItem.WeaponInterface.ATTACH_POINT_ARM.equals(attchPoint) || BasePartsItem.WeaponInterface.ATTACH_POINT_HAND.equals(attchPoint))) {
+        } else if (BasePartsItem.AttachSide.LEFT == side) {
+            if (BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_ARM == attchPoint
+                    || BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_HAND == attchPoint){
                 return this.actionController.getAction(ACT_LEFT_HAND).isInAction();
-            } else if (BasePartsItem.WeaponInterface.ATTACH_POINT_SHOULDER.equals(attchPoint)) {
+            } else if (BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_SHOULDER == attchPoint) {
                 return this.actionController.getAction(ACT_LEFT_SHOULDER).isInAction();
             }
         }
@@ -1817,6 +3141,123 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     }
 
     @Override
+    public void travel(Vec3 pos) {
+        if (!isBroken()) {
+            if (this.isSuperBoost()) {
+                ItemStack sb = getSuperBoostUnit();
+                if (!(sb.getItem() instanceof BasePartsItem p) || !this.useEnergy((p.getEnergyConsumePerTick(sb)))) {
+                    if (isServerSide()) {
+                        this.setSuperBoost(false);
+                    }
+                }
+
+                if (isServerSide()) {
+                    // --- クライアントのカメラ方向に進む（360°可）
+                    Player owner = getDrivingPassenger() instanceof Player p ? p : null;
+                    if (owner == null) return;
+
+                    Vec3 look = owner.getLookAngle(); // カメラの向きベクトル（Pitch/Yaw反映済）
+                    Vec3 velocity = look.normalize().scale(4);
+
+                    // --- サーバ側でも同期させる（tickでsetDeltaMovementを適用）
+                    setDeltaMovement(velocity);
+
+                    // --- 向きをカメラ方向に合わせる
+                    setYRot(owner.getYRot());
+                    setXRot(owner.getXRot());
+
+                    // --- GeckoLibモデル回転用に保持
+                    this.yRotO = this.getYRot();
+                    this.xRotO = this.getXRot();
+                    this.yBodyRot = this.getYRot();
+                    this.yHeadRot = this.getYRot();
+
+                    // --- 重力無効化
+                    this.setNoGravity(true);
+
+                    this.hasImpulse = true;
+                    // --- 実際に移動
+                    super.travelBypass(this.position().add(this.getDeltaMovement()));
+                }
+            } else {
+                super.travel(pos);
+            }
+        } else {
+            super.travelBypass(pos);
+        }
+    }
+
+    private ItemStack getSuperBoostUnit() {
+        if (this.getExtension1Weapon().getItem() instanceof SBUnitProtoTypeItem bst) {
+            return this.getExtension1Weapon();
+        } else if (this.getExtension2Weapon().getItem() instanceof SBUnitProtoTypeItem bst) {
+            return this.getExtension2Weapon();
+        }
+
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (this.isBroken()) {
+            if (isForceKillSource(source)) {
+                return super.hurt(source, amount);
+            } else {
+                return false;
+            }
+        } else {
+            return super.hurt(source, amount);
+        }
+    }
+
+    private boolean isForceKillSource(DamageSource source) {
+        // /killコマンドやサーバーシステムによる即死
+        if (source == this.damageSources().genericKill() || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            return true;
+        }
+
+        // 特殊な強制削除の可能性
+        String msgId = source.getMsgId();
+        return msgId.equals("kill") || msgId.equals("out_of_world");
+    }
+
+    @Override
+    protected void actuallyHurt(DamageSource damageSource, float f) {
+        if (breakCompatible()) {
+            super.actuallyHurt(damageSource, f);
+        } else {
+            f = calcActualDamage(damageSource, f);
+
+            if (!isForceKillSource(damageSource) && f > this.getHealth()) {
+                this.setHealth(1);
+                this.setBroken(true);
+
+                for (Entity passenger : this.getPassengers()) {
+                    passenger.stopRiding();
+                }
+            } else {
+                super.actuallyHurt(damageSource, f);
+            }
+        }
+    }
+
+    protected float calcActualDamage(DamageSource damageSource, float f) {
+        if (!this.isInvulnerableTo(damageSource)) {
+            f = this.getDamageAfterArmorAbsorb(damageSource, f);
+            f = this.getDamageAfterMagicAbsorb(damageSource, f);
+            f = Math.max(f - this.getAbsorptionAmount(), 0.0F);
+
+            return f;
+        } else {
+            return 0;
+        }
+    }
+
+    protected boolean breakCompatible() {
+        return false;
+    }
+
+    @Override
     protected void tickDeath() {
         super.tickDeath();
         if (this.deathTime == 10) {
@@ -1831,5 +3272,80 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     protected void checkInsideBlocks() {
+    }
+
+    @Override
+    public boolean ignoreExplosion() {
+        return this.getDrivingPassenger() == null;
+    }
+
+    private void spawnDestructionParticles() {
+        // ランダムに数個の爆発パーティクルを出す
+        for (int i = 0; i < 5; i++) {
+            double offsetX = (random.nextDouble() - 0.5) * this.getBbWidth();
+            double offsetY = random.nextDouble() * this.getBbHeight();
+            double offsetZ = (random.nextDouble() - 0.5) * this.getBbWidth();
+
+            double x = this.getX() + offsetX;
+            double y = this.getY() + offsetY;
+            double z = this.getZ() + offsetZ;
+
+            ParticleOptions particle = switch (random.nextInt(4)) {
+                case 0 -> ParticleTypes.SMOKE;
+                case 1 -> ParticleTypes.SMALL_FLAME;
+                case 2 -> ParticleTypes.ELECTRIC_SPARK;
+                default -> ParticleTypes.EXPLOSION;
+            };
+
+            level().addParticle(particle, x, y, z, 0, 0.01, 0);
+        }
+
+        // 一定確率で音も出す（例: 20%）
+        if (random.nextFloat() < 1f) {
+            this.playSoundEffect(SoundEvents.GENERIC_EXPLODE);
+        }
+    }
+
+    public Action getActionEvasion() {
+        return actionController.getAction(ACT_EVASION);
+    }
+
+    private boolean hasLoopSound = false;
+
+    protected void playSoundEffectWithFade(String key, SoundEvent event, float volume, int fadein, int fadeout) {
+        key = this.getId() + ":" + key;
+        PomkotsSoundManager.playSound(key, event,
+                        SoundConfig.loopFadeSE()
+                                .followEntity(this) // 動的な位置
+                                .source(SoundSource.PLAYERS)
+                                .relative(false)
+                                .volume(volume)
+                                .fadeIn(fadein)
+                                .fadeOut(fadeout)
+        );
+        hasLoopSound = true;
+    }
+
+    protected void stopSoundEffectWithFade(String key) {
+        key = this.getId() + ":" + key;
+        PomkotsSoundManager.stopSound(key, true);
+    }
+
+    protected void stopAllSoundEffectWithFade() {
+        if (hasLoopSound) {
+            PomkotsSoundManager.stopAllSounds(this.getId(), true);
+            hasLoopSound = false;
+        }
+    }
+
+    @Override
+    public void onClientRemoval() {
+        super.onClientRemoval();
+        PomkotsSoundManager.stopAllSounds(this.getId(), true);
+    }
+
+    @Override
+    public boolean shouldRenderDefaultHud(String hudName) {
+        return "renderHotbar".equals(hudName) && (this.isShowPlayerInventory() || this.isBuildMode());
     }
 }

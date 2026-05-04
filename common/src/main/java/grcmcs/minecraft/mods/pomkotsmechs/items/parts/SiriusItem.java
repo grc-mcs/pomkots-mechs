@@ -31,6 +31,11 @@ public class SiriusItem {
         public String getDefaultColor() {
             return DEFAULT_COLOR;
         }
+
+        @Override
+        public boolean isFullCovered() {
+            return true;
+        }
     }
 
     public static class Body extends BasePartsItem.Body {

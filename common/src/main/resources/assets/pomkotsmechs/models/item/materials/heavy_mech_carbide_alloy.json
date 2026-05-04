@@ -1,0 +1,6 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "pomkotsmechs:item/materials/heavy_mech_carbide_alloy"
+  }
+}

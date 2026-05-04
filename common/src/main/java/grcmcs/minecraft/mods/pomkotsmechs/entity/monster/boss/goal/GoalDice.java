@@ -78,7 +78,7 @@ public class GoalDice {
     }
 
     public boolean canUse(Goal tgt) {
-        return tgt == nextGoal;
+        return tgt == nextGoal && !mob.isStunning();
     }
 
     protected static class GoalDefinition {

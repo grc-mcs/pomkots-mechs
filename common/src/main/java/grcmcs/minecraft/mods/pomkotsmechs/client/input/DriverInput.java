@@ -127,6 +127,19 @@ public class DriverInput {
         }
     }
 
+    public boolean isReloadPressed() {
+        return (this.keyPressStatus & UserInteractionManager.Keys.RELOAD.getKeyID()) != 0;
+    }
+
+    public boolean isReloadReleased() {
+        if (this.prevInput != null) {
+            return ((this.prevInput.keyPressStatus & UserInteractionManager.Keys.RELOAD.getKeyID()) != 0)
+                    && ((this.keyPressStatus & UserInteractionManager.Keys.RELOAD.getKeyID()) == 0);
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public String toString() {
         return "key status:" + keyPressStatus;

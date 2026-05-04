@@ -158,6 +158,30 @@
 					"effect": "close"
 				}
 			}
+		},
+		"animation.bossbox.onground": {
+			"animation_length": 0.5,
+			"bones": {
+				"root": {
+					"position": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.3333": {
+							"vector": [0, -22, 0],
+							"easing": "easeInBounce"
+						},
+						"0.5": {
+							"vector": [0, 0, 0]
+						}
+					}
+				}
+			},
+			"sound_effects": {
+				"0.0": {
+					"effect": "se_bossdown"
+				}
+			}
 		}
 	},
 	"geckolib_format_version": 2

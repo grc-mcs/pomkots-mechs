@@ -2,8 +2,10 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.Pmb01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.HitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
@@ -23,11 +25,19 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class EarthbreakEntity extends ThrowableProjectile implements GeoEntity, GeoAnimatable {
+public class EarthbreakEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final int MAX_LIFE_TICKS = 20;
     private int lifeTicks = 0;
     private LivingEntity shooter;
+
+    private boolean breakBlocks = false;
+    public void setBreakBlocks(boolean b) {
+        this.breakBlocks = b;
+    }
+    public boolean isBreakBlocks() {
+        return this.breakBlocks;
+    }
 
     public EarthbreakEntity(EntityType<? extends ThrowableProjectile> entityType, Level world) {
         super(entityType, world);
@@ -44,7 +54,7 @@ public class EarthbreakEntity extends ThrowableProjectile implements GeoEntity, 
     @Override
     public void tick() {
         if (this.firstTick && this.level().isClientSide()) {
-            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), PomkotsMechs.SE_EARTHBREAK_EVENT.get(), SoundSource.PLAYERS, 1.0F, 1.0F, false);
+            this.playSoundEffect(PomkotsMechs.SE_EARTHBREAK_EVENT.get());
         }
 
         this.setNoGravity(true);
@@ -59,20 +69,20 @@ public class EarthbreakEntity extends ThrowableProjectile implements GeoEntity, 
 
     private void atarihantei() {
         for (var ent : this.level().getEntities(null, this.getBoundingBox())) {
-            if (ent.equals(shooter) || ent instanceof HitBoxEntity) {
+            if (ent.equals(shooter) || ent instanceof HitBoxEntity || ent instanceof BossHitBoxEntity) {
                 continue;
             }
 
             if (ent instanceof LivingEntity le) {
                 if (!(ent instanceof Pmb01Entity) && !(ent.getVehicle() instanceof Pmb01Entity)) {
-                    le.addDeltaMovement(new Vec3(0, 5, 0));
+                    le.addDeltaMovement(new Vec3(0, 2, 0));
                 }
                 le.invulnerableTime = 20;
                 le.hurt(this.damageSources().generic(), 60);
             }
         }
 
-        if (ProjectileUtil.isDestructionAllowed(this)) {
+        if (isBreakBlocks() && ProjectileUtil.isDestructionAllowed(this)) {
             breakBlocks(35);
         }
     }
@@ -91,7 +101,7 @@ public class EarthbreakEntity extends ThrowableProjectile implements GeoEntity, 
                         BlockState state = this.level().getBlockState(blockPos);
                         // ブロックが空でない場合に破壊
                         if (!state.isAir()) {
-                            this.level().setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
+                            Utils.eraseBlock(this.level(), blockPos);
                         }
                     }
                 }

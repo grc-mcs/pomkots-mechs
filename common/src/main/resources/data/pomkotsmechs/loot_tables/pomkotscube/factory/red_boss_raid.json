@@ -1,0 +1,78 @@
+{
+    "type": "minecraft:chest",
+    "pools": [
+      {
+        "rolls": 3,
+        "entries": [
+          { "type": "item", "name": "pomkotsmechs:blue_print_vega", "weight": 10 }
+        ]
+      },
+      {
+        "rolls": 6,
+        "entries": [
+          { "type": "item", "name": "pomkotsmechs:materials/heavy_mech_armor_shard", "weight": 10,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 4
+              }
+            ]
+          },
+          { "type": "item", "name": "pomkotsmechs:materials/heavy_mech_circuit_board", "weight": 10,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 4
+              }
+            ]
+          },
+          { "type": "item", "name": "pomkotsmechs:materials/heavy_mech_power_cell_debris", "weight": 10,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 4
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rolls": 6,
+        "entries": [
+          { "type": "item", "name": "pomkotsmechs:materials/heavy_mech_high_torque_actuator", "weight": 10,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 4
+              }
+            ]
+          },
+          { "type": "item", "name": "pomkotsmechs:materials/heavy_mech_construction_unit_debris", "weight": 10,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 4
+              }
+            ]
+          },
+          { "type": "item", "name": "pomkotsmechs:materials/heavy_mech_carbide_alloy", "weight": 10,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 4
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rolls": 2,
+        "entries": [
+          { "type": "item", "name": "pomkotsmechs:blue_print_builder_unit", "weight": 1 },
+          { "type": "item", "name": "pomkotsmechs:blue_print_amagi", "weight": 1 },
+          { "type": "item", "name": "pomkotsmechs:blue_print_jinba", "weight": 1 },
+          { "type": "item", "name": "pomkotsmechs:blue_print_takao", "weight": 1 }
+        ]
+      }
+    ]
+}

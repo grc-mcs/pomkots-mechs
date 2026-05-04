@@ -21,7 +21,7 @@ public class ClientRenderEvents {
         var p = client.player;
         if (p != null && p.getVehicle() instanceof PomkotsVehicle) {
             var id = event.getOverlay().id().toString();
-            if ("minecraft:player_health".equals(id) || "minecraft:mount_health".equals(id)) {
+            if ("minecraft:player_health".equals(id) || "minecraft:mount_health".equals(id) || "minecraft:armor_level".equals(id)) {
                 event.setCanceled(true);
             }
         }

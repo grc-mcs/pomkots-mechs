@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.Pmb01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -80,30 +81,17 @@ public class GrenadeEntity extends PomkotsThrowableProjectile implements GeoEnti
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
         this.createExplosion(blockHitResult.getLocation());
-//        this.createExplosionKujira(blockHitResult.getLocation());
         this.discard();
-    }
-
-
-    private void createExplosionKujira(Vec3 pos) {
-        Level world = level();
-
-        if (!world.isClientSide) {
-            var level = this.level();
-            KujiraEntity e = new KujiraEntity(PomkotsMechs.KUJIRA.get(), level);
-            e.setPos(this.position());
-            level.addFreshEntity(e);
-        }
     }
 
     private void createExplosion(Vec3 pos) {
         Level world = level();
         if (!world.isClientSide) {
             if (shooter instanceof Pmb01Entity && ProjectileUtil.isDestructionAllowed(this)) {
-                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
+                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK, this.level());
 
             } else {
-                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE);
+                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE, this.level());
             }
         } else {
             addParticles(this.position());

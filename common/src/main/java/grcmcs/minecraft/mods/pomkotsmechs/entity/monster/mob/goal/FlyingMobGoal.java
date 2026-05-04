@@ -102,6 +102,6 @@ public class FlyingMobGoal extends Goal {
 
         // スムーズな慣性を保った移動
         mob.setDeltaMovement(mob.getDeltaMovement().add(motion).scale(speed));
-        mob.hurtMarked = true; // モーション更新を強制
+        mob.hurtMarked = true;
     }
 }

@@ -1,4 +1,52 @@
 {
+  "title": {
+    "category": "music",
+    "sounds": [
+      { "name": "pomkotsmechs:bgm/mass_theme", "stream": true}
+    ]
+  },
+  "opening": {
+    "category": "music",
+    "sounds": [
+      { "name": "pomkotsmechs:bgm/lvsd_0005_02_cocoon", "stream": true}
+    ]
+  },
+  "ruin_city": {
+    "category": "music",
+    "sounds": [
+      { "name": "minecraft:music/game/echo_in_the_wind", "stream": true},
+      { "name": "minecraft:music/game/an_ordinary_day", "stream": true },
+      { "name": "minecraft:music/game/floating_dream", "stream": true },
+      { "name": "pomkotsmechs:bgm/lvsd_0005_02_cocoon", "stream": true},
+      { "name": "pomkotsmechs:bgm/lvsd_0005_06_chrono_end", "stream": true},
+      { "name": "pomkotsmechs:bgm/mass_field_a", "stream": true}
+    ]
+  },
+  "battle_boss": {
+    "category": "music",
+    "sounds": [
+      { "name": "pomkotsmechs:bgm/lvsd_0004_10_battle_field", "stream": true }
+    ]
+  },
+  "battle_raid": {
+    "category": "music",
+    "sounds": [
+      { "name": "pomkotsmechs:bgm/lvsd_0004_11_echoes_of_valhalla", "stream": true },
+      { "name": "pomkotsmechs:bgm/lvsd_0005_01_fates_fall", "stream": true }
+    ]
+  },
+  "field_a": {
+    "category": "music",
+    "sounds": [
+      { "name": "pomkotsmechs:bgm/mass_field_a", "stream": true}
+    ]
+  },
+  "ruin_scattered": {
+    "category": "music",
+    "sounds": [
+      { "name": "minecraft:music/game/an_ordinary_day", "stream": true }
+    ]
+  },
   "se_bossdown": {
     "sounds": [
       "pomkotsmechs:se_bossdown"
@@ -202,6 +250,46 @@
   "se_gashan": {
     "sounds": [
       "pomkotsmechs:se_gashan"
+    ]
+  },
+  "se_boost": {
+    "sounds": [
+      "pomkotsmechs:se_boost"
+    ]
+  },
+  "se_dash": {
+    "sounds": [
+      "pomkotsmechs:se_dash"
+    ]
+  },
+  "se_gun1": {
+    "sounds": [
+      "pomkotsmechs:se_gun1"
+    ]
+  },
+  "se_gun2": {
+    "sounds": [
+      "pomkotsmechs:se_gun2"
+    ]
+  },
+  "se_gun3": {
+    "sounds": [
+      "pomkotsmechs:se_gun3"
+    ]
+  },
+  "se_boost_charge": {
+    "sounds": [
+      "pomkotsmechs:se_boost_charge"
+    ]
+  },
+  "se_heri": {
+    "sounds": [
+      "pomkotsmechs:se_heri"
+    ]
+  },
+  "se_reload": {
+    "sounds": [
+      "pomkotsmechs:se_reload"
     ]
   }
 }

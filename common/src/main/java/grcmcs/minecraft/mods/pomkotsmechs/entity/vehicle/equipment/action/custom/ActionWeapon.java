@@ -31,6 +31,7 @@ public class ActionWeapon extends Action {
     private Pmvc01Entity owner;
     private int weaponItemSlot;
     private ItemStack itemStack;
+    private boolean isToggleOnStart = false;
 
     public ActionWeapon(Pmvc01Entity owner, int weaponItemSlot) {
         super(1,1,1);
@@ -46,6 +47,8 @@ public class ActionWeapon extends Action {
         this.fireStartTick = getSmallest(motion.getActualFireTick());
         this.maxCoolTime = w.getCoolTime();
         this.itemStack = itemStack;
+
+        this.isToggleOnStart = false;
 
         this.reset();
     }
@@ -72,10 +75,13 @@ public class ActionWeapon extends Action {
         if (isInAction()) {
             weapon.tickWeaponInAction(new WeaponMechInterface(this.owner, this), currentActionTick, this.isOnFire());
 
+            if (this.isOnFire() && getMotion() == Motion.PUNCH || getMotion() == Motion.SABER) {
+                owner.setSuperBoost(false);
+            }
+
             if (canContinue()) {
                 currentActionTick++;
-            } else {
-                // end
+            } else {// end
                 reset();
             }
         }
@@ -99,7 +105,7 @@ public class ActionWeapon extends Action {
 
     protected boolean canContinue() {
         if (motion.getType().equals(Motion.MotionType.CONTINUOUS)) {
-            return true;
+            return owner.canWork(false);
         } else if (motion.getType().equals(Motion.MotionType.CHARGE)) {
             return currentActionTick <= fireStartTick + maxActionTick;
         } else {
@@ -112,6 +118,9 @@ public class ActionWeapon extends Action {
     }
 
     public boolean startAction() {
+        if (getMotion().getType() == Motion.MotionType.TOGGLE) {
+            isToggleOnStart = !isToggleOn();
+        }
         currentActionTick = 0;
         currentCoolTime = maxCoolTime;
 
@@ -162,6 +171,14 @@ public class ActionWeapon extends Action {
         }
     }
 
+    public boolean isToggleOnStart() {
+        return isToggleOnStart;
+    }
+
+    public boolean isToggleOn() {
+        return weapon.isToggleOn(new WeaponMechInterface(this.owner, this));
+    }
+
     public void reset() {
         currentChargeTime = 0;
         currentFireTime = 0;
@@ -171,6 +188,16 @@ public class ActionWeapon extends Action {
             fireStartTick = getSmallest(motion.getActualFireTick());
         }
         weapon.endUsing(new WeaponMechInterface(this.owner, this));
+
+        isToggleOnStart = false;
+    }
+
+    public Pmvc01Entity getOwner() {
+        return this.owner;
+    }
+
+    public ItemStack getItemStack() {
+        return this.itemStack;
     }
 
     public static class WeaponMechInterface {
@@ -233,8 +260,16 @@ public class ActionWeapon extends Action {
             return action.weaponItemSlot;
         }
 
-        public LivingEntity getMechEntity() {
+        public Pmvc01Entity getMechEntity() {
             return owner;
+        }
+
+        public boolean isToggleOnStart() {
+            return this.action.isToggleOnStart();
+        }
+
+        public boolean isSuperBoost() {
+            return owner.isSuperBoost();
         }
 
         public float[] getShootingAngle(Entity ent, boolean useTarget) {
@@ -321,13 +356,15 @@ public class ActionWeapon extends Action {
         }
 
         public void breakBlocksCube(int radius) {
+            breakBlocksCube(radius, 8, new Vec3(0, 0, 5));
+        }
+
+        public void breakBlocksCube(int radius, int height, Vec3 offset) {
             BlockPos curBP = owner.blockPosition();
-            Vec3 vec = new Vec3(0, 0, 5);
+            Vec3 vec = offset;
             vec = vec.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
             BlockPos pos = new BlockPos(curBP.getX() + (int) vec.x, curBP.getY() + (int) vec.y, +curBP.getZ() + (int) vec.z);
 
-            // 円柱の高さを設定
-            int height = 8; // 高さ2ブロックの円柱
             for (int y = 0; y < height; y++) {
                 for (int x = -radius; x <= radius; x++) {
                     for (int z = -radius; z <= radius; z++) {
@@ -408,8 +445,8 @@ public class ActionWeapon extends Action {
             }
         }
 
-        public String getWeaponAttachPoint() {
-            return "";
+        public WeaponAttachPoint getWeaponAttachPoint() {
+            return WeaponAttachPoint.ATTACH_POINT_ALL;
         }
 
         public Motion getMotion() {

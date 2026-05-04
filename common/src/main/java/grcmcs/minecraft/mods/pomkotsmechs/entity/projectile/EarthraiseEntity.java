@@ -5,6 +5,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.Pmb01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.HitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -30,7 +31,7 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, GeoAnimatable {
+public class EarthraiseEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final int MAX_LIFE_TICKS = 20;
     private int lifeTicks = 0;
@@ -38,6 +39,14 @@ public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, 
     private LivingEntity shooter;
     private Vec3 vec;
     private Vec3 knockbackVec;
+
+    private boolean breakBlocks = false;
+    public void setBreakBlocks(boolean b) {
+        this.breakBlocks = b;
+    }
+    public boolean isBreakBlocks() {
+        return this.breakBlocks;
+    }
 
     public EarthraiseEntity(EntityType<? extends ThrowableProjectile> entityType, Level world) {
         this(entityType, world, Vec3.ZERO, null, 8);
@@ -65,7 +74,7 @@ public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, 
     @Override
     public void tick() {
         if (this.firstTick && this.level().isClientSide()) {
-            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), PomkotsMechs.SE_EARTHRAISE_EVENT.get(), SoundSource.PLAYERS, 1.0F, 1.0F, false);
+            this.playSoundEffect(PomkotsMechs.SE_EARTHRAISE_EVENT.get());
         }
 
         this.setNoGravity(true);
@@ -105,7 +114,7 @@ public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, 
             }
         }
 
-        if (ProjectileUtil.isDestructionAllowed(this)) {
+        if (isBreakBlocks() && ProjectileUtil.isDestructionAllowed(this)) {
             breakBlocks();
         }
     }
@@ -116,7 +125,7 @@ public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, 
             BlockState state = this.level().getBlockState(blockPos);
             // ブロックが空でない場合に破壊
             if (!state.isAir()) {
-                this.level().setBlockAndUpdate(blockPos, Blocks.AIR.defaultBlockState());
+                Utils.eraseBlock(this.level(), blockPos);
             }
         }
     }
@@ -149,16 +158,6 @@ public class EarthraiseEntity extends ThrowableProjectile implements GeoEntity, 
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
 
-    }
-
-    @Override
-    public boolean shouldBeSaved() {
-        return false;
-    }
-
-    @Override
-    public boolean ignoreExplosion() {
-        return true;
     }
 
     @Override

@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.MissileBaseEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PomkotsThrowableProjectile;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -53,6 +54,10 @@ public class BossHitBoxEntity extends LivingEntity {
     public void tick() {
         super.tick();
 
+        if (isParentActive() && parentEntity.getAiMode() == BaseBossEntity.AI_MODE_INACTIVE) {
+            return;
+        }
+
         if (!this.level().isClientSide) {
             // ボスのAABB（現在の位置からの範囲）
             AABB bossBoundingBox = this.getBoundingBox();
@@ -66,7 +71,7 @@ public class BossHitBoxEntity extends LivingEntity {
 
             List<PomkotsThrowableProjectile> hitProjectiles = new ArrayList<>();
             for (PomkotsThrowableProjectile projectile : projectiles) {
-                if (projectile instanceof MissileBaseEntity missile && parentEntity != null && parentEntity.equals(missile.getShooter())) {
+                if (isRelatedShooter(projectile)) {
                     continue;
                 }
                 if (bossBoundingBox.intersects(projectile.getBoundingBox())) {
@@ -76,42 +81,37 @@ public class BossHitBoxEntity extends LivingEntity {
         }
 
         if (!this.level().isClientSide && !firstTick && !isParentActive()) {
-            this.kill();
+            this.discard();
         }
+    }
+
+    public boolean isRelatedShooter(PomkotsThrowableProjectile projectile) {
+        return parentEntity != null && parentEntity.equals(projectile.getShooter());
     }
 
     protected boolean isParentActive() {
         return parentEntity != null && !parentEntity.isDeadOrDying();
     }
 
-    private float damageCount = 39;
-
     @Override
     public boolean hurt(DamageSource source, float amount) {
         // 当たった場合、親エンティティにダメージを伝える
         if (isParentActive()) {
-            if (damageCount < 0) {
-                parentEntity.invulnerableTime = 0;
-                this.invulnerableTime = 0;
+            parentEntity.invulnerableTime = 0;
+            this.invulnerableTime = 0;
 
-                return parentEntity.hurtFromAdditionalHitBox(source, amount);
-            } else {
-                if (source.is(DamageTypes.PLAYER_ATTACK)) {
-                    damageCount -= amount;
+            return parentEntity.hurtFromAdditionalHitBox(source, amount);
 
-                    if (damageCount < 0 && breakCallback != null) {
-                        breakCallback.accept(null);
-                    }
-                }
-
-                parentEntity.invulnerableTime = 0;
-                this.invulnerableTime = 0;
-
-                return parentEntity.hurtFromAdditionalHitBox(source, amount * 0.5F);
-            }
-
-        } else {
+        } else if (Utils.isSystemicDamage(source)) {
             return super.hurt(source, amount);
+        } else {
+            return false;
+        }
+    }
+
+    public void addStunPoint(int point) {
+        if (isParentActive()) {
+            parentEntity.addStunPoint(point);
         }
     }
 

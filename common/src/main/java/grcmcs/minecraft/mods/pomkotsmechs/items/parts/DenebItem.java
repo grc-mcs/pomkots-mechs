@@ -5,7 +5,7 @@ import software.bernie.geckolib.core.animation.AnimatableManager;
 
 public class DenebItem {
     public static String SERIES_NAME = "deneb";
-    private static final String DEFAULT_COLOR = "orange";
+    private static final String DEFAULT_COLOR = "blue";
 
     public static class Head extends BasePartsItem.Head {
         public Head(Properties properties) {
@@ -30,6 +30,11 @@ public class DenebItem {
         @Override
         public String getDefaultColor() {
             return DEFAULT_COLOR;
+        }
+
+        @Override
+        public boolean isFullCovered() {
+            return true;
         }
     }
 

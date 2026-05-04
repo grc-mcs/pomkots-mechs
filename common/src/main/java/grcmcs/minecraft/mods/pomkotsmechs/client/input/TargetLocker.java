@@ -1,5 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.input;
 
+import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.architectury.networking.NetworkManager;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
@@ -9,7 +11,9 @@ import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -23,9 +27,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
+import org.joml.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.Math;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -164,7 +170,7 @@ public class TargetLocker {
                 addTargetMultiCustom(customMech, driverInput);
             }
 
-            releaseTargetMultiCustom(customMech, driverInput);
+            releaseTargetMultiCustomAll(customMech, driverInput);
         }
         // 元々のポンコツメカ君（もう手を入れたら絶対動かないのでそのまま…いつかリファクタする）
         else {
@@ -209,16 +215,16 @@ public class TargetLocker {
 
             if (target != null) {
                 if (driverInput.isWeaponRightHandPressed()) {
-                    added |= addTargetMultiCustom(targetMultiRA, Pmvc01Entity.INV_WEAPON_RIGHT_HAND, target, mech.getRightArmWeapon());
+                    added |= addTargetMultiCustom(targetMultiRA, Pmvc01Entity.INV_WEAPON_RIGHT_HAND, target, mech.getRightArmWeapon(), mech);
                 }
                 if (driverInput.isWeaponLeftHandPressed()) {
-                    added |= addTargetMultiCustom(targetMultiLA, Pmvc01Entity.INV_WEAPON_LEFT_HAND, target, mech.getLeftArmWeapon());
+                    added |= addTargetMultiCustom(targetMultiLA, Pmvc01Entity.INV_WEAPON_LEFT_HAND, target, mech.getLeftArmWeapon(), mech);
                 }
                 if (driverInput.isWeaponRightShoulderPressed()) {
-                    added |= addTargetMultiCustom(targetMultiRS, Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER, target, mech.getRightShoulderWeapon());
+                    added |= addTargetMultiCustom(targetMultiRS, Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER, target, mech.getRightShoulderWeapon(), mech);
                 }
                 if (driverInput.isWeaponLeftShoulderPressed()) {
-                    added |= addTargetMultiCustom(targetMultiLS, Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER, target, mech.getLeftShoulderWeapon());
+                    added |= addTargetMultiCustom(targetMultiLS, Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER, target, mech.getLeftShoulderWeapon(), mech);
                 }
             }
         }
@@ -228,8 +234,9 @@ public class TargetLocker {
         }
     }
 
-    private boolean addTargetMultiCustom(Map<Integer, Entity> map, int slot, Entity target, ItemStack item) {
-        if (map.size() < Pmvc01Entity.getMultiLockTargetNum(item)) {
+    private boolean addTargetMultiCustom(Map<Integer, Entity> map, int slot, Entity target, ItemStack item, Pmvc01Entity mech) {
+        // @JOKE
+        if (map.size() < Pmvc01Entity.getMultiLockTargetNum(item) || mech.isGattai()) {
 
             map.put(target.getId(), target);
             lockOnMultiCooltime = 10;
@@ -240,24 +247,30 @@ public class TargetLocker {
         return false;
     }
 
-    private void releaseTargetMultiCustom(Pmvc01Entity mech, DriverInput driverInput) {
-        if (!driverInput.isWeaponRightHandPressed()) {
-            targetMultiRA.clear();
-            mech.getLockTargets().unlockTargetMulti();
-            sendServerUnlockMulti();
-        }
-        if (!driverInput.isWeaponLeftHandPressed()) {
-            targetMultiLA.clear();
-            mech.getLockTargets().unlockTargetMulti();
-            sendServerUnlockMulti();
-        }
-        if (!driverInput.isWeaponRightShoulderPressed()) {
-            targetMultiRS.clear();
-            mech.getLockTargets().unlockTargetMulti();
-            sendServerUnlockMulti();
-        }
-        if (!driverInput.isWeaponLeftShoulderPressed()) {
-            targetMultiLS.clear();
+    private void releaseTargetMultiCustomAll(Pmvc01Entity mech, DriverInput driverInput) {
+        releaseTargetMultiCustom(mech, driverInput.isWeaponRightHandPressed(),
+                targetMultiRA, targetMultiLA, Pmvc01Entity.INV_WEAPON_RIGHT_HAND, Pmvc01Entity.INV_WEAPON_LEFT_HAND);
+
+        releaseTargetMultiCustom(mech, driverInput.isWeaponLeftHandPressed(),
+                targetMultiLA, targetMultiRA, Pmvc01Entity.INV_WEAPON_LEFT_HAND, Pmvc01Entity.INV_WEAPON_RIGHT_HAND);
+
+        releaseTargetMultiCustom(mech, driverInput.isWeaponRightShoulderPressed(),
+                targetMultiRS, targetMultiLS, Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER, Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER);
+
+        releaseTargetMultiCustom(mech, driverInput.isWeaponLeftShoulderPressed(),
+                targetMultiLS, targetMultiRS, Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER, Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER);
+    }
+
+    private void releaseTargetMultiCustom(Pmvc01Entity mech, boolean pressed,
+                                          Map<Integer, Entity> target, Map<Integer, Entity> targetLinked,
+                                          int inv, int invLinked) {
+        if (!pressed && !target.isEmpty()) {
+            target.clear();
+
+            if (mech.shouldLinkWeapon(inv, invLinked)) {
+                targetLinked.clear();
+            }
+
             mech.getLockTargets().unlockTargetMulti();
             sendServerUnlockMulti();
         }

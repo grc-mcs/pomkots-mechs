@@ -1,7 +1,9 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.SimpleMobGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.BulletMiddleEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
@@ -74,7 +76,6 @@ public class Pms03Entity extends BaseSmallMonsterEntity implements GeoEntity, Ge
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(1, new SimpleMobGoal(this, getMechData().speed));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
     }
 
     @Override

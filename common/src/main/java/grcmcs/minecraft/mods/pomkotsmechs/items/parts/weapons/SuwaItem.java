@@ -9,6 +9,9 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.magazine.MagazineGatlingItem;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.SingletonGeoAnimatable;
@@ -37,7 +40,10 @@ public class SuwaItem extends BasePartsItem.WeaponShoulder {
             }
 
             if (!world.isClientSide()) {
-                BulletMachineEntity be = new BulletMachineEntity(PomkotsMechs.BULLET_MACHINE_LARGE.get(), world, mechInterface.getMechEntity(), this.getDamage(mechInterface.getItemStack()));
+                BulletMachineEntity be = new BulletMachineEntity(
+                        PomkotsMechs.BULLET_MACHINE_LARGE.get(), world,
+                        mechInterface.getMechEntity(),
+                        this.getDamage(mechInterface.getItemStack()));
 
                 var offset = mechInterface.getOffset();
 
@@ -48,7 +54,7 @@ public class SuwaItem extends BasePartsItem.WeaponShoulder {
 
                 float[] angle = mechInterface.getShootingAngle(be, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), BattleBalance.MECH_MACHINEGUN_LARGE_SPEED, 2F);
+                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 7, 2F);
 
                 world.addFreshEntity(be);
             } else {
@@ -74,6 +80,15 @@ public class SuwaItem extends BasePartsItem.WeaponShoulder {
     }
 
     @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity ent, int slotIndex, boolean bl) {
+        super.inventoryTick(stack, level, ent, slotIndex, bl);
+
+        if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+            GeoItem.getOrAssignId(stack, serverLevel);
+        }
+    }
+
+    @Override
     public boolean isMatchAmmo(Magazine mag) {
         return mag instanceof MagazineGatlingItem;
     }
@@ -87,8 +102,13 @@ public class SuwaItem extends BasePartsItem.WeaponShoulder {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_SHOULDER;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_SHOULDER;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.MACHINE_GUN;
     }
 
     @Override

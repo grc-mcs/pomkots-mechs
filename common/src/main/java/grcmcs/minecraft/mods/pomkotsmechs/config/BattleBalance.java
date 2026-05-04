@@ -12,6 +12,7 @@ public class BattleBalance {
     public static float MECH_MISSILE_EXPLOSION = 2F;
 
     public static float MECH_MISSILE_GENERIC_SPEED = 1.4F;
+    public static float MECH_MISSILE_GENERIC_SPEED2 = 3F;
     public static float MECH_MISSILE_GENERIC_DAMAGE = 15F;
 
     public static float MECH_MACHINEGUN_LARGE_DAMAGE = 3F;

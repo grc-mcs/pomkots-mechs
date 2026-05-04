@@ -45,22 +45,29 @@ public class MukudoriItem extends BasePartsItem.WeaponShoulder {
                     if (i < 3) {
                         var worldMuzzlPos = muzzlPos.add(mechInterface.isRight() * 1.4,1 - 0.5 * (i % 3),0).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
 
-                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), world, mechInterface.getMechEntity(), (LivingEntity) target, this.getDamage(mechInterface.getItemStack()), BattleBalance.MECH_MISSILE_GENERIC_SPEED);
+                        MissileGenericEntity be = new MissileGenericEntity(
+                                PomkotsMechs.MISSILE_GENERIC.get(), world, mechInterface.getMechEntity(),
+                                (LivingEntity) target, this.getDamage(mechInterface.getItemStack()),
+                                BattleBalance.MECH_MISSILE_GENERIC_SPEED2);
 
                         be.setPos(offset.add(worldMuzzlPos));
 
-                        be.shootFromRotation(be, 0, mechInterface.getYRot() - 45 * mechInterface.isRight(), mechInterface.getFallFlyingTicks(), BattleBalance.MECH_MISSILE_GENERIC_SPEED, 0F);
+                        be.shootFromRotation(be, 0, mechInterface.getYRot() - 45 * mechInterface.isRight(), mechInterface.getFallFlyingTicks(),
+                                BattleBalance.MECH_MISSILE_GENERIC_SPEED2, 0F);
 
                         world.addFreshEntity(be);
 
                     } else if (i < 6) {
                         var worldMuzzlPos = muzzlPos.add(0.5 * mechInterface.isRight() * (i % 3),0,0).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
 
-                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), world, mechInterface.getMechEntity(), (LivingEntity) target, this.getDamage(mechInterface.getItemStack()), BattleBalance.MECH_MISSILE_GENERIC_SPEED);
+                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(),
+                                world, mechInterface.getMechEntity(), (LivingEntity) target, this.getDamage(mechInterface.getItemStack()),
+                                BattleBalance.MECH_MISSILE_GENERIC_SPEED2);
 
                         be.setPos(offset.add(worldMuzzlPos));
 
-                        be.shootFromRotation(be, -45, mechInterface.getYRot(), mechInterface.getFallFlyingTicks(), BattleBalance.MECH_MISSILE_GENERIC_SPEED, 0F);
+                        be.shootFromRotation(be, -45, mechInterface.getYRot(), mechInterface.getFallFlyingTicks(),
+                                BattleBalance.MECH_MISSILE_GENERIC_SPEED2, 0F);
 
                         world.addFreshEntity(be);
 
@@ -81,8 +88,13 @@ public class MukudoriItem extends BasePartsItem.WeaponShoulder {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_SHOULDER;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_SHOULDER;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.MISSILE;
     }
 
     @Override
@@ -103,10 +115,5 @@ public class MukudoriItem extends BasePartsItem.WeaponShoulder {
     @Override
     public String getPartsSeriesName() {
         return "mukudori";
-    }
-
-    @Override
-    public String getWeaponCategory() {
-        return "missile";
     }
 }

@@ -1,5 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.block;
 
+import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchMenu;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,6 +13,8 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -22,13 +26,18 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.List;
 
-public class MechWorkbenchBlock extends HorizontalDirectionalBlock implements EntityBlock {
+public class MechWorkbenchBlock extends HorizontalDirectionalBlock implements EntityBlock, PomkotsUnbreakableBlock {
 
     public MechWorkbenchBlock() {
         super(BlockBehaviour.Properties.of()
-                .strength(2.5f)
+                .strength(-1.0F, 3600000.0F)
                 .sound(SoundType.METAL));
         this.registerDefaultState(this.stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+    }
+
+    @Override
+    public float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+        return 0.0F;
     }
 
     @Override
@@ -39,6 +48,15 @@ public class MechWorkbenchBlock extends HorizontalDirectionalBlock implements En
     @Override
     public  BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new MechWorkbenchBlockEntity(pos, state);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState blockState, BlockEntityType<T> blockEntityType) {
+        return level.isClientSide ? null : (lvl, pos, st, be) -> {
+            if (be instanceof MechWorkbenchBlockEntity station) {
+                MechWorkbenchBlockEntity.serverTick(lvl, pos, st, station);
+            }
+        };
     }
 
     @Override
@@ -62,9 +80,18 @@ public class MechWorkbenchBlock extends HorizontalDirectionalBlock implements En
         if (!level.isClientSide) {
             List<Pmvc01Entity> mechs = getMechsBehindWorkbench(level, pos, state);
             if (!mechs.isEmpty()) {
-                Pmvc01Entity targetMech = mechs.get(0);
+                BlockEntity be = level.getBlockEntity(pos);
 
-                targetMech.openCustomInventoryScreen(player);
+                if (be instanceof MechWorkbenchBlockEntity mwbe) {
+                    Pmvc01Entity targetMech = mechs.get(0);
+
+                    if (targetMech.isLocked(player)) {
+                        return InteractionResult.FAIL;
+                    }
+
+                    targetMech.setConsoleAccessor(mwbe);
+                    targetMech.openCustomInventoryScreen(player);
+                }
 
                 return InteractionResult.SUCCESS;
             }

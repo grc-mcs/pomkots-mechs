@@ -6,6 +6,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonsterPercistant;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.goal.AttackBreakBossGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.goal.AttackLongRangeBossGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.goal.AttackMeleeBossGoal;
@@ -44,7 +45,7 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class Pmb01Entity extends GenericPomkotsMonster implements GeoEntity, GeoAnimatable, PomkotsControllable {
+public class Pmb01Entity extends GenericPomkotsMonsterPercistant implements GeoEntity, GeoAnimatable, PomkotsControllable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     public static final float DEFAULT_SCALE = 2f;
     public static final Logger LOGGER = LoggerFactory.getLogger(PomkotsMechs.MODID);
@@ -179,7 +180,8 @@ public class Pmb01Entity extends GenericPomkotsMonster implements GeoEntity, Geo
             muzzlPos = offset.add(muzzlPos);
 
             for (int i = 0; i < 5; i++) {
-                MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(), this, 15, 1.5F);
+                MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(), this,
+                        this.getTarget(), 15, 1.5F);
 
                 be.setPos(muzzlPos.add(0, i, 0));
                 be.shootFromRotation(be, -i * 2, this.getYRot() + 20, this.getFallFlyingTicks(), 1.5F, 0F);
@@ -191,7 +193,8 @@ public class Pmb01Entity extends GenericPomkotsMonster implements GeoEntity, Geo
             muzzlPos = offset.add(muzzlPos);
 
             for (int i = 0; i < 5; i++) {
-                MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(), this, 15, 1.5F);
+                MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(), this,
+                        this.getTarget(), 15, 1.5F);
 
                 be.setPos(muzzlPos.add(0, i, 0));
                 be.shootFromRotation(be, -i * 2, this.getYRot() - 20, this.getFallFlyingTicks(), 1.5F, 0F);
@@ -548,11 +551,6 @@ public class Pmb01Entity extends GenericPomkotsMonster implements GeoEntity, Geo
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.geoCache;
-    }
-
-
-    private void playSoundEffect(SoundEvent event) {
-        this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), event, SoundSource.PLAYERS, 1.0F, 1.0F, false);
     }
 
     @Override

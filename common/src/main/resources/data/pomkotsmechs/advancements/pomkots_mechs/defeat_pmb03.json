@@ -1,0 +1,25 @@
+{
+  "display": {
+    "icon": { "item": "pomkotsmechs:pomkots_wrench" },
+    "title": { "translate": "text.pomkotsmechs.advancement.defeat_pmb03.title" },
+    "description": { "translate": "text.pomkotsmechs.advancement.defeat_pmb03.title" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": true
+  },
+  "parent": "pomkotsmechs:pomkots_mechs/root",
+  "criteria": {
+    "complete": {
+      "trigger": "minecraft:player_killed_entity",
+      "conditions": {
+        "entity": {
+          "type": "pomkotsmechs:pmb03"
+        }
+      }
+    }
+  },
+  "requirements": [
+    ["complete"]
+  ]
+}

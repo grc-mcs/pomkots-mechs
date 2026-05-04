@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.HitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -84,7 +85,7 @@ public class MissileEnemyLargeEntity extends MissileBaseEntity {
         if (!world.isClientSide) {
             var exp = ProjectileUtil.isDestructionAllowed(this)?Level.ExplosionInteraction.BLOCK: Level.ExplosionInteraction.NONE;
 
-            world.explode(this,  pos.x, pos.y, pos.z, 8, false, exp);
+            Utils.explode(this,  pos.x, pos.y, pos.z, 8, false, exp, this.level());
             ExplosionEntity e = new ExplosionEntity(PomkotsMechs.EXPLOSION.get(), world);
             e.setPos(this.position());
             world.addFreshEntity(e);

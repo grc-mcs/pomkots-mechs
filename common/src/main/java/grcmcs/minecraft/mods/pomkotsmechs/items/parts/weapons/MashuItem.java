@@ -40,7 +40,7 @@ public class MashuItem extends BasePartsItem.WeaponArm {
 
                 float[] angle = mechInterface.getShootingAngle(be, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), BattleBalance.MECH_BEAM_SPEED, 0);
+                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 7, 0);
 
                 world.addFreshEntity(be);
 
@@ -56,8 +56,13 @@ public class MashuItem extends BasePartsItem.WeaponArm {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_HAND;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_HAND;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.RIFLE;
     }
 
     @Override

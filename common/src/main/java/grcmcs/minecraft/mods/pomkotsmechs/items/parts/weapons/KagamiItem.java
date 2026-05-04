@@ -41,7 +41,7 @@ public class KagamiItem extends BasePartsItem.WeaponArm {
 
                 float[] angle = mechInterface.getShootingAngle(be, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), BattleBalance.MECH_BULLET_GRENADE_SPEED, 0F);
+                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 7, 0F);
 
                 world.addFreshEntity(be);
 
@@ -63,8 +63,13 @@ public class KagamiItem extends BasePartsItem.WeaponArm {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_HAND;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_HAND;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.GRENADE;
     }
 
     @Override

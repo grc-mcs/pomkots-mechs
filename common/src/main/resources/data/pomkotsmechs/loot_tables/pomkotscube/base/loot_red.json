@@ -1,0 +1,15 @@
+{
+    "type": "minecraft:chest",
+    "pools": [
+      {
+        "rolls": 5,
+        "entries": [
+          { "type": "item", "name": "minecraft:diamond", "weight": 5 },
+          { "type": "item", "name": "pomkotsmechs:altairhead", "weight": 1 },
+          { "type": "item", "name": "pomkotsmechs:altairbody", "weight": 1 },
+          { "type": "item", "name": "pomkotsmechs:altairarm", "weight": 1 },
+          { "type": "item", "name": "pomkotsmechs:altairlegs", "weight": 1 }
+        ]
+      }
+    ]
+}

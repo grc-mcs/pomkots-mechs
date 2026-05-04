@@ -3,10 +3,12 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BossAerialDiveGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BossAerialDiveGoal2;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossAttackGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossWalkGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletGrenadeEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEnemyEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -53,14 +55,14 @@ public class Pmb05Entity extends BaseBossEntity {
                 7
         );
         this.registerActionGoal(
-                new BossAerialDiveGoal(
-                        this,           // ボスエンティティ
-                        15,           // 必要な高度差
-                        3,           // 初動ジャンプ強度
-                        1,           // ブースター上昇速度
-                        2,           // 空中移動速度
-                        3.0,           // 急降下速度
-                        100            // 最大追跡時間
+                new BossAerialDiveGoal2(
+                        this,   // ボスエンティティ
+                        10,           // 必要な高度差（5ブロック以上低い時に発動）
+                        3,           // riseSpeed
+                        3,           // flySpeed
+                        3,           // diveSpeed
+                        20,           // targetHeight
+                        100            // 最大追跡時間（10秒）
                 ),
                 AI_MODE_ALL,
                 20
@@ -200,7 +202,7 @@ public class Pmb05Entity extends BaseBossEntity {
 
             } else if (explosionScale > 0) {
                 var pos = laserHitBlockPos;
-                this.level().explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
+                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK, this.level());
 
             }
         }
@@ -327,13 +329,11 @@ public class Pmb05Entity extends BaseBossEntity {
 
                 be.setPos(offset.add(muzzlPos));
 
-                if (!Utils.isObstructed(this.level(), be, target)) {
-                    float[] angle = Utils.getShootingAngle(be, target, true);
+                float[] angle = Utils.getShootingAngle(be, target, true);
 
-                    be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
+                be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
 
-                    this.level().addFreshEntity(be);
-                }
+                this.level().addFreshEntity(be);
             }
         }
     }
@@ -351,7 +351,7 @@ public class Pmb05Entity extends BaseBossEntity {
             for (int row = 0; row < 2; row++) {
                 for (int col = 0; col < 2; col++) {
                     for (int side = -1; side < 2; side += 2) {
-                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
+                        MissileGenericEnemyEntity be = new MissileGenericEnemyEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
                                 getMechData().missileDamage, getMechData().missileSpeed);
                         be.setMaxRotationAnglePerTick(2);
 
@@ -366,14 +366,12 @@ public class Pmb05Entity extends BaseBossEntity {
 
                         be.setPos(offset.add(muzzlPos));
 
-                        if (!Utils.isObstructed(this.level(), be, target)) {
-                            float[] angle = Utils.getShootingAngle(be, target, true);
+                        float[] angle = Utils.getShootingAngle(be, target, true);
 
-                            be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
-                                    getMechData().missileSpeed, 0F);
+                        be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
 
-                            this.level().addFreshEntity(be);
-                        }
+                        this.level().addFreshEntity(be);
                     }
                 }
             }
@@ -414,7 +412,7 @@ public class Pmb05Entity extends BaseBossEntity {
             .triggerableAnim("boot", RawAnimation.begin().thenPlay("animation.pmb03.boot"))
             .setSoundKeyframeHandler(this::playSounds);
 
-    private final AnimationController<Pmb05Entity> base = new AnimationController<>(this, "basic_move", 1, event -> {
+    private final AnimationController<Pmb05Entity> base = new AnimationController<>(this, "basic_move", 0, event -> {
         if (!trigger.isPlayingTriggeredAnimation()) {
             if (this.getAiMode() == AI_MODE_INACTIVE) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pmb03.inactive"));

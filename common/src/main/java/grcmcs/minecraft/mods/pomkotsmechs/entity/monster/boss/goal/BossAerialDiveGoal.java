@@ -72,7 +72,7 @@ public class BossAerialDiveGoal extends BaseBossGoal {
     public boolean canContinueToUse() {
         return target != null && target.isAlive() &&
                 (currentPhase != Phase.DIVE || !mob.onGround()) &&
-                (currentPhase != Phase.TIMEOUT || !mob.onGround());
+                (currentPhase != Phase.TIMEOUT);
     }
 
     @Override
@@ -80,7 +80,10 @@ public class BossAerialDiveGoal extends BaseBossGoal {
         currentPhase = Phase.CHARGE;
         phaseTimer = 0;
         chaseTimer = 0;
-        targetPosition = target.position();
+
+        if (target != null) {
+            targetPosition = target.position();
+        }
     }
 
     @Override
@@ -95,7 +98,8 @@ public class BossAerialDiveGoal extends BaseBossGoal {
         chaseTimer++;
 
         // タイムアウトチェック
-        if (chaseTimer >= maxChaseTime && currentPhase != Phase.DIVE && currentPhase != Phase.TIMEOUT) {
+        if (chaseTimer >= maxChaseTime) {
+//            if (chaseTimer >= maxChaseTime && currentPhase != Phase.DIVE && currentPhase != Phase.TIMEOUT) {
             currentPhase = Phase.TIMEOUT;
             phaseTimer = 0;
         }
@@ -148,7 +152,7 @@ public class BossAerialDiveGoal extends BaseBossGoal {
         mob.setDeltaMovement(boostMovement);
 
         // ターゲットより十分高くなったら飛行フェーズに移行
-        if (mob.getY() > target.getY() + 5) {
+        if (mob.getY() > target.getY() + 5 || phaseTimer > 60) {
             currentPhase = Phase.FLY;
             phaseTimer = 0;
             targetPosition = target.position().add(0, 2, 0); // ターゲットの少し上を目標に
@@ -173,7 +177,7 @@ public class BossAerialDiveGoal extends BaseBossGoal {
 
         // ターゲットの真上に来たらダイブフェーズに移行
         double horizontalDistance = Math.sqrt(toTarget.x * toTarget.x + toTarget.z * toTarget.z);
-        if (horizontalDistance < 15) {
+        if (horizontalDistance < 15 || phaseTimer > 80) {
             currentPhase = Phase.DIVE;
             phaseTimer = 0;
         }
@@ -181,27 +185,31 @@ public class BossAerialDiveGoal extends BaseBossGoal {
 
     private void handleDivePhase() {
         // 急降下
-        Vec3 diveMovement = new Vec3(0, -diveSpeed, 0);
-        mob.setDeltaMovement(diveMovement);
+//        Vec3 diveMovement = new Vec3(0, -diveSpeed, 0);
+//        mob.setDeltaMovement(diveMovement);
+
+        mob.setNoGravity(false);
 
         // 着地判定
         if (mob.onGround() || isNearGround()) {
             mob.getActionController().getAction("onground").tryAction();
-            mob.setNoGravity(false);
         }
     }
 
     private void handleTimeoutPhase() {
-        // タイムアウト時の落下
-        Vec3 currentMovement = mob.getDeltaMovement();
-        Vec3 fallMovement = new Vec3(currentMovement.x * 0.8, -diveSpeed, currentMovement.z * 0.8);
-        mob.setDeltaMovement(fallMovement);
 
-        // 着地判定
-        if (mob.onGround() || isNearGround()) {
-            mob.getActionController().getAction("onground").tryAction();
-            mob.setNoGravity(false);
-        }
+        mob.setNoGravity(false);
+
+//        // タイムアウト時の落下
+//        Vec3 currentMovement = mob.getDeltaMovement();
+//        Vec3 fallMovement = new Vec3(currentMovement.x * 0.8, -diveSpeed, currentMovement.z * 0.8);
+//        mob.setDeltaMovement(fallMovement);
+//
+//        // 着地判定
+//        if (mob.onGround() || isNearGround()) {
+//            mob.getActionController().getAction("onground").tryAction();
+//            mob.setNoGravity(false);
+//        }
     }
 
     private void updateRotation() {

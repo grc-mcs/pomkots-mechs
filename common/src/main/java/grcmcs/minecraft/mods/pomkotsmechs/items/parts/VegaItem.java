@@ -6,7 +6,7 @@ import software.bernie.geckolib.core.animation.AnimatableManager;
 
 public class VegaItem {
     public static String SERIES_NAME = "vega";
-    private static final String DEFAULT_COLOR = "blue";
+    private static final String DEFAULT_COLOR = "orange";
 
     public static class Head extends BasePartsItem.Head {
         public Head(Properties properties) {
@@ -31,6 +31,11 @@ public class VegaItem {
         @Override
         public String getDefaultColor() {
             return DEFAULT_COLOR;
+        }
+
+        @Override
+        public boolean isFullCovered() {
+            return true;
         }
     }
 
@@ -57,6 +62,11 @@ public class VegaItem {
         @Override
         public String getDefaultColor() {
             return DEFAULT_COLOR;
+        }
+
+        @Override
+        public float getNeckPos() {
+            return 0.4F;
         }
     }
 

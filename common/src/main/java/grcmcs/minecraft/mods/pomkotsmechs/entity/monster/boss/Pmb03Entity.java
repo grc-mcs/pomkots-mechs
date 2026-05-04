@@ -2,12 +2,10 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BossAerialDiveGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BossAerialDiveGoal2;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossAttackGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossWalkGoal;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletGrenadeEntity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEntity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissilePodEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.*;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.damagesource.DamageSource;
@@ -35,39 +33,50 @@ public class Pmb03Entity extends BaseBossEntity {
 
         actionController.registerAction("grenade", new BossActionController.BossAction(80,20, this::grenadeAction));
         actionController.registerAction("gatling", new BossActionController.BossAction(40,5, this::gatlingAction));
+
         actionController.registerAction("missilepod", new BossActionController.BossAction(80,20, this::missilePodAction));
-        actionController.registerAction("missile", new BossActionController.BossAction(40,20, this::missileHorizontalAction));
+
+        actionController.registerAction("missile", new BossActionController.BossAction(40,21, this::missileHorizontalAction));
+        actionController.registerAction("missilev", new BossActionController.BossAction(40,21, this::missileVerticalAction));
+
         actionController.registerAction("stomp", new BossActionController.BossAction(40,40, this::stompAction));
+
         actionController.registerAction("onground", new BossActionController.BossAction(20,16, this::onGroundAction));
 
         this.registerActionGoal(
                 new SimpleBossWalkGoal(this, getMechData().speed, 30),
                 AI_MODE_ALL,
-                10
+                15
         );
+
         this.registerActionGoal(
-                new BossAerialDiveGoal(
+                new BossAerialDiveGoal2(
                     this,   // ボスエンティティ
                     10,           // 必要な高度差（5ブロック以上低い時に発動）
-                    3,           // 初動ジャンプ強度
-                    1,           // ブースター上昇速度
-                    2,           // 空中移動速度
-                    3.0,           // 急降下速度
+                    3,           // riseSpeed
+                    3,           // flySpeed
+                    3,           // diveSpeed
+                    20,           // targetHeight
                     100            // 最大追跡時間（10秒）
                 ),
                 AI_MODE_ALL,
-                100
+                15
         );
 
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("gatling"), this, true, 5, true),
                 AI_MODE_ALL,
-                20
+                30
         );
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("missile"), this, true, true),
                 AI_MODE_ALL,
-                10
+                20
+        );
+        this.registerActionGoal(
+                new SimpleBossAttackGoal(actionController.getAction("missilev"), this, true, true),
+                AI_MODE_ALL,
+                20
         );
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("stomp"), this, false),
@@ -78,12 +87,12 @@ public class Pmb03Entity extends BaseBossEntity {
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("grenade"), this, true, true),
                 new int[]{AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
-                10
+                15
         );
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("missilepod"), this, true, true),
                 new int[]{AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
-                10
+                15
         );
 
         this.setNoGravity(false);
@@ -140,7 +149,7 @@ public class Pmb03Entity extends BaseBossEntity {
 
         } else if (action.currentActionTick == 5) {
             for (int side = -1; side < 2; side += 2) {
-                BulletGrenadeEntity be = new BulletGrenadeEntity(PomkotsMechs.BULLET_GRENADE.get(), this.level(), this,
+                BulletGrenadeLargeEntity be = new BulletGrenadeLargeEntity(PomkotsMechs.BULLET_GRENADE_LARGE.get(), this.level(), this,
                         getMechData().grenadeDamage);
                 be.setNoGravity(true);
                 be.setExplosionScale((int)getMechData().grenadeExplosionScale);
@@ -152,14 +161,12 @@ public class Pmb03Entity extends BaseBossEntity {
 
                 be.setPos(offset.add(muzzlPos));
 
-                if (!Utils.isObstructed(this.level(), be, target)) {
-                    float[] angle = Utils.getShootingAngle(be, target, true);
+                float[] angle = Utils.getShootingAngle(be, target, true);
 
-                    be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
-                            getMechData().grenadeSpeed, 0F);
+                be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
+                        getMechData().grenadeSpeed, 0F);
 
-                    this.level().addFreshEntity(be);
-                }
+                this.level().addFreshEntity(be);
             }
         }
     }
@@ -179,6 +186,7 @@ public class Pmb03Entity extends BaseBossEntity {
                         getMechData().bulletDamage);
                 be.setNoGravity(true);
                 be.setExplosionScale(1);
+                be.setStunPoint(2);
 
                 var offset = this.position();
 
@@ -187,13 +195,11 @@ public class Pmb03Entity extends BaseBossEntity {
 
                 be.setPos(offset.add(muzzlPos));
 
-                if (!Utils.isObstructed(this.level(), be, target)) {
-                    float[] angle = Utils.getShootingAngle(be, target, true);
+                float[] angle = Utils.getShootingAngle(be, target, true);
 
-                    be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
+                be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
 
-                    this.level().addFreshEntity(be);
-                }
+                this.level().addFreshEntity(be);
             }
         }
     }
@@ -211,29 +217,67 @@ public class Pmb03Entity extends BaseBossEntity {
             for (int row = 0; row < 4; row++) {
                 for (int col = 0; col < 1; col++) {
                     for (int side = -1; side < 2; side += 2) {
-                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
-                                getMechData().missileDamage, this.getMechData().missileSpeed);
+                        MissileGenericEnemyEntity be = new MissileGenericEnemyEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
+                                getMechData().missileDamage, this.getMechData().missileSpeed * 2);
                         be.setMaxRotationAnglePerTick(2);
 
                         var offset = this.position();
 
                         // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
                         float slotZ = (col * 0.8F + 8F);
-                        float slotY = row + 8F;
+                        float slotY = row + 10F;
 
                         var muzzlPos = new Vec3(side * 7, slotY, slotZ);
                         muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
 
                         be.setPos(offset.add(muzzlPos));
 
-                        if (!Utils.isObstructed(this.level(), be, target)) {
-                            float[] angle = Utils.getShootingAngle(be, target, true);
+                        float[] angle = Utils.getShootingAngle(be, target, true);
 
-                            be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
-                                    this.getMechData().missileSpeed, 0F);
+                        be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
+                                this.getMechData().missileSpeed, 0F);
 
-                            this.level().addFreshEntity(be);
-                        }
+                        this.level().addFreshEntity(be);
+                    }
+                }
+            }
+        }
+    }
+
+    private void missileVerticalAction(BossActionController.BossAction action) {
+        var target = this.getTarget();
+        if (target == null) {
+            return;
+        }
+
+        if (action.onStartOfAction()) {
+            this.triggerAnim("action_controller", "missilepod");
+
+        } else if (action.currentActionTick == 5) {
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 1; col++) {
+                    for (int side = -1; side < 2; side += 2) {
+                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
+                                getMechData().missileDamage, getMechData().missileSpeed * 2);
+                        be.setMaxRotationAnglePerTick(7);
+
+                        var offset = this.position();
+
+                        // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
+                        float slotZ = (col * 0.8F + 8F);
+                        float slotY = row + 10F;
+
+                        var muzzlPos = new Vec3(side * 7, slotY, slotZ);
+                        muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+
+                        be.setPos(offset.add(muzzlPos));
+
+                        float[] angle = Utils.getShootingAngle(be, target, true);
+
+                        be.shootFromRotation(be, -80, angle[1], this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
+
+                        this.level().addFreshEntity(be);
                     }
                 }
             }
@@ -262,14 +306,12 @@ public class Pmb03Entity extends BaseBossEntity {
 
                 be.setPos(offset.add(muzzlPos));
 
-                if (!Utils.isObstructed(this.level(), be, target)) {
-                    float[] angle = Utils.getShootingAngle(be, target, true);
+                float[] angle = Utils.getShootingAngle(be, target, true);
 
-                    be.shootFromRotation(be, -15, angle[1], this.getFallFlyingTicks(),
-                            this.getMechData().missileSpeed, 0F);
+                be.shootFromRotation(be, -15, angle[1], this.getFallFlyingTicks(),
+                        this.getMechData().missileSpeed, 0F);
 
-                    this.level().addFreshEntity(be);
-                }
+                this.level().addFreshEntity(be);
             }
         }
     }
@@ -297,6 +339,16 @@ public class Pmb03Entity extends BaseBossEntity {
         }
     }
 
+    @Override
+    protected void onStun() {
+        this.triggerAnim("action_controller", "on_stun");
+    }
+
+    @Override
+    protected void offStun() {
+        this.triggerAnim("action_controller", "off_stun");
+    }
+
     private final AnimationController<Pmb03Entity> trigger = new AnimationController<>(this, "action_controller", state -> PlayState.STOP)
             .triggerableAnim("grenade", RawAnimation.begin().thenPlay("animation.pmb03.grenade"))
             .triggerableAnim("gatling", RawAnimation.begin().thenPlayXTimes("animation.pmb03.gatling", 5))
@@ -305,9 +357,12 @@ public class Pmb03Entity extends BaseBossEntity {
             .triggerableAnim("jump", RawAnimation.begin().thenPlay("animation.pmb03.jump"))
             .triggerableAnim("onground", RawAnimation.begin().thenPlay("animation.pmb03.onground"))
             .triggerableAnim("boot", RawAnimation.begin().thenPlay("animation.pmb03.boot"))
+            .triggerableAnim("on_stun", RawAnimation.begin().thenPlay("animation.pmb03.hurt").thenPlayAndHold("animation.pmb03.down"))
+            .triggerableAnim("off_stun", RawAnimation.begin().thenPlay("animation.pmb03.up"))
+
             .setSoundKeyframeHandler(this::playSounds);
 
-    private final AnimationController<Pmb03Entity> base = new AnimationController<>(this, "basic_move", 1, event -> {
+    private final AnimationController<Pmb03Entity> base = new AnimationController<>(this, "basic_move", 0, event -> {
         if (!trigger.isPlayingTriggeredAnimation()) {
             if (this.getAiMode() == AI_MODE_INACTIVE) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pmb03.inactive"));

@@ -56,6 +56,14 @@
 					"pivot": [0, 43.5, -9]
 				},
 				{
+					"name": "body_lid",
+					"parent": "body_parts",
+					"pivot": [-0.75, 68.5, -2.25],
+					"cubes": [
+						{"origin": [-12.5, 70.49513, -16.30129], "size": [25, 2, 27.25], "uv": [397, 6]}
+					]
+				},
+				{
 					"name": "bone2",
 					"parent": "body_parts",
 					"pivot": [1.5, 42, -16.5],

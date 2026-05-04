@@ -62,6 +62,11 @@ public class MuknvaliItem {
         public String getDefaultColor() {
             return DEFAULT_COLOR;
         }
+
+        @Override
+        public float getNeckPos() {
+            return 0.3F;
+        }
     }
 
     public static class Arm extends BasePartsItem.Arm {

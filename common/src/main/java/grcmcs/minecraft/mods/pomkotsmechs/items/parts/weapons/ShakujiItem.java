@@ -24,7 +24,6 @@ public class ShakujiItem extends BasePartsItem.WeaponArm {
     public void tickWeaponInAction(ActionWeapon.WeaponMechInterface mechInterface, int tick, boolean isOnFire) {
         var world = mechInterface.getWorld();
 
-
         if (isOnFire) {
             if (!mechInterface.consumeAmmo(1)) {
                 return;
@@ -32,7 +31,6 @@ public class ShakujiItem extends BasePartsItem.WeaponArm {
 
             if (!world.isClientSide()) {
                 BulletRifleEntity be = new BulletRifleEntity(PomkotsMechs.BULLET_RIFLE.get(), world, mechInterface.getMechEntity(), this.getDamage(mechInterface.getItemStack()));
-
                 var offset = mechInterface.getOffset();
 
                 // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
@@ -42,11 +40,12 @@ public class ShakujiItem extends BasePartsItem.WeaponArm {
 
                 float[] angle = mechInterface.getShootingAngle(be, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), BattleBalance.MECH_RIFLE_SPEED, 0);
+                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 7, 0);
 
                 world.addFreshEntity(be);
+
             } else {
-                mechInterface.playSoundEffect(PomkotsMechs.SE_RIFLE.get());
+                mechInterface.playSoundEffect(PomkotsMechs.SE_GUN_2.get());
             }
         }
     }
@@ -62,8 +61,13 @@ public class ShakujiItem extends BasePartsItem.WeaponArm {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_HAND;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_HAND;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.RIFLE;
     }
 
     @Override

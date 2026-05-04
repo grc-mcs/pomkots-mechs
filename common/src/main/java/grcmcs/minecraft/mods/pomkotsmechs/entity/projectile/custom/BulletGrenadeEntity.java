@@ -21,26 +21,21 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class BulletGrenadeEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
+public class BulletGrenadeEntity extends PomkotsCustomThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private static final int MAX_LIFE_TICKS = 80;
-    private int lifeTicks = 0;
-    private float damage = 0;
-    private LivingEntity shooter = null;
     private int explosionScale = 10;
 
-    public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level world) {
-        this(entityType, world, null);
+    public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level level) {
+        this(entityType, level, null, 80, BattleBalance.MECH_BULLET_GRENADE_DAMAGE, 15);
     }
 
-    public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter) {
-        this(entityType, world, shooter, BattleBalance.MECH_BULLET_GRENADE_DAMAGE);
+    public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level level, LivingEntity shooter, float damage) {
+        this(entityType, level, shooter, 80, damage, 20);
     }
 
-    public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float damage) {
-        super(entityType, shooter, world);
-        this.shooter = shooter;
-        this.damage = damage;
+    public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level level, LivingEntity shooter, int maxLifeTicks, float damage, int stun) {
+        super(entityType, level, shooter,
+                maxLifeTicks, damage,stun);
     }
 
     public void setExplosionScale(int scale) {
@@ -49,58 +44,53 @@ public class BulletGrenadeEntity extends PomkotsThrowableProjectile implements G
 
     @Override
     public void tick() {
-        // 弾速が早すぎると、ティック間にすり抜けちゃうのでレイキャスティングで補完
-        var hitResult = ProjectileUtil.raycastBoundingCheck(this);
-        if (hitResult.getType() != HitResult.Type.MISS) {
-            this.onHit(hitResult);
-        }
-
         super.tick();
         this.hasImpulse = true;
-
-        if(this.lifeTicks++ >= MAX_LIFE_TICKS) {
-            this.discard();
-        }
     }
 
     @Override
     protected void onHitEntity(EntityHitResult entityHitResult) {
-        var entity = entityHitResult.getEntity();
-        if (entity.equals(shooter)) {
-            return;
-        }
-
-        entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), damage);
-        entity.invulnerableTime = 0;
-
         this.createExplosion(entityHitResult.getLocation());
-        this.discard();
+        entityHitResult.getEntity().invulnerableTime = 0;
+
+        super.onHitEntity(entityHitResult);
     }
 
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
         this.createExplosion(blockHitResult.getLocation());
-//        this.createExplosionKujira(blockHitResult.getLocation());
-        this.discard();
+        super.onHitBlock(blockHitResult);
     }
 
     private void createExplosion(Vec3 pos) {
         Level world = level();
-        if (!world.isClientSide) {
-            if (Utils.isBlockDestructionAllowed(shooter)) {
-                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
-            } else {
-                world.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE);
-            }
+
+        if (Utils.isBlockDestructionAllowed(shooter)) {
+            Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK, this.level());
         } else {
-            addParticles(this.position());
+            Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE, this.level());
         }
+
+        //        if (!world.isClientSide) {
+//            if (Utils.isBlockDestructionAllowed(shooter)) {
+//                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK, this.level());
+//            } else {
+//                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE, this.level());
+//            }
+//        } else {
+//            addParticles(this.position());
+//        }
     }
 
     @Override
     public void onClientRemoval() {
         if (this.level().isClientSide) {
-            addParticles(this.position());
+            var pos = this.position();
+            if (!(this.explosionScale < 2.0F)) {
+                this.level().addParticle(ParticleTypes.EXPLOSION_EMITTER, pos.x, pos.y, pos.z, 1.0, 0.0, 0.0);
+            } else {
+                this.level().addParticle(ParticleTypes.EXPLOSION, pos.x, pos.y, pos.z, 1.0, 0.0, 0.0);
+            }
         }
     }
 

@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret.goal.ContinuousAttackGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericLargeEntity;
 import net.minecraft.world.entity.EntityType;
@@ -30,6 +31,11 @@ public class Pmt04Entity extends BaseTurretEntity {
     public Pmt04Entity(EntityType<? extends GenericPomkotsMonster> entityType, Level world) {
         super(entityType, world);
         alwaysLookAtTarget = false;
+    }
+
+    protected void registerTargetSelectorGoals() {
+        super.registerTargetSelectorGoals();
+        this.goalSelector.addGoal(1, new ContinuousAttackGoal(this, 0.8F, 21, 60, 20));
     }
 
     private int curSlot = 0;
@@ -64,14 +70,6 @@ public class Pmt04Entity extends BaseTurretEntity {
 
             this.level().addFreshEntity(be);
         }
-    }
-
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-
-        this.goalSelector.addGoal(1, new ContinuousAttackGoal(this, 0.8F, 21, 60, 20));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
     }
 
     @Override

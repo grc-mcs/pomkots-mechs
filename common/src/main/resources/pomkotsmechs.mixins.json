@@ -5,16 +5,24 @@
   "minVersion": "0.8",
   "mixins": [
     "LivingEntityMixin",
-    "CameraAccessor"
+    "CameraAccessor",
+    "PlayerEntityMixin",
+    "PlayerMixin"
   ],
   "client": [
     "GuiMixin",
     "CameraMixin",
     "BotDriverRenderer",
+    "MusicManagerMixin",
     "LivingEntityRendererMixin",
     "TurnToLockonTarget",
     "ItemRendererMixin",
-    "PlayerRendererMixin"
+    "PlayerRendererMixin",
+    "LocalPlayerMixin",
+    "LocalPlayerAccessor",
+    "MultiPlayerGameModeMixin",
+    "LevelRendererMixin",
+    "SoundBufferLibraryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

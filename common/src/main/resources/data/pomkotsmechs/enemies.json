@@ -4,7 +4,7 @@
       "speed": 0.5,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "health": 150.0,
       "base_damage_modifier": 1,
       "explosion_damage_modifier": 1,
@@ -29,18 +29,60 @@
       "ex_attack_3_damage": 30.0,
       "ex_attack_3_speed": 1.0
     },
+    "pmss01": {
+      "health": 20.0,
+      "armor": 5.0,
+      "armor_toughness": 1.0,
+      "speed": 0.45,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 0.7,
+      "follow_range": 100.0,
+      "base_damage_modifier": 1.0,
+      "explosion_damage_modifier": 1.0,
+
+      "melee_damage": 5.0
+    },
+    "pmss02": {
+      "health": 20.0,
+      "armor": 5.0,
+      "armor_toughness": 1.0,
+      "speed": 0.45,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 0.7,
+      "follow_range": 100.0,
+      "base_damage_modifier": 1.0,
+      "explosion_damage_modifier": 1.0,
+
+      "bullet_damage": 5.0,
+      "bullet_speed": 2.0
+    },
+    "pmss03": {
+      "health": 20.0,
+      "armor": 5.0,
+      "armor_toughness": 1.0,
+      "speed": 0.45,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 0.7,
+      "follow_range": 100.0,
+      "base_damage_modifier": 1.0,
+      "explosion_damage_modifier": 1.0,
+
+      "bullet_damage": 1.0,
+      "bullet_speed": 2.0,
+      "grenade_explosion_scale": 2
+    },
     "pms01": {
-      "health": 150.0,
+      "health": 75.0,
       "armor": 20.0,
       "armor_toughness": 1.0,
       "speed": 0.8,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "melee_damage": 30.0
+      "melee_damage": 20.0
     },
     "pms02": {
       "health": 50.0,
@@ -49,86 +91,86 @@
       "speed": 1.0,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "bullet_damage": 20.0,
+      "bullet_damage": 10.0,
       "bullet_speed": 3.0,
-      "missile_damage": 20.0,
+      "missile_damage": 10.0,
       "missile_speed": 3.0
     },
     "pms03": {
-      "health": 150.0,
+      "health": 75.0,
       "armor": 20.0,
       "armor_toughness": 1.0,
       "speed": 0.8,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "bullet_damage": 30.0,
+      "bullet_damage": 10.0,
       "bullet_speed": 3.0
     },
     "pms04": {
-      "health": 150.0,
+      "health": 75.0,
       "armor": 20.0,
       "armor_toughness": 1.0,
       "speed": 0.8,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "missile_damage": 20.0,
+      "missile_damage": 10.0,
       "missile_speed": 3.0
     },
     "pms05": {
-      "health": 200.0,
+      "health": 100.0,
       "armor": 20.0,
       "armor_toughness": 1.0,
       "speed": 0.8,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "grenade_damage": 20.0,
+      "grenade_damage": 10.0,
       "grenade_speed": 3.0,
-      "grenade_explosion_scale": 4.0
+      "grenade_explosion_scale": 2.0
     },
     "pms06": {
-      "health": 200.0,
+      "health": 100.0,
       "armor": 20.0,
       "armor_toughness": 1.0,
       "speed": 0.95,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "bullet_damage": 30.0,
+      "bullet_damage": 10.0,
       "bullet_speed": 3.0,
-      "missile_damage": 20.0,
+      "missile_damage": 10.0,
       "missile_speed": 3.0
     },
     "pms07": {
-      "health": 200.0,
+      "health": 100.0,
       "armor": 20.0,
       "armor_toughness": 1.0,
       "speed": 1.25,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "melee_damage": 30.0
+      "melee_damage": 10.0
     },
     "pms08": {
       "health": 20.0,
@@ -137,11 +179,11 @@
       "speed": 1.25,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "grenade_explosion_scale": 30.0
+      "grenade_explosion_scale": 10.0
     },
     "pms09": {
       "health": 50.0,
@@ -150,12 +192,26 @@
       "speed": 1,
       "max_step_up": 5.0,
       "knock_back_resistance": 0.7,
-      "follow_range": 200.0,
+      "follow_range": 100.0,
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "bullet_damage": 30.0,
+      "bullet_damage": 10.0,
       "bullet_speed": 3.0
+    },
+    "pms10": {
+      "health": 30.0,
+      "armor": 20.0,
+      "armor_toughness": 1.0,
+      "speed": 1,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 0.7,
+      "follow_range": 50.0,
+      "base_damage_modifier": 1.0,
+      "explosion_damage_modifier": 1.0,
+
+      "bullet_damage": 10.0,
+      "bullet_speed": 5.0
     },
     "pmt01": {
       "health": 200.0,
@@ -168,8 +224,8 @@
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "bullet_damage": 10.0,
-      "bullet_speed": 3.0
+      "bullet_damage": 20.0,
+      "bullet_speed": 4.0
     },
     "pmt02": {
       "health": 200.0,
@@ -182,8 +238,8 @@
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "missile_damage": 15.0,
-      "missile_speed": 1.5
+      "missile_damage": 20.0,
+      "missile_speed": 1.9
     },
     "pmt03": {
       "health": 200.0,
@@ -211,6 +267,34 @@
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
+      "missile_damage": 150.0,
+      "missile_speed": 1.5
+    },
+    "pmc01": {
+      "health": 200.0,
+      "armor": 20.0,
+      "armor_toughness": 1.0,
+      "speed": 1,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 0.7,
+      "follow_range": 400.0,
+      "base_damage_modifier": 1.0,
+      "explosion_damage_modifier": 1.0,
+
+      "missile_damage": 50.0,
+      "missile_speed": 1.5
+    },
+    "pmc02": {
+      "health": 200.0,
+      "armor": 20.0,
+      "armor_toughness": 1.0,
+      "speed": 1,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 0.7,
+      "follow_range": 400.0,
+      "base_damage_modifier": 1.0,
+      "explosion_damage_modifier": 1.0,
+
       "missile_damage": 50.0,
       "missile_speed": 1.5
     },
@@ -226,18 +310,18 @@
       "explosion_damage_modifier": 0.3
     },
     "pmb01mk2": {
-      "health": 1024.0,
+      "health": 768.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.75,
+      "base_damage_modifier": 0.2,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 30.0,
-      "bullet_speed": 3.0,
+      "bullet_speed": 4.0,
       "missile_damage": 20.0,
       "missile_speed": 1.9,
       "grenade_damage": 60.0,
@@ -253,11 +337,11 @@
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.75,
+      "base_damage_modifier": 0.2,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 30.0,
-      "bullet_speed": 3.0,
+      "bullet_speed": 4.0,
       "missile_damage": 20.0,
       "missile_speed": 1.9,
       "grenade_damage": 60.0,
@@ -273,15 +357,15 @@
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.75,
+      "base_damage_modifier": 0.2,
       "explosion_damage_modifier": 0.3,
 
-      "bullet_damage": 15.0,
-      "bullet_speed": 3.0,
+      "bullet_damage": 10.0,
+      "bullet_speed": 2.0,
       "missile_damage": 20.0,
       "missile_speed": 1.9,
-      "grenade_damage": 60.0,
-      "grenade_speed": 3.9,
+      "grenade_damage": 30.0,
+      "grenade_speed": 2.9,
       "grenade_explosion_scale": 5.0,
       "melee_damage": 60.0
     },
@@ -293,11 +377,11 @@
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.75,
+      "base_damage_modifier": 0.2,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 15.0,
-      "bullet_speed": 3.0,
+      "bullet_speed": 4.0,
       "missile_damage": 20.0,
       "missile_speed": 1.9,
       "grenade_damage": 60.0,
@@ -306,19 +390,19 @@
       "melee_damage": 60.0
     },
     "pmb05": {
-      "health": 1024.0,
+      "health": 768.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.75,
+      "base_damage_modifier": 0.2,
       "explosion_damage_modifier": 0.3,
 
       "laser_damage": 60.0,
       "bullet_damage": 15.0,
-      "bullet_speed": 3.0,
+      "bullet_speed": 4.0,
       "missile_damage": 20.0,
       "missile_speed": 1.9,
       "grenade_damage": 60.0,
@@ -327,25 +411,85 @@
       "melee_damage": 60.0
     },
     "pmb06": {
-      "health": 1024.0,
+      "health": 768.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.75,
+      "base_damage_modifier": 0.2,
       "explosion_damage_modifier": 0.3,
 
       "laser_damage": 60.0,
       "bullet_damage": 15.0,
-      "bullet_speed": 3.0,
+      "bullet_speed": 4.0,
+      "missile_damage": 20.0,
+      "missile_speed": 3,
+      "grenade_damage": 60.0,
+      "grenade_speed": 3.9,
+      "grenade_explosion_scale": 5.0,
+      "melee_damage": 60.0
+    },
+    "pmb07": {
+      "health": 768.0,
+      "armor": 20.0,
+      "armor_toughness": 8.0,
+      "speed": 0.7,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 1,
+      "follow_range": 200.0,
+      "base_damage_modifier": 0.2,
+      "explosion_damage_modifier": 0.3,
+
+      "bullet_damage": 15.0,
+      "bullet_speed": 5.0,
       "missile_damage": 20.0,
       "missile_speed": 1.9,
       "grenade_damage": 60.0,
       "grenade_speed": 3.9,
       "grenade_explosion_scale": 5.0,
       "melee_damage": 60.0
+    },
+    "pmb08": {
+      "health": 768.0,
+      "armor": 20.0,
+      "armor_toughness": 8.0,
+      "speed": 0.8,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 1,
+      "follow_range": 200.0,
+      "base_damage_modifier": 0.2,
+      "explosion_damage_modifier": 0.3,
+
+      "bullet_damage": 30.0,
+      "bullet_speed": 4.0,
+      "missile_damage": 20.0,
+      "missile_speed": 1.9,
+      "grenade_damage": 60.0,
+      "grenade_speed": 3.9,
+      "grenade_explosion_scale": 5.0,
+      "melee_damage": 100.0
+    },
+    "pmb99": {
+      "health": 768.0,
+      "armor": 20.0,
+      "armor_toughness": 8.0,
+      "speed": 0.7,
+      "max_step_up": 5.0,
+      "knock_back_resistance": 1,
+      "follow_range": 200.0,
+      "base_damage_modifier": 0.2,
+      "explosion_damage_modifier": 0.3,
+
+      "bullet_damage": 60.0,
+      "bullet_speed": 5.0,
+      "missile_damage": 60.0,
+      "missile_speed": 1.9,
+      "grenade_damage": 60.0,
+      "grenade_speed": 3.9,
+      "grenade_explosion_scale": 5.0,
+      "melee_damage": 200.0
     }
   }
 }

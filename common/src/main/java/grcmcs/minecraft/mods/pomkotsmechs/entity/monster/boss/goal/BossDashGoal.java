@@ -112,7 +112,7 @@ public class BossDashGoal extends BaseBossGoal {
 
     }
 
-    private Vec3 calculateHomingDirection() {
+    protected Vec3 calculateHomingDirection() {
         Vec3 currentDirection = dashDirection;
 
         if (homingStrength > 0) {
@@ -131,7 +131,7 @@ public class BossDashGoal extends BaseBossGoal {
         return dashDirection;
     }
 
-    private Vec3 applyRotationLimit(Vec3 desiredDirection) {
+    protected Vec3 applyRotationLimit(Vec3 desiredDirection) {
         // 現在の向きから目標方向への角度差を計算
         float currentYaw = mob.getYRot();
         float desiredYaw = (float)(Mth.atan2(desiredDirection.x, desiredDirection.z) * (-180 / Math.PI));
@@ -148,7 +148,7 @@ public class BossDashGoal extends BaseBossGoal {
         return new Vec3(-Math.sin(radians), 0, Math.cos(radians)).normalize();
     }
 
-    private Vec3 calculateGroundMovement(Vec3 horizontalDirection) {
+    protected Vec3 calculateGroundMovement(Vec3 horizontalDirection) {
         Vec3 currentPos = mob.position();
         Vec3 targetHorizontalPos = currentPos.add(horizontalDirection.scale(dashSpeed));
 
@@ -167,10 +167,10 @@ public class BossDashGoal extends BaseBossGoal {
         return new Vec3(horizontalDirection.x * dashSpeed, yMovement, horizontalDirection.z * dashSpeed);
     }
 
-    private double findGroundLevel(double x, double z) {
+    protected double findGroundLevel(double x, double z) {
         Level level = mob.level();
         int startY = (int) mob.getY();
-        int searchRange = 8;
+        int searchRange = 30;
 
         // 下方向に探索
         for (int y = startY; y >= startY - searchRange; y--) {
@@ -192,7 +192,7 @@ public class BossDashGoal extends BaseBossGoal {
             }
         }
 
-        return mob.getY();
+        return mob.getY() - 20;
     }
 
     private boolean canMoveToPosition(double x, double y, double z) {
@@ -209,7 +209,7 @@ public class BossDashGoal extends BaseBossGoal {
         return level.noCollision(mob, targetBB);
     }
 
-    private double calculateYMovement(double currentY, double groundY) {
+    protected double calculateYMovement(double currentY, double groundY) {
         double yDiff = groundY - currentY;
         double maxStepHeight = mob.maxUpStep();
 
@@ -228,7 +228,7 @@ public class BossDashGoal extends BaseBossGoal {
         }
     }
 
-    private double applyGravity() {
+    protected double applyGravity() {
         double currentVerticalVelocity = mob.getDeltaMovement().y;
         double gravity = 0.08;
 
@@ -239,7 +239,7 @@ public class BossDashGoal extends BaseBossGoal {
         return 0.0;
     }
 
-    private void updateRotation(Vec3 direction) {
+    protected void updateRotation(Vec3 direction) {
         float desiredYaw = (float)(Mth.atan2(direction.x, direction.z) * (-180 / Math.PI));
         mob.setYRot(desiredYaw);
         mob.yBodyRot = desiredYaw;

@@ -17,11 +17,11 @@ public class SparkParticle extends TextureSheetParticle {
     protected SparkParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, SpriteSet spriteSet) {
         super(level, x, y, z, vx, vy, vz);
         this.spriteSet = spriteSet;
-        this.lifetime = 20; // パーティクルの寿命（20ティック＝1秒）
-        this.gravity = 0.9F; // 重力の影響を受けない
-        this.quadSize *= 2F; // パーティクルサイズの調整
-        this.setSpriteFromAge(spriteSet); // スプライトシートのアニメーション
-        this.hasPhysics = false; // パーティクルが物理エンティティに影響されない
+        this.lifetime = 20;
+        this.gravity = 0.9F;
+        this.quadSize *= 2F;
+        this.setSpriteFromAge(spriteSet);
+        this.hasPhysics = false;
     }
 
 

@@ -14,8 +14,6 @@ import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 public class EarthraiseEntityRenderer extends GeoEntityRenderer<EarthraiseEntity> {
     public EarthraiseEntityRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new EarthraiseEntityModel());
-
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override

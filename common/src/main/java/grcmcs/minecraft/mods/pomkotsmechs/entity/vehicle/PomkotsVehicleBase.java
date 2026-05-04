@@ -4,10 +4,14 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.LockTargets;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController2;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.FriendlyByteBuf;
@@ -16,6 +20,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -51,12 +56,14 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
     }
 
     // ロボ君のアクションの状態（サーバと他クライアントにも同期する）
-    public ActionController actionController = new ActionController();
+    public ActionController actionController = new ActionController2(this);
 
     // 搭乗してから操作開始するまでの間のティック
     protected short rideCoolTick = 0;
 
-    private boolean onGroundPrev = true;
+    protected boolean onGroundPrev = true;
+
+    private float soundEffectVolume = -1;
 
     abstract protected String getMechName();
 
@@ -65,7 +72,10 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
 
         this.noCulling = true;
         this.setYRot(0F);
-        this.setNoGravity(false);
+
+        if (this.isServerSide()) {
+            this.setNoGravity(false);
+        }
 
 //        this.setSpeed(2);
 
@@ -77,7 +87,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
     protected static final int ACT_JUMP = 1;
 
     protected void registerActions() {
-        this.actionController.registerAction(ACT_EVASION, new Action(10, 0, 10), ActionController.ActionType.BASE);
+        this.actionController.registerAction(ACT_EVASION, new Action(15, 0, 10), ActionController.ActionType.BASE);
         this.actionController.registerAction(ACT_JUMP, new Action(10, 6, 4), ActionController.ActionType.BASE);
     }
 
@@ -90,6 +100,11 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
     @Override
     public void tick() {
         this.updatePosHistory(this.position());
+        this.soundEffectVolume = -1;
+
+        if (!isClientSide() && !isVehicle() && isBoost()) {
+            setBoost(false);
+        }
 
         super.tick();
 
@@ -289,19 +304,21 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
             float f1 = pilot.zza * 0.5F;
 
             // BOOST
-            if (isServerSide()) {
-                if (this.actionController.isBoost()) {
-                    this.setSpeed(this.getRunSpeed());
-                } else {
-                    this.setSpeed(this.getWalkSpeed());
-                }
+            if (this.actionController.isBoost()) {
+                this.setSpeed(this.getRunSpeed());
+            } else {
+                this.setSpeed(this.getWalkSpeed());
             }
 
-            super.travel(new Vec3(f, pos.y, f1));
             this.hasImpulse = true;
+            super.travel(new Vec3(f, pos.y, f1));
         } else {
             super.travel(pos);
         }
+    }
+
+    protected void travelBypass(Vec3 pos) {
+        super.travel(pos);
     }
 
     protected float getWalkSpeed(){
@@ -339,7 +356,6 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
     protected float getJumpSpeed() {
         return 2F;
     }
-
 
     @Override
     public boolean hurt(DamageSource ds, float a) {
@@ -383,9 +399,11 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
 
             this.rideCoolTick = 3;
             this.actionController.reset();
+
+            return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.sidedSuccess(this.level().isClientSide);
+        return super.interact(player, hand);
     }
 
     @Override
@@ -395,7 +413,17 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
 
     // 運転手さんを取得する（getControllingPassengerをオーバーライドするとなんか変な感じになるので独自メソッド）
     public LivingEntity getDrivingPassenger() {
-        return this.getPassengers().isEmpty() ? null : (LivingEntity) this.getPassengers().get(0);
+        if (this.getPassengers().isEmpty()) {
+            return null;
+        }
+
+        var driver = this.getPassengers().get(0);
+
+        if (driver instanceof LivingEntity le) {
+            return le;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -483,7 +511,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
 
     protected PlayState controllAnimationFlyingMotion(AnimationState<PomkotsVehicleBase> event) {
         if (justLanded(event.getAnimatable())) {
-//            event.getController().forceAnimationReset();
+            event.getController().forceAnimationReset();
             return event.setAndContinue(RawAnimation.begin().thenPlay("animation." + getMechName() + ".onground"));
         } else if (event.getAnimatable().onGround()) {
             return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".nop"));
@@ -579,11 +607,13 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
      * モード関係の処理群
      */
     private static final EntityDataAccessor<Boolean> MODE = SynchedEntityData.defineId(PomkotsVehicleBase.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Boolean> IS_BOOST = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(MODE, true); // 初期値を設定
+        this.entityData.define(IS_BOOST, false); // 初期値を設定
     }
 
     private void setMainMode(boolean value) {
@@ -596,6 +626,14 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
 
     public boolean isSubMode() {
         return !this.entityData.get(MODE);
+    }
+
+    public boolean isBoost() {
+        return this.entityData.get(IS_BOOST);
+    }
+
+    public void setBoost(boolean broken) {
+        this.entityData.set(IS_BOOST, broken);
     }
 
     /**
@@ -698,11 +736,34 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
      * 音声関連の処理群
      */
     protected void playSoundEffect(SoundEvent event) {
-        this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), event, SoundSource.PLAYERS, 1.0F, 1.0F, false);
+        this.playSoundEffect(event, 1.0F);
+    }
+
+    protected void playSoundEffect(SoundEvent event, float volume) {
+        if (this.soundEffectVolume < 0) {
+            this.soundEffectVolume = computeVolume(100);
+        }
+
+        if (this.soundEffectVolume > 0) {
+            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), event, SoundSource.PLAYERS, volume * this.soundEffectVolume, 1.0F, false);
+        }
     }
 
     public void playSoundPublic(SoundEvent event) {
         this.playSoundEffect(event);
+    }
+
+    private float computeVolume(double maxDistance) {
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
+        if (player == null) return 0f;
+
+        double distance = player.distanceTo(this);
+        if (distance > maxDistance) return 0f;
+
+        float volume = 1.0f - (float)(distance / maxDistance);
+
+        return Mth.clamp(volume, 0f, 1f);
     }
 
     @Override

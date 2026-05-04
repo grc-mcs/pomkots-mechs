@@ -43,9 +43,9 @@ public class MissileGenericLargeEntity extends MissileGenericEntity {
         if (!world.isClientSide) {
 
             if (Utils.isBlockDestructionAllowed(shooter)) {
-                world.explode(this, pos.x, pos.y, pos.z, 12, false, Level.ExplosionInteraction.BLOCK);
+                Utils.explode(this, pos.x, pos.y, pos.z, 12, false, Level.ExplosionInteraction.BLOCK, this.level());
             } else {
-                world.explode(this,  pos.x, pos.y, pos.z, 12, false, Level.ExplosionInteraction.NONE);
+                Utils.explode(this,  pos.x, pos.y, pos.z, 12, false, Level.ExplosionInteraction.NONE, this.level());
             }
 
             ExplosionEntity e = new ExplosionEntity(PomkotsMechs.EXPLOSION.get(), world);

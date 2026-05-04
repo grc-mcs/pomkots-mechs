@@ -1,5 +1,8 @@
 package grcmcs.minecraft.mods.pomkotsmechs.config.datapack;
 
+import com.mojang.datafixers.util.Pair;
+import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.raid.RaidDefinition;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +13,8 @@ public class PomkotsDataPack implements Serializable {
 
     private final Map<String, PartsData> partsData = new HashMap<>();
     private final Map<String, EnemyData> enemyData = new HashMap<>();
+    private final Map<String, RaidDefinition> raidData = new HashMap<>();
+    private final Map<String, ChestData> chestData = new HashMap<>();
 
     public PartsData getPartsData(String partsName) {
         return partsData.get(partsName);
@@ -22,6 +27,8 @@ public class PomkotsDataPack implements Serializable {
     public void reset() {
         partsData.clear();
         enemyData.clear();
+        raidData.clear();
+        chestData.clear();
     }
 
     public boolean isEmpty() {
@@ -30,7 +37,7 @@ public class PomkotsDataPack implements Serializable {
 
     @Override
     public String toString() {
-        return "{" + partsData.toString() + "," + enemyData.toString() + "}";
+        return "{" + partsData.toString() + "," + enemyData.toString() + "," + raidData.toString() + "}";
     }
 
     public static class PartsData implements Serializable {
@@ -39,10 +46,34 @@ public class PomkotsDataPack implements Serializable {
         public int weight;
         public String description;
         public List<LevelData> levels = new ArrayList<>();
+        public List<List<SerializablePair<String, Integer>>> recipes = new ArrayList<>();
 
         @Override
         public String toString() {
-            return "{" + id + "," + weight + "," + levels.toString() + "}";
+            return "{" + id + "," + weight + "," + levels.toString() + "," + recipes.toString() + "}";
+        }
+    }
+
+    public static class SerializablePair<F, S> implements Serializable {
+        private final F first;
+        private final S second;
+
+        public SerializablePair(final F first, final S second) {
+            this.first = first;
+            this.second = second;
+        }
+
+        public F getFirst() {
+            return first;
+        }
+
+        public S getSecond() {
+            return second;
+        }
+
+        @Override
+        public String toString() {
+            return "[" + first + "," + second + "]";
         }
     }
 
@@ -78,9 +109,12 @@ public class PomkotsDataPack implements Serializable {
         // 電池のみ
         public int energy;
 
+        // エナジー消費系
+        public int energyConsumePerTick;
+
         @Override
         public String toString() {
-            return "[" + durability + "," + maxWeight + "," + speedModifier + "," + jumpModifier + "," + damage + "," + missileMaxNum + "," + missileLockInterval + "]";
+            return "[" + durability + "," + maxWeight + "," + speedModifier + "," + jumpModifier + "," + damage + "," + missileMaxNum + "," + missileLockInterval + "," + energyConsumePerTick + "]";
         }
     }
 
@@ -128,5 +162,32 @@ public class PomkotsDataPack implements Serializable {
                     id + "," + health + "," + armor
                     +"}";
         }
+    }
+
+    public static class ChestData implements Serializable {
+        // 共通
+        public String key = "";
+        public String type = "";
+        public String raid_id;
+    }
+
+    public static class ChestMobSpawnData implements Serializable {
+        public String type = "";
+    }
+
+    public RaidDefinition getRaidData(String raidName) {
+        return raidData.get(raidName);
+    }
+
+    public void addRaidData(String raidName, RaidDefinition data) {
+        raidData.put(raidName, data);
+    }
+
+    public ChestData getChestData(String chestLootTable) {
+        return chestData.get(chestLootTable);
+    }
+
+    public void addChestData(String chestLootTable, ChestData data) {
+        chestData.put(chestLootTable, data);
     }
 }

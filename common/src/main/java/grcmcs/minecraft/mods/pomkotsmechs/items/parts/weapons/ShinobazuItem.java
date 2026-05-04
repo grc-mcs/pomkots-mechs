@@ -28,7 +28,10 @@ public class ShinobazuItem extends BasePartsItem.WeaponArm {
             }
 
             if (!world.isClientSide()) {
-                BulletMachineEntity be = new BulletMachineEntity(PomkotsMechs.BULLET_MACHINE.get(), world, mechInterface.getMechEntity(), this.getDamage(mechInterface.getItemStack()));
+                BulletMachineEntity be = new BulletMachineEntity(
+                        PomkotsMechs.BULLET_MACHINE.get(), world,
+                        mechInterface.getMechEntity(),
+                        this.getDamage(mechInterface.getItemStack()));
 
                 var offset = mechInterface.getOffset();
 
@@ -39,7 +42,7 @@ public class ShinobazuItem extends BasePartsItem.WeaponArm {
 
                 float[] angle = mechInterface.getShootingAngle(be, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), BattleBalance.MECH_MACHINEGUN_LARGE_SPEED, 2F);
+                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 7, 2F);
 
                 world.addFreshEntity(be);
             } else {
@@ -56,8 +59,13 @@ public class ShinobazuItem extends BasePartsItem.WeaponArm {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_HAND;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_HAND;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.MACHINE_GUN;
     }
 
     @Override

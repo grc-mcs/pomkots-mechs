@@ -22,6 +22,13 @@ public class MissileEnemyEntity extends MissileBaseEntity {
         this.damage = damage;
         this.speed = speed;
     }
+
+    public MissileEnemyEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, LivingEntity target, float damage, float speed) {
+        super(entityType, world, shooter, target);
+        this.damage = damage;
+        this.speed = speed;
+    }
+
     protected int getSwitchTick() {
         return 4;
     }

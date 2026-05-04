@@ -16,14 +16,13 @@ import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 public class Pms07EntityRenderer extends GeoEntityRenderer<Pms07Entity> {
     public Pms07EntityRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new Pms07EntityModel());
-
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override
-    public void actuallyRender(PoseStack poseStack, Pms07Entity animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
-        RenderUtils.renderAdditionalHud(poseStack, animatable, this.entityRenderDispatcher.cameraOrientation(), bufferSource);
+    public void render(Pms07Entity entity, float entityYaw, float partialTick,
+                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
+        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+        RenderUtils.renderMobBars(entity, poseStack, bufferSource, this.entityRenderDispatcher, 1.3F);
     }
 }

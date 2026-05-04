@@ -137,7 +137,7 @@
 							"easing": "linear"
 						},
 						"1.25": {
-							"vector": [0, 695, 0],
+							"vector": [0, 783, 0],
 							"easing": "linear"
 						}
 					},
@@ -206,7 +206,7 @@
 							"easing": "linear"
 						},
 						"2.0": {
-							"vector": [0, 409, 0],
+							"vector": [0, 712, 0],
 							"easing": "linear"
 						}
 					},

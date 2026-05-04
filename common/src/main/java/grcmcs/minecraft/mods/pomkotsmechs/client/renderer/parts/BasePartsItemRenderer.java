@@ -3,6 +3,8 @@ package grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.model.parts.BasePartsItemModel;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.RenderUtils;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.CachedBoneFinder;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -15,7 +17,6 @@ import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 public class BasePartsItemRenderer<T extends BasePartsItem> extends GeoItemRenderer<T> {
     public BasePartsItemRenderer(BasePartsItemModel model) {
         super(model);
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     protected void copy(CachedBoneFinder mech, BakedGeoModel parts, String boneName) {
@@ -48,6 +49,28 @@ public class BasePartsItemRenderer<T extends BasePartsItem> extends GeoItemRende
 
             super.preApplyRenderLayers(poseStack, animatable, model, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
         }
+
+        @Override
+        public void actuallyRender(PoseStack poseStack, T animatable, BakedGeoModel model, RenderType renderType,
+                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
+                                   int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+            var parentEntity = animatable.getParentEntity();
+            if (parentEntity != null && parentEntity.getBodyParts().getItem() instanceof BasePartsItem.Body body && body.getNeckPos() != 0) {
+                poseStack.pushPose();
+
+                poseStack.translate(0, body.getNeckPos(), 0);
+
+                super.actuallyRender(poseStack, animatable, model, renderType,
+                        bufferSource, buffer, isReRender, partialTick,
+                        packedLight, packedOverlay, red, green, blue, alpha);
+
+                poseStack.popPose();
+            } else {
+                super.actuallyRender(poseStack, animatable, model, renderType,
+                        bufferSource, buffer, isReRender, partialTick,
+                        packedLight, packedOverlay, red, green, blue, alpha);
+            }
+        }
     }
 
     public static class Body<T extends BasePartsItem> extends BasePartsItemRenderer<T> {
@@ -64,6 +87,13 @@ public class BasePartsItemRenderer<T extends BasePartsItem> extends GeoItemRende
                 copy(parent, model, "spine");
                 copy(parent, model, "body");
                 copy(parent, model, "body_rot");
+            }
+
+            var pe = animatable.getParentEntity();
+            var showLid = pe != null && pe.getHeadParts().getItem() instanceof BasePartsItem.Head head && head.isFullCovered();
+            var lid = model.getBone("body_lid");
+            if (lid.isPresent()) {
+                lid.get().setHidden(!showLid);
             }
 
             super.preApplyRenderLayers(poseStack, animatable, model, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);

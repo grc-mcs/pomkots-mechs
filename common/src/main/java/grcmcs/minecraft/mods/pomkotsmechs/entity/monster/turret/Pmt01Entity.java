@@ -2,12 +2,12 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret.goal.ContinuousAttackGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletGrenadeEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -29,6 +29,11 @@ public class Pmt01Entity extends BaseTurretEntity {
 
     public Pmt01Entity(EntityType<? extends GenericPomkotsMonster> entityType, Level world) {
         super(entityType, world);
+    }
+
+    protected void registerTargetSelectorGoals() {
+        super.registerTargetSelectorGoals();
+        this.goalSelector.addGoal(1, new ContinuousAttackGoal(this, 0.8F, 100, 60, 10));
     }
 
     public void tick() {
@@ -56,6 +61,8 @@ public class Pmt01Entity extends BaseTurretEntity {
         if (target != null) {
             BulletGrenadeEntity be = new BulletGrenadeEntity(PomkotsMechs.BULLET_GRENADE.get(), this.level(), this, getMechData().bulletDamage);
             be.setNoGravity(true);
+            be.setExplosionScale(3);
+            be.setStunPoint(2);
 
             var offset = this.position();
 
@@ -77,13 +84,13 @@ public class Pmt01Entity extends BaseTurretEntity {
         }
     }
 
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-
-        this.goalSelector.addGoal(1, new ContinuousAttackGoal(this, 0.8F, 100, 60, 10));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
-    }
+//    @Override
+//    protected void registerGoals() {
+//        super.registerGoals();
+//
+//        this.goalSelector.addGoal(1, new ContinuousAttackGoal(this, 0.8F, 100, 60, 10));
+//        this.targetSelector.addGoal(1, new NearestEntityTargetGoal<>(this, Player.class, false, false));
+//    }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {

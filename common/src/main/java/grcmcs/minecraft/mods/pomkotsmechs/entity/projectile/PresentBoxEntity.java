@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.util.FireworkUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -8,7 +9,9 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -16,7 +19,10 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.FireworkRocketItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.FireworkRocketRecipe;
+import net.minecraft.world.item.crafting.FireworkStarRecipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -46,16 +52,25 @@ public class PresentBoxEntity extends LivingEntity implements GeoEntity, GeoAnim
         this.setNoGravity(false);
     }
 
+    @Override
+    public boolean isPushable() {
+        return false;
+    }
+
     private int openCount = 0;
 
     @Override
     public void tick() {
         super.tick();
         // 重力を適用
-        if (!this.isNoGravity()) {
-            this.addDeltaMovement(new Vec3(0, -0.08, 0));
-            this.move(MoverType.SELF, this.getDeltaMovement());
-            this.setDeltaMovement(this.getDeltaMovement().multiply(0.98, 0.98, 0.98));
+//        if (!this.isNoGravity()) {
+//            this.addDeltaMovement(new Vec3(0, -0.08, 0));
+//            this.move(MoverType.SELF, this.getDeltaMovement());
+//            this.setDeltaMovement(this.getDeltaMovement().multiply(0.98, 0.98, 0.98));
+//        }
+        this.hasImpulse = true;
+        if (this.onGround() && openCount == 0) {
+            openCount = 1;
         }
 
         if (openCount > 0) {
@@ -64,8 +79,14 @@ public class PresentBoxEntity extends LivingEntity implements GeoEntity, GeoAnim
                 openCount = -1;
                 if (!this.level().isClientSide) {
                     KujiraEntity blockMass = new KujiraEntity(PomkotsMechs.KUJIRA.get(), this.level());
+                    var rot = this.getYRot();
+                    blockMass.setYRot(rot);
+                    blockMass.setYBodyRot(rot);
+                    blockMass.setYHeadRot(rot);
+                    blockMass.yRotO = rot;
                     blockMass.setPos(this.getX(), this.getY(), this.getZ());
                     this.level().addFreshEntity(blockMass);
+
                 }
             }
         }

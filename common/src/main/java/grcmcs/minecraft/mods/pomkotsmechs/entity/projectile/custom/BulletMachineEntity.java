@@ -19,24 +19,23 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class BulletMachineEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
+public class BulletMachineEntity extends PomkotsCustomThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private static final int MAX_LIFE_TICKS = 20;
-    private int lifeTicks = 0;
-    private LivingEntity shooter = null;
-    private float damage;
 
-    public BulletMachineEntity(EntityType<? extends ThrowableProjectile> entityType, Level world) {
-        this(entityType, world, null);
+    public BulletMachineEntity(EntityType<? extends ThrowableProjectile> entityType, Level level) {
+        this(entityType, level, null, 20, BattleBalance.MECH_MACHINEGUN_LARGE_DAMAGE, 2);
     }
 
-    public BulletMachineEntity(EntityType<? extends ThrowableProjectile> entityType, Level level, LivingEntity shooter) {
-        this(entityType, level, shooter, BattleBalance.MECH_MACHINEGUN_LARGE_DAMAGE);
+    public BulletMachineEntity(EntityType<? extends ThrowableProjectile> entityType, Level level, LivingEntity shooter, float damage) {
+        this(entityType, level, shooter, 20, damage, 1);
     }
 
-    public BulletMachineEntity(EntityType<? extends ThrowableProjectile> entityType, Level world, LivingEntity shooter, float damage) {
-        super(entityType, shooter, world);
+    public BulletMachineEntity(EntityType<? extends ThrowableProjectile> entityType, Level level, LivingEntity shooter, int maxLifeTicks, float damage, int stun) {
+        super(entityType, level, shooter,
+                maxLifeTicks, damage,stun);
+
         this.setNoGravity(true);
+        this.noCulling = true;
         this.noPhysics = true;
         this.shooter = shooter;
         this.damage = damage;
@@ -44,46 +43,13 @@ public class BulletMachineEntity extends PomkotsThrowableProjectile implements G
 
     @Override
     public void tick() {
-        // 弾速が早すぎると、ティック間にすり抜けちゃうのでレイキャスティングで補完
-        var hitResult = ProjectileUtil.raycastBoundingCheck(this);
-        if (hitResult.getType() != HitResult.Type.MISS) {
-            this.onHit(hitResult);
-        }
-
         super.tick();
-
-        if(this.lifeTicks++ >= MAX_LIFE_TICKS) {
-            this.discard();
-        }
+        this.hasImpulse = true;
     }
 
     @Override
     protected void onHitEntity(EntityHitResult entityHitResult) {
-        var entity = entityHitResult.getEntity();
-        if (entity.equals(shooter)) {
-            return;
-        }
-
-        if (lifeTicks < 10) {
-            damage += (10 - (float)lifeTicks) * damage / 20;
-        }
-
-//        entity.hurt(entity.damageSources().thrown(this, this.getOwner() != null ? this.getOwner() : this), damage);
-        ProjectileUtil.hurt(entity, this, this.shooter, damage);
-        entity.invulnerableTime = 0;
-
-        this.discard();
-    }
-
-    @Override
-    public void onClientRemoval() {
-        if (this.level().isClientSide) {
-            ParticleUtil.addSparkParticles(this.position(), this.level());
-        }
-    }
-
-    @Override
-    protected void onHitBlock(BlockHitResult blockHitResult) {
+        super.onHitEntity(entityHitResult);
         this.discard();
     }
 

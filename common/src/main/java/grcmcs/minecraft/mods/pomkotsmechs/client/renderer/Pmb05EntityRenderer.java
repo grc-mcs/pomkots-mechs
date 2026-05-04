@@ -15,7 +15,6 @@ import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 public class Pmb05EntityRenderer extends GeoEntityRenderer<Pmb05Entity> {
     public Pmb05EntityRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new Pmb05EntityModel());
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override

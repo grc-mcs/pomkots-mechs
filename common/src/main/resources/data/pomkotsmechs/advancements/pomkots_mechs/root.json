@@ -1,0 +1,18 @@
+{
+  "display": {
+    "icon": {
+      "item": "pomkotsmechs:pomkots_wrench"
+    },
+    "title": { "translate": "text.pomkotsmechs.advancement.root.title" },
+    "description": { "translate": "text.pomkotsmechs.advancement.root.desc" },
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "auto": {
+      "trigger": "minecraft:tick"
+    }
+  }
+}

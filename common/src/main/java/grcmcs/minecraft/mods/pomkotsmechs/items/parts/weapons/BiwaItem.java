@@ -9,6 +9,9 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.magazine.MagazineGrenadeItem;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.SingletonGeoAnimatable;
@@ -43,7 +46,7 @@ public class BiwaItem extends BasePartsItem.WeaponShoulder{
 
                 float[] angle = mechInterface.getShootingAngle(be, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), BattleBalance.MECH_BULLET_GRENADE_SPEED, 0F);
+                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 8, 0F);
 
                 world.addFreshEntity(be);
 
@@ -79,6 +82,15 @@ public class BiwaItem extends BasePartsItem.WeaponShoulder{
     }
 
     @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity ent, int slotIndex, boolean bl) {
+        super.inventoryTick(stack, level, ent, slotIndex, bl);
+
+        if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+            GeoItem.getOrAssignId(stack, serverLevel);
+        }
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "Activation", 0, state -> PlayState.STOP)
                 .triggerableAnim("use", RawAnimation.begin().thenPlay("animation.weapon.use"))
@@ -87,8 +99,13 @@ public class BiwaItem extends BasePartsItem.WeaponShoulder{
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_SHOULDER;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_SHOULDER;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.GRENADE;
     }
 
     @Override

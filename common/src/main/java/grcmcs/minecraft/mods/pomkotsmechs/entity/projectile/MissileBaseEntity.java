@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -214,7 +215,7 @@ public abstract class MissileBaseEntity extends PomkotsThrowableProjectile imple
     protected void createExplosion(Vec3 pos) {
         Level world = level();
         if (!world.isClientSide) {
-            world.explode(this,  pos.x, pos.y, pos.z, BattleBalance.MECH_MISSILE_EXPLOSION, false, Level.ExplosionInteraction.NONE);
+            Utils.explode(this,  pos.x, pos.y, pos.z, BattleBalance.MECH_MISSILE_EXPLOSION, false, Level.ExplosionInteraction.NONE, this.level());
         } else {
             addParticles(this.position());
         }

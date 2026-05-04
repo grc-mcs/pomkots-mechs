@@ -8,12 +8,12 @@ import software.bernie.geckolib.model.GeoModel;
 public class ExplosionEntityModel extends GeoModel<ExplosionEntity> {
     @Override
     public ResourceLocation getAnimationResource(ExplosionEntity animatable) {
-        return new ResourceLocation(PomkotsMechs.MODID, "animations/explosion.animation.json");
+        return new ResourceLocation(PomkotsMechs.MODID, "animations/explosion_low.animation.json");
     }
 
     @Override
     public ResourceLocation getModelResource(ExplosionEntity animatable) {
-        return new ResourceLocation(PomkotsMechs.MODID, "geo/explosion.geo.json");
+        return new ResourceLocation(PomkotsMechs.MODID, "geo/explosion_low.geo.json");
     }
 
     @Override

@@ -1,0 +1,162 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.kagenobu.idle": {
+			"loop": true
+		},
+		"animation.weapon.idle": {
+			"loop": true,
+			"bones": {
+				"roadroller": {
+					"rotation": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"roller": {
+					"scale": {
+						"vector": [1, 1, 1]
+					}
+				},
+				"sideR": {
+					"rotation": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"sideL": {
+					"rotation": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"right": {
+					"rotation": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"left": {
+					"rotation": {
+						"vector": [0, 0, 0]
+					}
+				}
+			}
+		},
+		"animation.weapon.use": {
+			"animation_length": 0.5,
+			"bones": {
+				"roadroller": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.25": {
+							"vector": [-90, 0, 0]
+						}
+					}
+				},
+				"roller": {
+					"scale": {
+						"0.0": {
+							"vector": [1, 1, 1]
+						},
+						"0.5": {
+							"vector": [5, 1, 1],
+							"easing": "easeOutBounce"
+						}
+					}
+				},
+				"sideR": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.5": {
+							"vector": [0, -90, 0],
+							"easing": "easeInBounce"
+						}
+					}
+				},
+				"sideL": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.5": {
+							"vector": [0, 90, 0],
+							"easing": "easeInBounce"
+						}
+					}
+				},
+				"right": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.5": {
+							"vector": [0, -90, 0],
+							"easing": "easeInBounce"
+						}
+					}
+				},
+				"left": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.5": {
+							"vector": [0, 90, 0],
+							"easing": "easeInBounce"
+						}
+					}
+				}
+			}
+		},
+		"animation.weapon.use_loop": {
+			"animation_length": 0.5,
+			"bones": {
+				"roadroller": {
+					"rotation": {
+						"vector": [-90, 0, 0]
+					}
+				},
+				"roller": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.5": {
+							"vector": [360, 0, 0]
+						}
+					},
+					"scale": {
+						"vector": [5, 1, 1],
+						"easing": "easeOutBounce"
+					}
+				},
+				"sideR": {
+					"rotation": {
+						"vector": [0, -90, 0],
+						"easing": "easeInBounce"
+					}
+				},
+				"sideL": {
+					"rotation": {
+						"vector": [0, 90, 0],
+						"easing": "easeInBounce"
+					}
+				},
+				"right": {
+					"rotation": {
+						"vector": [0, -90, 0],
+						"easing": "easeInBounce"
+					}
+				},
+				"left": {
+					"rotation": {
+						"vector": [0, 90, 0],
+						"easing": "easeInBounce"
+					}
+				}
+			}
+		}
+	},
+	"geckolib_format_version": 2
+}

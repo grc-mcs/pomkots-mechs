@@ -1,7 +1,9 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.gui;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.block.MechWorkbenchBlockEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.items.KeycardItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -17,22 +19,26 @@ import net.minecraft.world.phys.Vec2;
 import java.util.function.Predicate;
 
 public class MechWorkbenchMenu extends AbstractContainerMenu {
-    public static int MODE_VIEW = 0;
-    public static int MODE_ASSEMBLE = 1;
+    public static short MODE_VIEW = 0;
+    public static short MODE_ASSEMBLE = 1;
 
-    private DataSlot entityId = new SimpleDataSlot();
-    private DataSlot textureColor = new SimpleDataSlot();
+    private ShortDataSlot entityId = new ShortDataSlot();
+    private ShortDataSlot textureColor = new ShortDataSlot();
+    private ShortDataSlot menuMode = new ShortDataSlot();
+    private MechWorkbenchBlockEntity accessor = null;
+
     private Pmvc01Entity mech;
 
     public MechWorkbenchMenu(int id, Inventory playerInventory) {
-        this(id, playerInventory, new SimpleContainer(Pmvc01Entity.CONTAINER_SIZE), null, 0);
+        this(id, playerInventory, new SimpleContainer(Pmvc01Entity.CONTAINER_SIZE), null, 0, null);
     }
 
-    public MechWorkbenchMenu(int id, Inventory playerInventory, Container mechInventory, Pmvc01Entity mech, int mode) {
+    public MechWorkbenchMenu(int id, Inventory playerInventory, Container mechInventory, Pmvc01Entity mech, int mode, MechWorkbenchBlockEntity consoleAccessor) {
         super(PomkotsMechs.MECH_WORKBENCH_GUI.get(), id);
 
-        entityId = this.addDataSlot(entityId);
-        textureColor = this.addDataSlot(textureColor);
+        entityId = (ShortDataSlot)this.addDataSlot(entityId);
+        textureColor = (ShortDataSlot)this.addDataSlot(textureColor);
+        menuMode = (ShortDataSlot)this.addDataSlot(menuMode);
 
         int offsetX = 8; // 左寄せ調整（通常44→8）
         int offsetY = 106; // ⚠️ GUIを下にずらす (4行分)
@@ -54,19 +60,20 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         addSlotInternal(14, offsetX, offsetY, mechInventory, item->item instanceof BasePartsItem.Magazine, mode);
         addSlotInternal(15, offsetX, offsetY, mechInventory, item->item instanceof BasePartsItem.Magazine, mode);
         addSlotInternal(16, offsetX, offsetY, mechInventory, item->item instanceof BasePartsItem.Fuel, mode);
-        addSlotInternal(17, offsetX, offsetY, mechInventory, item->false, mode);
+        addSlotInternal(17, offsetX, offsetY, mechInventory, item->item instanceof KeycardItem, mode);
 
         // --- プレイヤーインベントリ ---
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                this.addSlot(new MechCustomSlot(playerInventory, col + row * 9 + 9, offsetX + col * 18, offsetY + 68 + row * 18, mode));
+                this.addSlot(new MechCustomSlot(playerInventory, col + row * 9 + 9, offsetX + col * 18, offsetY + 69 + row * 18, mode));
             }
         }
         for (int i = 0; i < 9; i++) {
-            this.addSlot(new MechCustomSlot(playerInventory, i, offsetX + i * 18, offsetY + 126, mode));
+            this.addSlot(new MechCustomSlot(playerInventory, i, offsetX + i * 18, offsetY + 127, mode));
         }
 
         this.mech = mech;
+        this.accessor = consoleAccessor;
     }
 
     private void addSlotInternal(int index, int offsetX, int offsetY, Container mechInventory, Predicate<Item> pred, int mode) {
@@ -96,20 +103,56 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         super.removed(player);
     }
 
-    public int getEntityId() {
-        return entityId.get();
+    public short getEntityId() {
+        return entityId.getShort();
     }
 
     public void setEntityId(int id) {
-        this.setData(0, id);
+        this.setData(0, (short) (id & 0xFFFF));
     }
 
-    public int getTextureColor() {
-        return textureColor.get();
+    public short getTextureColor() {
+        return textureColor.getShort();
     }
 
     public void setTextureColor(int id) {
         this.setData(1, id);
+    }
+
+    public short getMode() {
+        return menuMode.getShort();
+    }
+
+    public void setMode(short id) {
+        this.setData(2, id);
+    }
+
+    public void startMechRepair(Pmvc01Entity mech) {
+        if (this.accessor != null && mech != null) {
+            this.accessor.startMechRepair(mech);
+        }
+    }
+
+    public static class ShortDataSlot extends DataSlot {
+        private short value;
+
+        @Override
+        public int get() {
+            return value & 0xFFFF; // int に拡張
+        }
+
+        @Override
+        public void set(int value) {
+            this.value = (short) value;
+        }
+
+        public short getShort() {
+            return value;
+        }
+
+        public void setShort(short value) {
+            this.value = value;
+        }
     }
 
     private static class SimpleDataSlot extends DataSlot {
@@ -147,6 +190,8 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
 //        public boolean mayPickup(Player player) {
 //            if (mode == 1) {
 //                return true;
+//            } else {
+//                return stack.getItem() instanceof BasePartsItem.Fuel || stack.getItem() instanceof BasePartsItem.Magazine;
 //            }
 //        }
     }

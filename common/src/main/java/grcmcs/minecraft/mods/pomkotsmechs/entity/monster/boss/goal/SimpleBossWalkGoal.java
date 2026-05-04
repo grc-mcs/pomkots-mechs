@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal;
 
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -11,236 +12,378 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.EnumSet;
 
+
+
 public class SimpleBossWalkGoal extends BaseBossGoal {
-    private final double speed;
+    private final double moveSpeed;
     private final double desiredDistance;
+
     private LivingEntity target;
 
+    // モード
     private enum Mode { APPROACH, CIRCLE }
     private Mode mode = Mode.APPROACH;
-    private int switchTimer = 0;
     private int circleDirection = 1; // 1 or -1
 
-    private int ticksUntilNextSwitch = 0;
+    // タイマー
+    private int ticksRemaining = 0;
+    private int modeSwitchCooldown = 0;
+
+    // 空中判定
+    private int airTicks = 0;
+    private static final int MAX_AIR_TICKS = 10;
+
+    // 設定
+    private static final int MIN_DURATION = 20;  // 最小実行時間(2秒)
+    private static final int MAX_DURATION = 30; // 最大実行時間(5秒)
+    private static final int MODE_SWITCH_INTERVAL = 15; // モード切替間隔
+    private static final double CIRCLE_RADIUS = 2.0; // 円運動の追加距離
 
     public SimpleBossWalkGoal(BaseBossEntity mob, double speed, double desiredDistance) {
         super(mob);
-        this.speed = speed;
+        this.moveSpeed = speed;
         this.desiredDistance = desiredDistance;
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
 
     @Override
     public boolean canUseInternal() {
-        return true;
+        return mob.getTarget() != null && mob.getTarget().isAlive();
     }
 
     @Override
     public boolean canContinueToUse() {
-        return this.ticksUntilNextSwitch > 0;
+        // ゴール継続条件
+        return ticksRemaining > 0
+                && target != null
+                && target.isAlive()
+                && airTicks < MAX_AIR_TICKS;
     }
 
     @Override
     public void start() {
-        switchTimer = 20;
-        circleDirection = mob.getRandom().nextBoolean() ? 1 : -1;
-        ticksUntilNextSwitch = mob.getRandom().nextInt(20) + 20;
-        mode = Mode.APPROACH;
-        mob.setNoGravity(false);
         target = mob.getTarget();
-    }
+        ticksRemaining = MIN_DURATION + mob.getRandom().nextInt(MAX_DURATION - MIN_DURATION);
+        modeSwitchCooldown = MODE_SWITCH_INTERVAL;
+        mode = Mode.APPROACH;
+        circleDirection = mob.getRandom().nextBoolean() ? 1 : -1;
+        airTicks = 0;
 
+        mob.setNoGravity(false);
+    }
 
     @Override
     public void stop() {
-        this.target = null;
+        target = null;
+        ticksRemaining = 0;
+
+        // 水平移動を停止
+        Vec3 vel = mob.getDeltaMovement();
+        mob.setDeltaMovement(0, vel.y, 0);
     }
 
     @Override
     public void tick() {
-        this.ticksUntilNextSwitch--;
+        ticksRemaining--;
 
-        if (target == null || !target.isAlive()) return;
+        if (target == null) return;
 
+        // 空中判定
+        updateAirTicks();
+
+        // ターゲットを向く
         mob.rotateToTarget(target);
 
-        // 向きの更新
-        Vec3 toTarget = target.position().subtract(mob.position());
+        // モード切り替え
+        updateMode();
 
-        double distance = mob.distanceTo(target);
+        // 移動処理
+        performMovement();
+    }
 
-        switchTimer--;
-        if (switchTimer <= 0) {
-            // モード切り替え
+    /**
+     * 空中判定を更新
+     */
+    private void updateAirTicks() {
+        if (mob.onGround() || mob.isInWater() || mob.isInLava()) {
+            airTicks = 0;
+        } else {
+            airTicks++;
+        }
+    }
+
+    /**
+     * モードを更新
+     */
+    private void updateMode() {
+        modeSwitchCooldown--;
+
+        if (modeSwitchCooldown <= 0) {
+            double distance = mob.distanceTo(target);
+
+            // 距離に応じてモード切り替え
             if (mode == Mode.APPROACH && distance <= desiredDistance) {
                 mode = Mode.CIRCLE;
-                circleDirection *= -1;
-
-                switchTimer = 20 + mob.getRandom().nextInt(10);
-            } else if (mode == Mode.CIRCLE && distance > desiredDistance + 2) {
+                circleDirection *= -1; // 方向反転
+            } else if (mode == Mode.CIRCLE && distance > desiredDistance + CIRCLE_RADIUS) {
                 mode = Mode.APPROACH;
-
-                switchTimer = 40 + mob.getRandom().nextInt(10);
             } else {
-                switchTimer = 20 + mob.getRandom().nextInt(10);
+                // 同じモードを継続するが方向を変える
                 circleDirection *= -1;
             }
 
+            modeSwitchCooldown = MODE_SWITCH_INTERVAL + mob.getRandom().nextInt(20);
+        }
+    }
+
+    /**
+     * 移動処理
+     */
+    private void performMovement() {
+        Vec3 currentPos = mob.position();
+        Vec3 toTarget = target.position().subtract(currentPos);
+
+        // 水平方向の移動ベクトルを計算
+        Vec3 horizontalDir = calculateHorizontalDirection(toTarget);
+
+        // 移動先のXZ座標
+        double nextX = currentPos.x + horizontalDir.x;
+        double nextZ = currentPos.z + horizontalDir.z;
+
+        // 移動可能かチェック
+        if (!canMoveToPosition(nextX, currentPos.y, nextZ)) {
+            // 移動不可 → 重力のみ適用してゴール終了
+            applyGravityOnly();
+            ticksRemaining = 0;
+            return;
         }
 
-        Vec3 moveVec = switch (mode) {
-            case APPROACH -> {
-                if (distance <= desiredDistance) {
-                    mode = Mode.CIRCLE;
-                    circleDirection *= -1;
+        // Y方向の移動を計算
+        double yVelocity = calculateVerticalMovement(nextX, currentPos.y, nextZ);
 
-                    switchTimer = 20 + mob.getRandom().nextInt(10);
+        // 移動ベクトルを設定
+        mob.setDeltaMovement(horizontalDir.x, yVelocity, horizontalDir.z);
+    }
+
+    /**
+     * 水平方向の移動ベクトルを計算
+     */
+    private Vec3 calculateHorizontalDirection(Vec3 toTarget) {
+        // 水平成分のみ（Y=0）
+        Vec3 horizontal = new Vec3(toTarget.x, 0, toTarget.z);
+
+        return switch (mode) {
+            case APPROACH -> {
+                // ターゲットへ直進
+                if (horizontal.lengthSqr() < 0.01) {
+                    yield Vec3.ZERO;
                 }
-                Vec3 dir = toTarget.normalize().scale(speed);
-                yield calculateSafeMovement(dir);
+                yield horizontal.normalize().scale(moveSpeed);
             }
+
             case CIRCLE -> {
-                double angle = Math.atan2(toTarget.z, toTarget.x) + (circleDirection * Math.PI / 2);
-                Vec3 dir = new Vec3(Math.cos(angle), 0, Math.sin(angle)).normalize().scale(speed);
-                yield calculateSafeMovement(dir);
+                // ターゲット中心に円運動
+                double angleToTarget = Math.atan2(horizontal.z, horizontal.x);
+                double circleAngle = angleToTarget + (circleDirection * Math.PI / 2);
+
+                yield new Vec3(
+                        Math.cos(circleAngle) * moveSpeed,
+                        0,
+                        Math.sin(circleAngle) * moveSpeed
+                );
             }
         };
-
-        mob.setDeltaMovement(moveVec);
-        mob.setSpeed((float) speed);
     }
+    private boolean isStandingInFluid() {
+        var startPos = mob.blockPosition().above();
+        for (int y = startPos.getY() + 5; y >= startPos.getY() - 5; y--) {
+            BlockPos pos = new BlockPos(startPos.getX(), y, startPos.getZ());
+            BlockState state = mob.level().getBlockState(pos);
 
-    private float rotLerp(float current, float target, float maxChange) {
-        float delta = Mth.wrapDegrees(target - current);
-        if (delta > maxChange) delta = maxChange;
-        if (delta < -maxChange) delta = -maxChange;
-        return current + delta;
-    }
-
-    private Vec3 trySafeMove(Vec3 dir) {
-        // 1ブロック先の位置
-        BlockPos next = new BlockPos((int)(mob.getX() + dir.x), (int)(mob.getY() - 1), (int)(mob.getZ() + dir.z));
-        BlockState below = mob.level().getBlockState(next);
-
-        if (below.getFluidState().isSource()) {
-            // 穴や水 → 移動しない
-            return Vec3.ZERO;
-        }
-//
-//        // 上にブロックが詰まってるときも防止
-//        BlockState head = mob.level().getBlockState(next.above());
-//        if (!head.getMaterial().isReplaceable()) {
-//            return Vec3.ZERO;
-//        }
-
-        return dir;
-    }
-
-    private Vec3 calculateSafeMovement(Vec3 horizontalDir) {
-        // 現在位置
-        Vec3 currentPos = mob.position();
-
-        // 移動先の水平位置
-        Vec3 targetHorizontalPos = currentPos.add(horizontalDir.x, horizontalDir.y, horizontalDir.z);
-
-        // 地面の高さを見つける
-        double groundY = findGroundLevel(targetHorizontalPos.x, targetHorizontalPos.y, targetHorizontalPos.z);
-
-        // 移動が可能かチェック
-//        if (!canMoveToPosition(targetHorizontalPos.x, groundY, targetHorizontalPos.z)) {
-//            return new Vec3(0, applyGravity(), 0); // 移動不可の場合は重力のみ適用
-//        }
-
-        // Y軸の移動を計算
-        double yMovement = calculateYMovement(currentPos.y, groundY);
-
-        return new Vec3(horizontalDir.x, yMovement, horizontalDir.z);
-    }
-
-    private double findGroundLevel(double x, double startY, double z) {
-        Level level = mob.level();
-
-        int searchRange = 10; // 上下10ブロックの範囲で探索
-
-        // 下方向に探索
-        for (int y = (int)startY; y >= startY - searchRange; y--) {
-            BlockPos pos = new BlockPos((int)x, y, (int)z);
-            BlockState state = level.getBlockState(pos);
-
-            if (!state.isAir() && state.isSolidRender(level, pos)) {
-                // 固体ブロックが見つかった場合、その上の面を地面とする
-                return y + 1.0;
+            if (state.isSolid() && !state.isAir()) {
+                return false;
+            } else if (!state.getFluidState().isEmpty()) {
+                return true;
             }
         }
 
-        // 上方向にも探索（念のため）
-//        for (int y = startY + 1; y <= startY + searchRange; y++) {
-//            BlockPos pos = new BlockPos((int)x, y - 1, (int)z);
-//            BlockState state = level.getBlockState(pos);
-//
-//            if (!state.isAir() && state.isSolidRender(level, pos)) {
-//                return y;
-//            }
-//        }
-
-        // 地面が見つからない場合は現在のY座標を返す
-        return mob.getY();
+        return false;
     }
-
+    /**
+     * 移動先に行けるかチェック
+     * @param x 移動先X座標
+     * @param y 現在のY座標（探索開始位置）
+     * @param z 移動先Z座標
+     * @return true = 移動可能, false = 移動不可
+     */
     private boolean canMoveToPosition(double x, double y, double z) {
         Level level = mob.level();
 
-        // エンティティのバウンディングボックスを考慮
-        AABB entityBB = mob.getBoundingBox();
-        double width = entityBB.getXsize();
-        double height = entityBB.getYsize();
+        // 既に流体内にいるかチェック
+        boolean currentlyInFluid = mob.isInWater() || mob.isInLava();
+//        boolean currentlyInFluid = isStandingInFluid();
 
-        // 移動先でのバウンディングボックスを計算
-        AABB targetBB = new AABB(
-                x - width/2, y, z - width/2,
-                x + width/2, y + height, z + width/2
-        );
+        // 移動先の足元の地面Y座標を探す
+        double groundY = findGroundY(x, y, z);
 
-        // 衝突チェック
-        return level.noCollision(mob, targetBB);
-    }
-
-    private double calculateYMovement(double currentY, double groundY) {
-        double yDiff = groundY - currentY;
-
-        // StepHeight相当の処理（ボスの大きさに応じて調整）
-        double maxStepHeight = 10;//mob.maxUpStep(); // 通常は0.6だが、ボスなら大きくすることも可能
-
-        if (yDiff > 0 && yDiff <= maxStepHeight) {
-            // 小さな段差は一気に上る
-            return yDiff;
-        } else if (yDiff < -0.1) {
-            // 下向きの移動（落下）- 重力を適用
-            return applyGravity();
-        } {
-            return 0;
+        if (groundY == Double.MIN_VALUE) {
+            // 地面がない = 崖
+            return false;
         }
-//        else if (yDiff > maxStepHeight) {
-//            // 大きな段差は少しずつ上る
-//            return Math.min(0.3, yDiff);
-//        } else if (yDiff < -0.1) {
-//            // 下向きの移動（落下）- 重力を適用
-//            return applyGravity();
-//        } else {
-//            // 地面レベル付近なら微調整
-//            return yDiff * 0.1;
-//        }
+
+        // 地面ブロックの上（足が着く位置）をチェック
+        BlockPos footPos = new BlockPos(Mth.floor(x), Mth.floor(groundY), Mth.floor(z));
+        BlockState footState = level.getBlockState(footPos);
+
+        BlockPos footPosB = new BlockPos(Mth.floor(x), Mth.floor(groundY) + 1, Mth.floor(z));
+        BlockState footStateB = level.getBlockState(footPosB);
+
+        BlockPos footPosC = new BlockPos(Mth.floor(x), Mth.floor(groundY) - 1, Mth.floor(z));
+        BlockState footStateC = level.getBlockState(footPosC);
+
+        // 流体判定
+        if (!footState.getFluidState().isEmpty() || !footStateB.getFluidState().isEmpty()|| !footStateC.getFluidState().isEmpty()) {
+            // 流体内にいる場合はOK、いない場合はNG
+            return currentlyInFluid;
+        }
+
+        // 段差が高すぎないかチェック
+        double heightDiff = groundY - y;
+        double maxStep = mob.maxUpStep() + 1.0;
+
+        if (heightDiff > maxStep) {
+            return false;
+        }
+
+        // 頭上に十分な空間があるかチェック
+        if (!hasHeadroom(x, groundY, z)) {
+            return false;
+        }
+
+        return true;
     }
 
+    /**
+     * 指定XZ座標の地面Y座標を探す
+     * @return 地面のY座標、見つからない場合は Double.MIN_VALUE
+     */
+    private double findGroundY(double x, double startY, double z) {
+        Level level = mob.level();
+
+        int searchUp = (int) Math.ceil(mob.maxUpStep()) + 2;
+        int searchDown = 30;
+
+        int startYInt = Mth.floor(startY);
+
+        for (int y = startYInt + searchUp; y >= startYInt - searchDown; y--) {
+            BlockPos pos = new BlockPos(Mth.floor(x), y, Mth.floor(z));
+            BlockState state = level.getBlockState(pos);
+
+            // 流体はスキップ
+            if (!state.getFluidState().isEmpty()) {
+                continue;
+            }
+
+            // 固体ブロック判定
+            if (state.isSolid() && !state.isAir()) {
+                // コリジョン形状から上面を取得
+                double topY = getBlockTopY(level, pos, state);
+                return topY;
+            }
+        }
+
+        return Double.MIN_VALUE;
+    }
+
+    /**
+     * ブロックの上面Y座標を取得
+     */
+    private double getBlockTopY(Level level, BlockPos pos, BlockState state) {
+        try {
+            var shape = state.getCollisionShape(level, pos);
+            if (!shape.isEmpty()) {
+                return pos.getY() + shape.max(Direction.Axis.Y);
+            }
+        } catch (Exception ignored) {
+        }
+        return pos.getY() + 1.0;
+    }
+
+    /**
+     * 頭上に十分な空間があるかチェック
+     */
+    private boolean hasHeadroom(double x, double groundY, double z) {
+        Level level = mob.level();
+        double height = mob.getBbHeight();
+
+        int checkHeight = Mth.ceil(height) + 1;
+
+        for (int y = 0; y < checkHeight; y++) {
+            BlockPos pos = new BlockPos(
+                    Mth.floor(x),
+                    Mth.floor(groundY) + y,
+                    Mth.floor(z)
+            );
+
+            BlockState state = level.getBlockState(pos);
+
+            // 固体ブロックがあったら頭上が詰まっている
+            if (state.isSolid() && !state.isAir()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Y方向の移動量を計算
+     */
+    private double calculateVerticalMovement(double nextX, double currentY, double nextZ) {
+        double groundY = findGroundY(nextX, currentY, nextZ);
+
+        if (groundY == Double.MIN_VALUE) {
+            // 地面がない = 落下
+            return applyGravity();
+        }
+
+        double heightDiff = groundY - currentY;
+
+        if (Math.abs(heightDiff) < 0.1) {
+            // ほぼ同じ高さ
+            return 0.0;
+        } else if (heightDiff > 0) {
+            // 段差を上る
+            double maxStep = mob.maxUpStep();
+            if (heightDiff <= maxStep) {
+                return heightDiff; // 一気に上る
+            } else {
+                return maxStep; // 最大ステップ高さまで
+            }
+        } else {
+            // 下り坂 or 落下
+            return applyGravity();
+        }
+    }
+
+    /**
+     * 重力を適用
+     */
     private double applyGravity() {
-        // 重力の適用（バニラと同様の処理）
-        double currentVerticalVelocity = mob.getDeltaMovement().y;
-        double gravity = 0.08; // バニラの重力値
+        double currentVY = mob.getDeltaMovement().y;
+        double gravity = 0.08;
 
         if (!mob.onGround()) {
-            return Math.max(currentVerticalVelocity - gravity, -2.0); // 最大落下速度制限
+            return Math.max(currentVY - gravity, -3.0); // 最大落下速度
         }
 
         return 0.0;
+    }
+
+    /**
+     * 重力のみ適用して水平移動を停止
+     */
+    private void applyGravityOnly() {
+        mob.setDeltaMovement(0, applyGravity(), 0);
     }
 }

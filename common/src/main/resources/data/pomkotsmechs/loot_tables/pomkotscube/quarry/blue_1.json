@@ -1,0 +1,105 @@
+{
+    "type": "minecraft:chest",
+    "pools": [
+      {
+        "rolls": 5,
+        "entries": [
+          { "type": "item", "name": "minecraft:iron_ingot", "weight": 10,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 5
+              }
+            ]
+          },
+          { "type": "item", "name": "minecraft:coal", "weight": 3,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 12
+              }
+            ]
+          },
+          { "type": "item", "name": "pomkotsmechs:p_titanium_nugget", "weight": 1,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 2
+              }
+            ]
+          }
+        ]
+      }, 
+      {
+        "rolls": 2,
+        "entries": [
+          { 
+            "type": "item", 
+            "name": "pomkotsmechs:magazinerifle", 
+            "weight": 3,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 3
+              }
+            ]
+          },
+          { 
+            "type": "item", 
+            "name": "pomkotsmechs:magazinemachinegun", 
+            "weight": 3,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 3
+              }
+            ]
+          },
+          { 
+            "type": "item", 
+            "name": "pomkotsmechs:magazineshotgun", 
+            "weight": 3,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 3
+              }
+            ]
+          },
+          { 
+            "type": "item", 
+            "name": "pomkotsmechs:magazinemissile", 
+            "weight": 3,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 3
+              }
+            ]
+          },
+          { 
+            "type": "item", 
+            "name": "pomkotsmechs:magazinegatling", 
+            "weight": 3,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 3
+              }
+            ]
+          },
+          { 
+            "type": "item", 
+            "name": "pomkotsmechs:pellet", 
+            "weight": 3,
+            "functions": [
+              {
+                "function": "minecraft:set_count",
+                "count": 24
+              }
+            ]
+          }
+        ]
+      }
+    ]
+}

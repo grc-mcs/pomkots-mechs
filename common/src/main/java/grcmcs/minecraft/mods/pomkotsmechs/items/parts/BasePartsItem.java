@@ -7,6 +7,8 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPack;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.SBUnitProtoTypeItem;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
@@ -90,35 +92,107 @@ public abstract class BasePartsItem extends Item implements GeoItem {
         return parentEntity;
     }
 
-    private String attachSide = "right";
+    public enum AttachSide {
+        RIGHT("right"),
+        LEFT("left");
 
-    public String getSide() {
+        private final String text;
+        private AttachSide(final String text) {
+            this.text = text;
+        }
+
+        public String getString() {
+            return this.text;
+        }
+    };
+
+    private AttachSide attachSide = AttachSide.RIGHT;
+
+    public AttachSide getSide() {
         return attachSide;
     }
 
-    public void setSide(String s) {
+    public void setSide(AttachSide s) {
         attachSide = s;
     }
 
     public abstract String getPartsSeriesName();
 
-    public abstract String getPartsCategory();
+    public enum PartsCategory {
+        HEAD("head"),
+        BODY("body"),
+        ARM("arm"),
+        LEGS("legs"),
+        GENERATOR("generator"),
+        BOOSTER("booster"),
+        EXTENSION("extension"),
+        FUEL("fuel"),
+        MAGAZINE("magazine"),
+        WEAPON("weapon");
 
-    public String getWeaponCategory() {
-        return null;
-    }
+        private final String text;
+        private PartsCategory(final String text) {
+            this.text = text;
+        }
+
+        public String getString() {
+            return this.text;
+        }
+    };
+
+    public abstract PartsCategory getPartsCategory();
+
+    public enum WeaponCategory {
+        RIFLE("rifle"),
+        MACHINE_GUN("machine_gun"),
+        GRENADE("grenade"),
+        MELEE("melee"),
+        MISSILE("missile"),
+        MISC("misc"),
+        NONE("none");
+
+        private final String text;
+        private WeaponCategory(final String text) {
+            this.text = text;
+        }
+
+        public String getString() {
+            return this.text;
+        }
+    };
+
+    public abstract WeaponCategory getWeaponCategory();
 
     public int getLevel(ItemStack stack) {
-        if (!stack.hasTag() || !stack.getTag().contains("Level")) {
-            setLevel(stack, getMaxLevel());
-            return getMaxLevel();
+        if (PomkotsMechs.CONFIG.enablePartsLevelCompatibility) {
+            if (!stack.hasTag() || !stack.getTag().contains("Level")) {
+                setLevel(stack, getMaxLevel());
+                return getMaxLevel();
+            } else {
+                return stack.getTag().getInt("Level");
+            }
+
         } else {
-            return stack.getTag().getInt("Level");
+            if (!stack.hasTag() || !stack.getTag().contains(PomkotsMechs.nbtName("Level"))) {
+                setLevel(stack, getMaxLevel());
+                return getMaxLevel();
+            } else {
+                return stack.getTag().getInt(PomkotsMechs.nbtName("Level"));
+            }
         }
     }
 
     public void setLevel(ItemStack stack, int level) {
-        stack.getOrCreateTag().putInt(PomkotsMechs.nbtName("Level"), level);
+        if (PomkotsMechs.CONFIG.enablePartsLevelCompatibility) {
+            var tag = stack.getOrCreateTag();
+            tag.putInt(PomkotsMechs.nbtName("Level"), level);
+
+        } else {
+            var tag = stack.getOrCreateTag();
+            tag.putInt(PomkotsMechs.nbtName("Level"), level);
+            stack.setTag(tag);
+
+        }
     }
 
     @Override
@@ -137,7 +211,7 @@ public abstract class BasePartsItem extends Item implements GeoItem {
 
     private PomkotsDataPack.PartsData getPartsData() {
         if (this instanceof BasePartsItem.Head || this instanceof BasePartsItem.Body || this instanceof BasePartsItem.Arm || this instanceof BasePartsItem.Legs) {
-            return PomkotsDataPackManager.getInstance().getDataPack().getPartsData(getPartsSeriesName() + getPartsCategory());
+            return PomkotsDataPackManager.getInstance().getDataPack().getPartsData(getPartsSeriesName() + getPartsCategory().getString());
         } else {
             return PomkotsDataPackManager.getInstance().getDataPack().getPartsData(getPartsSeriesName());
         }
@@ -238,42 +312,54 @@ public abstract class BasePartsItem extends Item implements GeoItem {
         return data.bulletsPerMagazine;
     }
 
+    public int getEnergyConsumePerTick(ItemStack stack) {
+        var data = getLevelData(stack, getPartsData());
+        return data.energyConsumePerTick;
+    }
+
     @Override
     public void appendHoverText(ItemStack stack, Level world, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, world, tooltip, flag);
 
         // ツールチップに情報を追加
         tooltip.add(Component.literal(getAdditionalDescription(stack)).withStyle(ChatFormatting.BLUE));
-        tooltip.add(Component.literal("Level: " + getLevel(stack)).withStyle(ChatFormatting.WHITE));
-        tooltip.add(Component.literal("Weight: " + String.format("%d", getWeight(stack))).withStyle(ChatFormatting.WHITE));
+        tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.level}") + ": " + getLevel(stack)).withStyle(ChatFormatting.WHITE));
+        tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.weight}") + ": " + String.format("%d", getWeight(stack))).withStyle(ChatFormatting.WHITE));
 
         if (this instanceof Weapon) {
-            tooltip.add(Component.literal("Attack: " + String.format("%.1f", getDamage(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.attack}") + ": " + String.format("%.1f", getDamage(stack))).withStyle(ChatFormatting.WHITE));
 
-            if ("missile".equals(getWeaponCategory())) {
-                tooltip.add(Component.literal("Max Missile Num: " + String.format("%d", getMissileMaxNum(stack))).withStyle(ChatFormatting.WHITE));
-                tooltip.add(Component.literal("Lock Interval: " + String.format("%.1f", getMissileLockInterval(stack))).withStyle(ChatFormatting.WHITE));
+            if (WeaponCategory.MISSILE == getWeaponCategory()) {
+                tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.maxmissilenum}") + ": " + String.format("%d", getMissileMaxNum(stack))).withStyle(ChatFormatting.WHITE));
+                tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.lockinterval}") + ": " + String.format("%.1f", getMissileLockInterval(stack))).withStyle(ChatFormatting.WHITE));
             }
         } else if (this instanceof Generator) {
-            tooltip.add(Component.literal("Max Energy: " + String.format("%d", getMaxEnergy(stack))).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.literal("Energy Charge / Tick: " + String.format("%d", getEnergyChargePerTick(stack))).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.literal("Work Sec / Fuel: " + String.format("%d", getWorkSecPerFuel(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.maxenergy}") + ": " + String.format("%d", getMaxEnergy(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.enchargepertick}") + ": " + String.format("%d", getEnergyChargePerTick(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.worksecperfuel}") + ": " + String.format("%d", getWorkSecPerFuel(stack))).withStyle(ChatFormatting.WHITE));
 
         } else if (this instanceof Booster) {
-            tooltip.add(Component.literal("Speed Modifier Evasion: " + String.format("%.1f", getSpeedModifierEvasion(stack))).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.literal("Speed Modifier Vertical: " + String.format("%.1f", getSpeedModifierVertical(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.speedmodevasion}") + ": " + String.format("%.1f", getSpeedModifierEvasion(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.speedmodvertical}") + ": " + String.format("%.1f", getSpeedModifierVertical(stack))).withStyle(ChatFormatting.WHITE));
 
-            tooltip.add(Component.literal("Energy Consume Evasion: " + String.format("%d", getEnergyConsumeEvasion(stack))).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.literal("Energy Consume Vertical: " + String.format("%d", getEnergyConsumeVertical(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.enconsumeevasion}") + ": " + String.format("%d", getEnergyConsumeEvasion(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.enconsumevertical}") + ": " + String.format("%d", getEnergyConsumeVertical(stack))).withStyle(ChatFormatting.WHITE));
+
+        } else if (this instanceof SBUnitProtoTypeItem) {
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.enconsumepertick}") + ": " + String.format("%d", getEnergyConsumePerTick(stack))).withStyle(ChatFormatting.WHITE));
 
         } else if (this instanceof MechParts){
-            tooltip.add(Component.literal("Durability: " + String.format("%d", getDurability(stack))).withStyle(ChatFormatting.WHITE));
-            if ("legs".equals(getPartsCategory())) {
-                tooltip.add(Component.literal("Max Weight: " + String.format("%d", getMaxWeight(stack))).withStyle(ChatFormatting.WHITE));
-                tooltip.add(Component.literal("Speed: " + String.format("%.1f", getSpeedModifier(stack))).withStyle(ChatFormatting.WHITE));
-                tooltip.add(Component.literal("Jump Speed: " + String.format("%.1f", getJumpModifier(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.durability}") + ": " + String.format("%d", getDurability(stack))).withStyle(ChatFormatting.WHITE));
+            if (PartsCategory.LEGS == getPartsCategory()) {
+                tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.maxweight}") + ": " + String.format("%d", getMaxWeight(stack))).withStyle(ChatFormatting.WHITE));
+                tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.speed}") + ": " + String.format("%.1f", getSpeedModifier(stack))).withStyle(ChatFormatting.WHITE));
+                tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.jumpspeed}") + ": " + String.format("%.1f", getJumpModifier(stack))).withStyle(ChatFormatting.WHITE));
             }
         }
+    }
+
+    private String getLocalizedString(String id) {
+        return Utils.string2Component(id).getString();
     }
 
     public String getDefaultColor() {
@@ -291,9 +377,10 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "head";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.HEAD;
         }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
         public boolean isFullCovered() {
             return false;
         }
@@ -304,8 +391,13 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "body";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.BODY;
+        }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
+
+        public float getNeckPos() {
+            return 0F;
         }
     }
 
@@ -314,9 +406,10 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "arm";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.ARM;
         }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
     }
 
     public static abstract class Legs extends MechParts {
@@ -324,9 +417,10 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "legs";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.LEGS;
         }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
     }
 
     public static abstract class Generator extends MechParts {
@@ -334,9 +428,10 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "generator";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.GENERATOR;
         }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
     }
 
     public static abstract class Booster extends MechParts {
@@ -344,9 +439,10 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "booster";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.BOOSTER;
         }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
     }
 
     public static abstract class Extension extends BasePartsItem {
@@ -354,9 +450,10 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "extension";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.EXTENSION;
         }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
     }
 
     public static abstract class Magazine extends BasePartsItem {
@@ -364,9 +461,10 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "magazine";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.MAGAZINE;
         }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
     }
 
     public static abstract class Fuel extends BasePartsItem {
@@ -374,18 +472,35 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             super(properties);
         }
 
-        public String getPartsCategory() {
-            return "fuel";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.FUEL;
         }
+        public WeaponCategory getWeaponCategory() {return WeaponCategory.NONE;}
     }
 
     public static interface WeaponInterface {
-        public static final String ATTACH_POINT_HAND = "hand";
-        public static final String ATTACH_POINT_ARM = "arm";
-        public static final String ATTACH_POINT_SHOULDER = "shoulder";
+        public enum WeaponAttachPoint {
+            ATTACH_POINT_HAND("hand"),
+            ATTACH_POINT_ARM("arm"),
+            ATTACH_POINT_SHOULDER("shoulder"),
+            ATTACH_POINT_ALL("all");
+
+            private final String text;
+            private WeaponAttachPoint(final String text) {
+                this.text = text;
+            }
+
+            public String getString() {
+                return this.text;
+            }
+        };
+
+//        public static final String ATTACH_POINT_HAND = "hand";
+//        public static final String ATTACH_POINT_ARM = "arm";
+//        public static final String ATTACH_POINT_SHOULDER = "shoulder";
 
         public void tickWeaponInAction(ActionWeapon.WeaponMechInterface context, int tick, boolean isOnFire);
-        public String getWeaponAttachPoint();
+        public WeaponAttachPoint getWeaponAttachPoint();
         public Motion getMotion();
         public int getCoolTime();
         public int maxMultiLockNum();
@@ -395,6 +510,9 @@ public abstract class BasePartsItem extends Item implements GeoItem {
         default public void endUsing(ActionWeapon.WeaponMechInterface context) {
         }
         default public boolean isMatchAmmo(Magazine mag) {
+            return false;
+        }
+        default public boolean isToggleOn(ActionWeapon.WeaponMechInterface context) {
             return false;
         }
     }
@@ -421,8 +539,8 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             //NOP
         }
 
-        public String getPartsCategory() {
-            return "weapon";
+        public PartsCategory getPartsCategory() {
+            return PartsCategory.WEAPON;
         }
     }
 

@@ -1,0 +1,7 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "pomkotsmechs:item/mech_capsule",
+    "layer1": "pomkotsmechs:item/mech_capsule_spots"
+  }
+}

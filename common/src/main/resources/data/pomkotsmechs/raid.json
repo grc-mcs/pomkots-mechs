@@ -1,0 +1,602 @@
+{
+  "yellow_cube_boss_activate": {
+    "type": "activate",
+    "display_name": "殲滅戦",
+    "waves": [
+      {
+        "title": "Boss Awaken!",
+        "sub_title": "制限時間内に活性化したBossを殲滅せよ！",
+        "duration_ticks": 1200
+      }
+    ]
+  },
+  "yellow_cube_mini": {
+    "type": "sweep",
+    "display_name": "殲滅戦",
+    "advancement":"pomkotsmechs:pomkots_mechs/raid_01",
+    "waves": [
+      {
+        "title": "Sweep Mission",
+        "sub_title": "制限時間内に周囲に発生した敵性Mechを殲滅せよ！",
+        "duration_ticks": 2400,
+        "events": [
+          {
+            "id": "w_01",
+            "type": "spawn_random",
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "message": "なんかいっぱいわいた！",
+            "amount": 5,
+            "range_x": 8,
+            "range_y": 2,
+            "range_z": 8,
+            "spawn_mobs_in_closed_area": true,
+            "spawn_targets": [
+              {"mob_type": "pomkotsmechs:pmss01"},
+              {"mob_type": "pomkotsmechs:pmss02"},
+              {"mob_type": "pomkotsmechs:pmss03"}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "yellow_cube_default": {
+    "type": "sweep",
+    "display_name": "殲滅戦",
+    "waves": [
+      {
+        "title": "Sweep Mission",
+        "sub_title": "制限時間内に周囲に発生した敵性Mechを殲滅せよ！",
+        "duration_ticks": 1200,
+        "events": [
+          {
+            "id": "w_01",
+            "type": "spawn_random",
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "message": "なんかいっぱいわいた！",
+            "amount": 5,
+            "range_x": 100,
+            "range_y": 20,
+            "range_z": 100,
+            "spawn_targets": [
+              {"mob_type": "pomkotsmechs:pms02"},
+              {"mob_type": "pomkotsmechs:pms04"},
+              {"mob_type": "pomkotsmechs:pms05"},
+              {"mob_type": "pomkotsmechs:pms06"},
+              {"mob_type": "pomkotsmechs:pms09"},
+              {"mob_type": "pomkotsmechs:pms08"}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "yellow_cube_survive": {
+    "display_name": "Survive",
+    "type": "survive",
+    "waves": [
+      {
+        "title": "Survival Mission",
+        "sub_title": "敵に発見された！60秒間生き残れ！",
+        "duration_ticks": 1200,
+        "events": [
+          {
+            "id": "w_01",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "force_end_wave_when_killed_all": true,
+            "message": "COM: Mech dropships inbound from all directions. Good luck.",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "-200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,200",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,-200",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "yellow_cube_boss": {
+    "type": "sweep_boss_box",
+    "display_name": "殲滅戦",
+    "waves": [
+      {
+        "title": "Boss Mission",
+        "sub_title": "制限時間内に周囲に発生したBossを殲滅せよ！",
+        "duration_ticks": 2400,
+        "events": [
+
+          {
+            "id": "w_01",
+            "type": "spawn_random",
+            "trigger_type": "time",
+            "trigger_tick": 10,
+            "message": "やべーの来た！",
+            "amount": 1,
+            "range_x": 1,
+            "range_y": 1,
+            "range_z": 1,
+            "spawn_targets": [
+              {"mob_type": "pomkotsmechs:bossbox"}
+            ]
+          },
+          {
+            "id": "w_01",
+            "type": "spawn_random",
+            "trigger_type": "time",
+            "trigger_tick": 30,
+            "amount": 1,
+            "range_x": 1,
+            "range_y": 1,
+            "range_z": 1,
+            "spawn_targets": [
+              {"mob_type": "pomkotsmechs:pmb02"},
+              {"mob_type": "pomkotsmechs:pmb03"},
+              {"mob_type": "pomkotsmechs:pmb04"}
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "raid_01": {
+    "type": "defense",
+    "display_name": "ボス襲撃戦：序章",
+    "waves": [
+      {
+        "title": "Final Wave",
+        "sub_title": "2分間、ボスから拠点を守れ！！",
+        "duration_ticks": 1200,
+        "events": [
+          {
+            "id": "w_01",
+            "type": "spawn",
+            "last_event": true,
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "force_end_wave_when_killed_all": true,
+            "message": "北の方向からボスが接近している！急行してくれ！",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,-100",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb03\"}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "raid_02": {
+    "display_name": "ボス襲撃戦：Chapter 2",
+    "type": "defense",
+    "waves": [
+      {
+        "title": "Wave 01",
+        "sub_title": "2分間、敵性Mechから拠点を守れ！",
+        "duration_ticks": 2400,
+        "events": [
+          {
+            "id": "w_01",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "message": "東と西の方向から敵のMob輸送機が接近している！！急行してくれ！",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "-200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms01\",\"pomkotsmechs:pms01\",\"pomkotsmechs:pms03\", \"pomkotsmechs:pms04\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\", \"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          },
+          {
+            "id": "w_02",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 1200,
+            "message": "東の方向から敵の大型Mech輸送機が接近している！！急行してくれ！",
+            "force_end_wave_when_killed_all": true,
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb03\", \"pomkotsmechsMonsterHealthModifier\": 0.5}",
+                "tags": {
+                  "pomkotsmechsMonsterHealthModifier": 0.1
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Interval",
+        "sub_title": "今のうちに準備だ！",
+        "duration_ticks": 600,
+        "events": [
+        ]
+      },
+      {
+        "title": "Wave 02",
+        "sub_title": "4分間、大型Mech達から拠点を守れ！！",
+        "duration_ticks": 4800,
+        "events": [
+          {
+            "id": "e_01",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "message": "北の方向から敵の大型Mech輸送機が接近している！！急行してくれ！",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,-200",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb04\", \"pomkotsmechsMonsterHealthModifier\": 0.5}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          },
+          {
+            "id": "e_02",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 2400,
+            "message": "南の方向から敵の大型Mech輸送機が接近している！！急行してくれ！",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,-200",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb07\", \"pomkotsmechsMonsterHealthModifier\": 0.5}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          },
+          {
+            "id": "e_03",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 3600,
+            "message": "東の方向から敵の大型Mech輸送機が接近している！！急行してくれ！",
+            "force_end_wave_when_killed_all": true,
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb01mk2\", \"pomkotsmechsMonsterHealthModifier\": 0.5}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Interval",
+        "sub_title": "今のうちに準備だ！",
+        "duration_ticks": 600,
+        "events": [
+        ]
+      },
+      {
+        "title": "Final Wave",
+        "sub_title": "4分間、大型Mech達から拠点を守れ！！",
+        "duration_ticks": 4800,
+        "events": [
+          {
+            "id": "e_01",
+            "type": "spawn",
+            "last_event": true,
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "force_end_wave_when_killed_all": true,
+            "message": "3方向からの同時襲撃だ！！気合で乗り切ってくれ！",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,-200",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb04\", \"pomkotsmechsMonsterHealthModifier\": 0.5}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb07\", \"pomkotsmechsMonsterHealthModifier\": 0.5}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,200",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb01mk2\", \"pomkotsmechsMonsterHealthModifier\": 0.5}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "raid_012": {
+  "display_name": "ボス襲撃戦：Chapter 2",
+  "type": "defense",
+  "waves": [
+    {
+      "title": "Wave 01",
+      "sub_title": "2分間、敵性Mechから拠点を守れ！",
+      "duration_ticks": 2400,
+      "events": [
+        {
+          "id": "w_01",
+          "type": "spawn",
+          "trigger_type": "time",
+          "trigger_tick": 20,
+          "message": "西の方向から敵のMob輸送機が接近している！！急行してくれ！",
+          "spawn_targets": [
+            {
+              "mob_type": "pomkotsmechs:pmc01",
+              "position": "-200,100,0",
+              "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms01\",\"pomkotsmechs:pms01\",\"pomkotsmechs:pms03\", \"pomkotsmechs:pms04\"]}",
+              "tags": {
+                "minecraft:nbt1": "value"
+              }
+            }
+          ]
+        },
+        {
+          "id": "w_02",
+          "type": "spawn",
+          "trigger_type": "time",
+          "trigger_tick": 1200,
+          "message": "東の方向から敵の大型Mech輸送機が接近している！！急行してくれ！",
+          "force_end_wave_when_killed_all": true,
+          "spawn_targets": [
+            {
+              "mob_type": "pomkotsmechs:pmc01",
+              "position": "200,100,0",
+              "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms02\",\"pomkotsmechs:pms01\",\"pomkotsmechs:pms05\",\"pomkotsmechs:pms05\"]}",
+              "tags": {
+                "minecraft:nbt1": "value"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Wave 02",
+      "sub_title": "2分間、大量の敵性Mechから拠点を守れ！！",
+      "duration_ticks": 1200,
+      "events": [
+        {
+          "id": "w_01",
+          "type": "spawn",
+          "trigger_type": "time",
+          "trigger_tick": 20,
+          "message": "全方位から敵の輸送機が接近している！気合で乗り切ってくれ！！！",
+          "spawn_targets": [
+            {
+              "mob_type": "pomkotsmechs:pmc01",
+              "position": "200,100,0",
+              "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms03\",\"pomkotsmechs:pms04\"]}",
+              "tags": {
+                "minecraft:nbt1": "value"
+              }
+            },
+            {
+              "mob_type": "pomkotsmechs:pmc01",
+              "position": "-200,100,0",
+              "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms04\",\"pomkotsmechs:pms03\"]}",
+              "tags": {
+                "minecraft:nbt1": "value"
+              }
+            },
+            {
+              "mob_type": "pomkotsmechs:pmc01",
+              "position": "0,100,200",
+              "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms05\",\"pomkotsmechs:pms05\"]}",
+              "tags": {
+                "minecraft:nbt1": "value"
+              }
+            },
+            {
+              "mob_type": "pomkotsmechs:pmc01",
+              "position": "0,100,-200",
+              "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms02\",\"pomkotsmechs:pms01\"]}",
+              "tags": {
+                "minecraft:nbt1": "value"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Final Wave",
+      "sub_title": "2分間、ボスから拠点を守れ！！",
+      "duration_ticks": 1200,
+      "events": [
+        {
+          "id": "w_01",
+          "type": "spawn",
+          "last_event": true,
+          "trigger_type": "time",
+          "trigger_tick": 20,
+          "force_end_wave_when_killed_all": true,
+          "message": "北の方向からボスが接近している！急行してくれ！",
+          "spawn_targets": [
+            {
+              "mob_type": "pomkotsmechs:pmc01",
+              "position": "0,100,-200",
+              "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmb03\"}",
+              "tags": {
+                "minecraft:nbt1": "value"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+},
+  "raid_survival_02": {
+    "display_name": "敵に発見された！！気合で生き残れ！！",
+    "type": "survive",
+    "waves": [
+      {
+        "title": "Wave 01",
+        "sub_title": "1分間生き残れ！！",
+        "duration_ticks": 1200,
+        "events": [
+          {
+            "id": "w_01",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "force_end_wave_when_killed_all": true,
+            "message": "西の方向から敵のMob輸送機が接近しているぞ！！気をつけろ！！",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "-200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms03\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "raid_survival_01": {
+    "display_name": "Mission Start",
+    "type": "survive",
+    "waves": [
+      {
+        "title": "Survive 1 minute",
+        "sub_title": "",
+        "duration_ticks": 1200,
+        "events": [
+          {
+            "id": "w_01",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 20,
+            "message": "COM: A mech dropship is approaching from the west. Stay alert.",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "-200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\", \"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          },
+          {
+            "id": "w_02",
+            "type": "spawn",
+            "trigger_type": "time",
+            "trigger_tick": 600,
+            "force_end_wave_when_killed_all": true,
+            "message": "COM: Mech dropships inbound from all directions. Good luck.",
+            "spawn_targets": [
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "-200,100,0",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,200",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              },
+              {
+                "mob_type": "pomkotsmechs:pmc01",
+                "position": "0,100,-200",
+                "snbt": "{\"pomkotsmechsContainerType\":\"pomkotsmechs:pmc02\",\"pomkotsmechsSpawnTargetMobs\":[\"pomkotsmechs:pms08\",\"pomkotsmechs:pms08\"]}",
+                "tags": {
+                  "minecraft:nbt1": "value"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

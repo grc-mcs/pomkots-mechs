@@ -1,0 +1,13 @@
+{
+    "type": "minecraft:chest",
+    "pools": [
+      {
+        "rolls": 5,
+        "entries": [
+          { "type": "item", "name": "minecraft:iron_ingot", "weight": 5 },
+          { "type": "item", "name": "pomkotsmechs:mashu", "weight": 1 },
+          { "type": "item", "name": "pomkotsmechs:shinobazu", "weight": 1 }
+        ]
+      }
+    ]
+}

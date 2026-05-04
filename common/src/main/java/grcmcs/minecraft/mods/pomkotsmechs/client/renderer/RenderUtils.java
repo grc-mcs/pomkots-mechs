@@ -2,17 +2,318 @@ package grcmcs.minecraft.mods.pomkotsmechs.client.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.math.Axis;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.TargetLocker;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.BaseSmallMonsterEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
+import org.joml.Vector3d;
 
 public class RenderUtils {
+
+    public static void renderAdditionalHud2(
+            PomkotsVehicleBase entity,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            EntityRenderDispatcher erd,
+            float heightOffset) {
+        Minecraft client = Minecraft.getInstance();
+
+        if (!client.options.hideGui) {
+            double distance = client.gameRenderer.getMainCamera().getPosition().distanceTo(entity.position());
+            if (distance > 64 * 64) {
+                return;
+            }
+
+            if (!entity.equals(client.player.getVehicle())) {
+                if (PomkotsMechs.CONFIG.enableHudHealthBar) {
+                    renderVehicleBars(entity, poseStack, bufferSource, erd, heightOffset);
+                }
+            }
+        }
+    }
+
+    public static void renderVehicleBars(
+            PomkotsVehicleBase entity,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            EntityRenderDispatcher erd,
+            float heightOffset
+    ) {
+        Minecraft client = Minecraft.getInstance();
+
+        if (client.options.hideGui) {
+            return;
+        }
+
+        poseStack.pushPose();
+
+        // 頭の上
+        poseStack.translate(0.0, entity.getBbHeight() + heightOffset, 0.0);
+
+        // カメラ向き
+        poseStack.mulPose(erd.cameraOrientation());
+
+        // ===== 距離補正スケール =====
+        Vec3 camPos = erd.camera.getPosition();
+        double dist = camPos.distanceTo(entity.position());
+
+        // ここが肝
+        float baseScale = 0.002f;
+        float scale = (float) (baseScale * dist);
+        scale = Math.min(scale, 0.1F);
+        poseStack.scale(-scale, -scale, scale);
+
+        PoseStack.Pose pose = poseStack.last();
+
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.debugQuads());
+
+        float barWidth = 40f;
+        float barHeight = 3f;
+        float gap = 3f;
+
+        // ===== 値（仮）=====
+        float hpRatio = entity.getHealth() / entity.getMaxHealth();
+//        float spRatio = Math.min(entity.getStunPoint(), 100) / 100F;
+
+        // Y位置
+        float hpY = -(barHeight + gap);
+        float spY = 0;
+
+        // HPバー
+        drawBar(vc, pose, barWidth, barHeight, hpY, hpRatio,
+                0, 0, 0,
+                224, 224, 224);
+
+//        // 特殊ゲージ
+//        if (entity.isStunning()) {
+//            drawBar(vc, pose, barWidth, barHeight, spY, spRatio,
+//                    0, 0, 0,
+//                    128, 0, 0);
+//        } else {
+//            drawBar(vc, pose, barWidth, barHeight, spY, spRatio,
+//                    0, 0, 0,
+//                    224, 224, 224);
+//        }
+
+        poseStack.popPose();
+    }
+
+    public static void renderBossBars(
+            BaseBossEntity entity,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            EntityRenderDispatcher erd,
+            float heightOffset
+    ) {
+        Minecraft client = Minecraft.getInstance();
+
+        if (entity.getAiMode() == BaseBossEntity.AI_MODE_INACTIVE || client.options.hideGui) {
+            return;
+        }
+
+        poseStack.pushPose();
+
+        // 頭の上
+        poseStack.translate(0.0, entity.getBbHeight() + heightOffset, 0.0);
+
+        // カメラ向き
+        poseStack.mulPose(erd.cameraOrientation());
+
+        // ===== 距離補正スケール =====
+        Vec3 camPos = erd.camera.getPosition();
+        double dist = camPos.distanceTo(entity.position());
+
+        // ここが肝
+        float baseScale = 0.002f;
+        float scale = (float) (baseScale * dist);
+        poseStack.scale(-scale, -scale, scale);
+
+        PoseStack.Pose pose = poseStack.last();
+
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.debugQuads());
+
+        float barWidth = 40f;
+        float barHeight = 3f;
+        float gap = 3f;
+
+        // ===== 値（仮）=====
+        float hpRatio = entity.getHealth() / entity.getMaxHealth();
+        float spRatio = Math.min(entity.getStunPoint(), BaseBossEntity.STUN_STUN_START) / (float)BaseBossEntity.STUN_STUN_START;
+
+        // Y位置
+        float hpY = -(barHeight + gap);
+        float spY = 0;
+
+        // HPバー
+        drawBar(vc, pose, barWidth, barHeight, hpY, hpRatio,
+                0, 0, 0,
+                224, 224, 224);
+
+        // 特殊ゲージ
+        if (entity.isStunning()) {
+            drawBar(vc, pose, barWidth, barHeight, spY, spRatio,
+                    0, 0, 0,
+                    128, 0, 0);
+        } else {
+            drawBar(vc, pose, barWidth, barHeight, spY, spRatio,
+                    0, 0, 0,
+                    224, 224, 224);
+        }
+
+        poseStack.popPose();
+    }
+
+    public static void renderMobBars(
+            GenericPomkotsMonster entity,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            EntityRenderDispatcher erd,
+            float heightOffset
+    ) {
+        Minecraft client = Minecraft.getInstance();
+
+        if (client.options.hideGui) {
+            return;
+        }
+
+        poseStack.pushPose();
+
+        // 頭の上
+        poseStack.translate(0.0, entity.getBbHeight() + heightOffset, 0.0);
+
+        // カメラ向き
+        poseStack.mulPose(erd.cameraOrientation());
+
+        // ===== 距離補正スケール =====
+        Vec3 camPos = erd.camera.getPosition();
+        double dist = camPos.distanceTo(entity.position());
+
+        // ここが肝
+        float baseScale = 0.002f;
+        float scale = (float) (baseScale * dist);
+        poseStack.scale(-scale, -scale, scale);
+
+        PoseStack.Pose pose = poseStack.last();
+
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.debugQuads());
+
+        float barWidth = 20f;
+        float barHeight = 3f;
+        float gap = 3f;
+
+        // ===== 値（仮）=====
+        float hpRatio = entity.getHealth() / entity.getMaxHealth();
+
+        // Y位置
+        float hpY = -(barHeight + gap);
+
+        // HPバー
+        drawBar(vc, pose, barWidth, barHeight, hpY, hpRatio,
+                0, 0, 0,
+                224, 224, 224);
+
+        poseStack.translate(0.0, -15, 0.0);
+
+        if (entity.isInEvent()) {
+            VertexConsumer vc2 =
+                    bufferSource.getBuffer(NO_DEPTH_TRIANGLES);
+            triangle(
+                    vc2,
+                    pose,
+                    7F,
+                    0F,
+                    255, 0, 0, 255
+            );
+        }
+
+        poseStack.popPose();
+    }
+
+    private static void triangle(
+            VertexConsumer vc,
+            PoseStack.Pose pose,
+            float size,
+            float z,
+            int r, int g, int b, int a
+    ) {
+        vc.vertex(pose.pose(), 0, size/2, z).color(r,g,b,a).endVertex();
+        vc.vertex(pose.pose(), -size, -size/2, z).color(r,g,b,a).endVertex();
+        vc.vertex(pose.pose(), size, -size/2, z).color(r,g,b,a).endVertex();
+    }
+
+    public static final RenderType NO_DEPTH_TRIANGLES =
+            RenderType.create(
+                    "no_depth_triangles",
+                    DefaultVertexFormat.POSITION_COLOR,
+                    VertexFormat.Mode.TRIANGLES,
+                    131072,
+                    false,
+                    true,
+                    RenderType.CompositeState.builder()
+                            .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
+                            .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                            .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
+                            .setCullState(RenderStateShard.NO_CULL)
+                            .createCompositeState(false)
+            );
+
+    private static void drawBar(
+            VertexConsumer vc,
+            PoseStack.Pose pose,
+            float width,
+            float height,
+            float y,
+            float ratio,
+            int bgR, int bgG, int bgB,
+            int fgR, int fgG, int fgB
+    ) {
+        ratio = Mth.clamp(ratio, 0f, 1f);
+
+        float left = -width;
+        float right = width;
+        float filledRight = left + (right - left) * ratio;
+
+        // ===== 背景 =====
+        quad(vc, pose, left, y, right, y + height, 1F, bgR, bgG, bgB, 128);
+
+        // ===== 中身 =====
+        quad(vc, pose, left, y, filledRight, y + height, -1F, fgR, fgG, fgB, 253);
+    }
+
+    private static void quad(
+            VertexConsumer vc,
+            PoseStack.Pose pose,
+            float x1, float y1,
+            float x2, float y2,
+            float z,
+            int r, int g, int b, int a
+    ) {
+        vc.vertex(pose.pose(), x1, y1, z).color(r, g, b, a).endVertex();
+        vc.vertex(pose.pose(), x1, y2, z).color(r, g, b, a).endVertex();
+        vc.vertex(pose.pose(), x2, y2, z).color(r, g, b, a).endVertex();
+        vc.vertex(pose.pose(), x2, y1, z).color(r, g, b, a).endVertex();
+    }
+
+    // ここから↓は旧バージョン互換用
 
     public static void renderAdditionalHud(PoseStack matrixStack, LivingEntity entity, Quaternionf rotation, MultiBufferSource buffer) {
         Minecraft client = Minecraft.getInstance();
@@ -24,9 +325,6 @@ public class RenderUtils {
             }
 
             if (!entity.equals(client.player.getVehicle())) {
-                // HUD側で二次元的に処理する事にしたので使わない
-//                renderTargetLock(matrixStack, entity, rotation, buffer);
-
                 if (PomkotsMechs.CONFIG.enableHudHealthBar) {
                     renderHealthBar(matrixStack, entity, rotation, buffer);
                 }
@@ -137,5 +435,38 @@ public class RenderUtils {
         buffer.vertex(poseStack.last().pose(), minX, maxY, 0).color(r, g, b, a).endVertex();
         buffer.vertex(poseStack.last().pose(), maxX, maxY, 0).color(r, g, b, a).endVertex();
         buffer.vertex(poseStack.last().pose(), maxX, minY, 0).color(r, g, b, a).endVertex();
+    }
+
+    public static void renderBlocks(BlockState state, Vector3d offset, Float yaw, PoseStack pose, MultiBufferSource buffer, int packedLight) {
+        BlockRenderDispatcher dispatcher =
+                Minecraft.getInstance().getBlockRenderer();
+
+        pose.pushPose();
+        pose.translate(offset.x, offset.y, offset.z);
+
+//        pose.translate(4.5, 0, 4.5);
+        pose.mulPose(Axis.YP.rotationDegrees(-yaw));
+//        pose.translate(-4.5, 0, -4.5);
+
+        for (int x = -4; x <= 4; x++) {
+            for (int y = -4; y <= 4; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    pose.pushPose();
+                    pose.translate(x, y, z);
+
+                    dispatcher.renderSingleBlock(
+                            state,
+                            pose,
+                            buffer,
+                            packedLight, // 明るさ最大
+                            OverlayTexture.NO_OVERLAY
+                    );
+
+                    pose.popPose();
+                }
+            }
+        }
+
+        pose.popPose();
     }
 }

@@ -32,7 +32,10 @@ public class SenzokuItem extends BasePartsItem.WeaponArm {
             for (int i = 0; i < bulletNum; i++) {
                 if (mechInterface.consumeAmmo(1)) {
                     if (!world.isClientSide()) {
-                        BulletMachineEntity be = new BulletMachineEntity(PomkotsMechs.BULLET_MACHINE.get(), world, mechInterface.getMechEntity(), this.getDamage(mechInterface.getItemStack()));
+                        BulletMachineEntity be = new BulletMachineEntity(
+                                PomkotsMechs.BULLET_MACHINE.get(), world,
+                                mechInterface.getMechEntity(),
+                                this.getDamage(mechInterface.getItemStack()));
 
                         var offset = mechInterface.getOffset();
 
@@ -43,11 +46,11 @@ public class SenzokuItem extends BasePartsItem.WeaponArm {
 
                         float[] angle = randomizeShootingAngle(mechInterface.getShootingAngle(be, true),30,mechInterface.getMechEntity().getRandom());
 
-                        be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), BattleBalance.MECH_MACHINEGUN_LARGE_SPEED, 1);
+                        be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 7, 1);
 
                         world.addFreshEntity(be);
                     } else if (i == 0){
-                        mechInterface.playSoundEffect(PomkotsMechs.SE_SHOTGUN.get());
+                        mechInterface.playSoundEffect(PomkotsMechs.SE_GUN_3.get());
                     }
                 }
             }
@@ -72,8 +75,13 @@ public class SenzokuItem extends BasePartsItem.WeaponArm {
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_HAND;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_HAND;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.RIFLE;
     }
 
     @Override

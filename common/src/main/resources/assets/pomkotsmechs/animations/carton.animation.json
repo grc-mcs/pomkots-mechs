@@ -1,0 +1,153 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.carton.idle": {
+			"loop": true,
+			"bones": {
+				"root": {
+					"rotation": {
+						"vector": [0, 0, 0]
+					},
+					"position": {
+						"vector": [0, 0, 0]
+					},
+					"scale": {
+						"vector": [1, 1, 1]
+					}
+				}
+			}
+		},
+		"animation.carton.use": {
+			"animation_length": 0.5,
+			"bones": {
+				"root": {
+					"rotation": {
+						"0.0": {
+							"vector": [-180, 0, 0]
+						},
+						"0.5": {
+							"vector": [-97.52832, -4.95712, 0.65426],
+							"easing": "easeInElastic"
+						}
+					},
+					"position": {
+						"vector": [5, -16, 1]
+					},
+					"scale": {
+						"0.0": {
+							"vector": [0.1, 0.1, 0.1]
+						},
+						"0.5": {
+							"vector": [2, 2, 2],
+							"easing": "easeInElastic"
+						}
+					}
+				}
+			}
+		},
+		"animation.carton.walking": {
+			"animation_length": 1,
+			"bones": {
+				"root": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0],
+							"easing": "linear"
+						},
+						"0.25": {
+							"vector": [0, 0, -7.5],
+							"easing": "linear"
+						},
+						"0.5": {
+							"vector": [0, 0, 0],
+							"easing": "linear"
+						},
+						"0.75": {
+							"vector": [0, 0, 10],
+							"easing": "linear"
+						},
+						"1.0": {
+							"vector": [0, 0, 0],
+							"easing": "linear"
+						}
+					},
+					"position": {
+						"0.0": {
+							"vector": [0, 0, 5]
+						},
+						"0.25": {
+							"vector": [0, 0, 5]
+						},
+						"0.5": {
+							"vector": [0, 0, 5]
+						},
+						"0.75": {
+							"vector": [0, 0, 5]
+						},
+						"1.0": {
+							"vector": [0, 0, 5]
+						}
+					},
+					"scale": {
+						"0.0": {
+							"vector": [2, 2, 2],
+							"easing": "linear"
+						},
+						"0.25": {
+							"vector": [2, 2, 2],
+							"easing": "linear"
+						},
+						"0.5": {
+							"vector": [2, 2, 2],
+							"easing": "linear"
+						},
+						"0.75": {
+							"vector": [2, 2, 2],
+							"easing": "linear"
+						},
+						"1.0": {
+							"vector": [2, 2, 2],
+							"easing": "linear"
+						}
+					}
+				}
+			}
+		},
+		"animation.carton.stopUsing": {
+			"animation_length": 0.5,
+			"bones": {
+				"root": {
+					"rotation": {
+						"0.0": {
+							"vector": [-97.52832, -4.95712, 0.65426],
+							"easing": "easeInElastic"
+						},
+						"0.5": {
+							"vector": [-180, 0, 0],
+							"easing": "easeInElastic"
+						}
+					},
+					"position": {
+						"0.0": {
+							"vector": [5, -16, 1]
+						},
+						"0.5": {
+							"vector": [5, -16, 1]
+						}
+					},
+					"scale": {
+						"0.0": {
+							"vector": [2, 2, 2],
+							"easing": "easeInElastic"
+						},
+						"0.5": {
+							"vector": [0.001, 0.001, 0.001],
+							"easing": "easeInElastic"
+						}
+					}
+				}
+			}
+		}
+	},
+	"geckolib_format_version": 2
+}

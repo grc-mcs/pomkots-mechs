@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "pomkotsmechs:block/custom_spawner" }
+  }
+}

@@ -1,0 +1,83 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.pomkotscube.open": {
+			"loop": "hold_on_last_frame",
+			"animation_length": 0.75,
+			"bones": {
+				"upper": {
+					"rotation": {
+						"0.5417": {
+							"vector": [0, 0, 0]
+						},
+						"0.75": {
+							"vector": [-42.5, 0, 0]
+						}
+					}
+				},
+				"key": {
+					"position": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.2083": {
+							"vector": [0, 0, -1]
+						},
+						"0.375": {
+							"vector": [0, 0, -1]
+						}
+					}
+				},
+				"keyl": {
+					"position": {
+						"0.2083": {
+							"vector": [0, 0, 0]
+						},
+						"0.375": {
+							"vector": [1, 0, 0]
+						}
+					}
+				},
+				"keyr": {
+					"position": {
+						"0.2083": {
+							"vector": [0, 0, 0]
+						},
+						"0.375": {
+							"vector": [-1, 0, 0]
+						}
+					}
+				}
+			}
+		},
+		"animation.pomkotscube.use": {
+			"loop": "hold_on_last_frame",
+			"animation_length": 0.75,
+			"bones": {
+				"lever": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.5": {
+							"vector": [85, 0, 0],
+							"easing": "easeInBounce"
+						},
+						"0.75": {
+							"vector": [0, 0, 0]
+						}
+					}
+				}
+			},
+			"sound_effects": {
+				"0.1667": {
+					"effect": "lever"
+				}
+			}
+		},
+		"animation.pomkotscube.idle": {
+			"loop": true
+		}
+	},
+	"geckolib_format_version": 2
+}

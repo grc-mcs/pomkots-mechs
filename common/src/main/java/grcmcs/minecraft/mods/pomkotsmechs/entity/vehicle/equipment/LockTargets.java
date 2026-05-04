@@ -1,7 +1,5 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment;
 
-import com.ibm.icu.impl.locale.XCldrStub;
-import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -72,6 +70,14 @@ public class LockTargets {
         return Collections.emptyList();
     }
 
+    public void syncTargetMulti(int slotSrc, int slotDst) {
+        var src = getLockTargetMulti(slotSrc);
+        var dst = getLockTargetMulti(slotDst);
+
+        dst.clear();
+        dst.addAll(src);
+    }
+
     public List<Entity> consumeTargetMulti(int slot) {
         var tgt = getLockTargetMulti(slot);
 
@@ -96,18 +102,19 @@ public class LockTargets {
 
     public void lockTargetMulti(Entity ent, int slot, Pmvc01Entity mech) {
         if (slot == Pmvc01Entity.INV_WEAPON_RIGHT_HAND) {
-            lockTargetMultiInternal(ent, lockTargetMRA, mech.getRightArmWeapon());
+            lockTargetMultiInternal(ent, lockTargetMRA, mech.getRightArmWeapon(), mech);
         } else if (slot == Pmvc01Entity.INV_WEAPON_LEFT_HAND) {
-            lockTargetMultiInternal(ent, lockTargetMLA, mech.getLeftArmWeapon());
+            lockTargetMultiInternal(ent, lockTargetMLA, mech.getLeftArmWeapon(), mech);
         } else if (slot == Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER) {
-            lockTargetMultiInternal(ent, lockTargetMRS, mech.getRightShoulderWeapon());
+            lockTargetMultiInternal(ent, lockTargetMRS, mech.getRightShoulderWeapon(), mech);
         } else if (slot == Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER) {
-            lockTargetMultiInternal(ent, lockTargetMLS, mech.getLeftShoulderWeapon());
+            lockTargetMultiInternal(ent, lockTargetMLS, mech.getLeftShoulderWeapon(), mech);
         }
     }
 
-    private void lockTargetMultiInternal(Entity ent, List<Entity> list, ItemStack stack) {
-        if (list.size() < Pmvc01Entity.getMultiLockTargetNum(stack)) {
+    private void lockTargetMultiInternal(Entity ent, List<Entity> list, ItemStack stack, Pmvc01Entity mech) {
+        // @JOKE
+        if (list.size() < Pmvc01Entity.getMultiLockTargetNum(stack) || mech.isGattai()) {
             list.add(ent);
         }
     }

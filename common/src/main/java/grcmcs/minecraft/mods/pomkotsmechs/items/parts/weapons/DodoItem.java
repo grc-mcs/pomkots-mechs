@@ -42,11 +42,16 @@ public class DodoItem extends BasePartsItem.WeaponShoulder{
                     var muzzlPos = new Vec3(1.4 * mechInterface.isRight(), 4.8F, 2F);
                     var worldMuzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
 
-                    MissileGenericLargeEntity be = new MissileGenericLargeEntity(PomkotsMechs.MISSILE_GENERIC_LARGE.get(), world, mechInterface.getMechEntity(), (LivingEntity) target, this.getDamage(mechInterface.getItemStack()), BattleBalance.MECH_MISSILE_GENERIC_SPEED);
+                    MissileGenericLargeEntity be = new MissileGenericLargeEntity(
+                            PomkotsMechs.MISSILE_GENERIC_LARGE.get(), world,
+                            mechInterface.getMechEntity(), (LivingEntity) target,
+                            this.getDamage(mechInterface.getItemStack()),
+                            BattleBalance.MECH_MISSILE_GENERIC_SPEED2);
 
                     be.setPos(offset.add(worldMuzzlPos));
 
-                    be.shootFromRotation(be, -80, mechInterface.getYRot(), mechInterface.getFallFlyingTicks(), BattleBalance.MECH_MISSILE_GENERIC_SPEED, 0F);
+                    be.shootFromRotation(be, -80, mechInterface.getYRot(), mechInterface.getFallFlyingTicks(),
+                            BattleBalance.MECH_MISSILE_GENERIC_SPEED2, 0F);
 
                     world.addFreshEntity(be);
 
@@ -97,8 +102,13 @@ public class DodoItem extends BasePartsItem.WeaponShoulder{
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_SHOULDER;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_SHOULDER;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.MISSILE;
     }
 
     @Override

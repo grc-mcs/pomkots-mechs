@@ -228,6 +228,58 @@ public abstract class Motion {
         }
     }.init();
 
+    public static Motion CIRCLE_BLADE = new Motion() {
+        public Motion init() {
+            maxActionTick = 19;
+            interval = -1;
+            actualFireTick = new HashSet<>();
+            actualFireTick.add(7);
+
+            return this;
+        }
+
+        @Override
+        public MotionType getType() {
+            return MotionType.ONE_SHOT;
+        }
+
+        @Override
+        public String getAnimationName(ActionWeapon act, String side) {
+            return "animation.pmv01.w_circle_blade_" + side;
+        }
+
+        @Override
+        public boolean concurrentAvailable() {
+            return false;
+        }
+    }.init();
+
+    public static Motion SHOULDER_BLADE = new Motion() {
+        public Motion init() {
+            maxActionTick = 19;
+            interval = -1;
+            actualFireTick = new HashSet<>();
+            actualFireTick.add(7);
+
+            return this;
+        }
+
+        @Override
+        public MotionType getType() {
+            return MotionType.ONE_SHOT;
+        }
+
+        @Override
+        public String getAnimationName(ActionWeapon act, String side) {
+            return "animation.pmv01.w_blade_shoulder_" + side;
+        }
+
+        @Override
+        public boolean concurrentAvailable() {
+            return true;
+        }
+    }.init();
+
     public static Motion YARI = new Motion() {
         public Motion init() {
             maxActionTick = 19;
@@ -420,6 +472,79 @@ public abstract class Motion {
         @Override
         public boolean concurrentAvailable() {
             return true;
+        }
+    }.init();
+
+    public static Motion ROAD_ROLLER = new Motion() {
+        public Motion init() {
+            maxActionTick = 21;
+            interval = 10;
+            actualFireTick = new HashSet<>();
+            actualFireTick.add(20);
+
+            return this;
+        }
+
+        @Override
+        public MotionType getType() {
+            return MotionType.CONTINUOUS;
+        }
+
+        @Override
+        public String getAnimationName(ActionWeapon act, String side) {
+            if (!act.isInFire()) {
+                return "animation.pmv01.w_roller1_" + side;
+            } else {
+                return "animation.pmv01.w_roller2_" + side;
+            }
+        }
+
+        @Override
+        public boolean concurrentAvailable() {
+            return false;
+        }
+    }.init();
+
+    public static Motion RAISE_THROW = new Motion() {
+        public Motion init() {
+            maxActionTick = 9;
+            interval = -1;
+            actualFireTick = new HashSet<>();
+            actualFireTick.add(4);
+
+            return this;
+        }
+
+        @Override
+        public MotionType getType() {
+            return MotionType.TOGGLE;
+        }
+
+        @Override
+        public String getAnimationName(ActionWeapon act, String side) {
+            var mech = act.getOwner();
+            if (mech != null) {
+                if (act.isInAction()) {
+                    if (act.isToggleOnStart()) {
+                        return "animation.pmv01.w_throw_1";
+                    } else {
+                        return "animation.pmv01.w_throw_3";
+                    }
+                } else {
+                    if (act.isToggleOn()) {
+                        return "animation.pmv01.w_throw_2";
+                    } else {
+                        return "animation.pmv01.idle";
+                    }
+                }
+            } else {
+                return "animation.pmv01.idle";
+            }
+        }
+
+        @Override
+        public boolean concurrentAvailable() {
+            return false;
         }
     }.init();
 }

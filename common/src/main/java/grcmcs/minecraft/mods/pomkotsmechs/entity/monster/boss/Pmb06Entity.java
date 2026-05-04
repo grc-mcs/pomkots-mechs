@@ -2,16 +2,16 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BossAerialDiveGoal;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.LaunchMobGoal;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossAttackGoal;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossWalkGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.BaseSmallMonsterEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletGrenadeEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletMachineEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEnemyEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
@@ -57,9 +57,11 @@ public class Pmb06Entity extends BaseBossEntity {
 
         actionController.registerAction("gen_mobs", new BossActionController.BossAction(200,35, this::generateMobs));
 
+        actionController.registerAction("gatling", new BossActionController.BossAction(40,5, this::gatlingAction));
         actionController.registerAction("small_canon", new BossActionController.BossAction(40,10, this::smallCanonAction));
         actionController.registerAction("large_canon", new BossActionController.BossAction(40,20, this::largeCanonAction));
         actionController.registerAction("missile", new BossActionController.BossAction(40,10, this::missileHorizontalAction));
+        actionController.registerAction("vmissile", new BossActionController.BossAction(40,10, this::missileVerticalAction));
 
         actionController.registerAction("hadoho", new BossActionController.BossAction(600,70, this::hadohoAction));
 
@@ -71,14 +73,14 @@ public class Pmb06Entity extends BaseBossEntity {
                 5
         );
         this.registerActionGoal(
-                new BossAerialDiveGoal(
-                        this,           // ボスエンティティ
-                        20,           // 必要な高度差
-                        3,           // 初動ジャンプ強度
-                        1,           // ブースター上昇速度
-                        2,           // 空中移動速度
-                        3.0,           // 急降下速度
-                        100            // 最大追跡時間
+                new BossAerialDiveGoal2(
+                        this,   // ボスエンティティ
+                        10,           // 必要な高度差（5ブロック以上低い時に発動）
+                        3,           // riseSpeed
+                        3,           // flySpeed
+                        3,           // diveSpeed
+                        20,           // targetHeight
+                        100            // 最大追跡時間（10秒）
                 ),
                 AI_MODE_ALL,
                 10
@@ -86,6 +88,11 @@ public class Pmb06Entity extends BaseBossEntity {
 
         this.registerActionGoal(
                 new LaunchMobGoal(actionController.getAction("gen_mobs"), this, false),
+                AI_MODE_ALL,
+                10
+        );
+        this.registerActionGoal(
+                new SimpleBossAttackGoal(actionController.getAction("gatling"), this, true, 10, true),
                 AI_MODE_ALL,
                 10
         );
@@ -100,13 +107,18 @@ public class Pmb06Entity extends BaseBossEntity {
                 10
         );
         this.registerActionGoal(
+                new SimpleBossAttackGoal(actionController.getAction("vmissile"), this, true, true),
+                new int[]{AI_MODE_BATTLE_PHASE_2, AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
+                10
+        );
+        this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("large_canon"), this, true, true),
                 new int[]{AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
                 10
         );
         this.registerActionGoal(
                 new SimpleBossAttackGoal(actionController.getAction("hadoho"), this, false),
-                new int[]{AI_MODE_BATTLE_PHASE_4},
+                new int[]{AI_MODE_BATTLE_PHASE_3, AI_MODE_BATTLE_PHASE_4},
                 10
         );
 
@@ -134,7 +146,7 @@ public class Pmb06Entity extends BaseBossEntity {
     public void tick() {
         if (this.isServerSide()) {
             if (this.firstTick) {
-                this.registerAdditionalHitBox(new BossHitBoxEntity(PomkotsMechs.HITBOX_PMB03.get(), this.level(), this));
+                this.registerAdditionalHitBox(new BossHitBoxEntity(PomkotsMechs.HITBOX_PMB06.get(), this.level(), this));
             }
 
             if (!spawnedMonsters.isEmpty()) {
@@ -148,77 +160,48 @@ public class Pmb06Entity extends BaseBossEntity {
                 this.setTargetEntityID(this.getTarget().getId());
             }
 
-            if (this.isMoving()) {
-                AABB bossBoundingBox = this.getBoundingBox().inflate(10, 0, 10);
+            if (this.isMoving() && Utils.isBlockDestructionAllowed(this)) {
+//                AABB bossBoundingBox = this.getBoundingBox().inflate(10, 0, 10);
 //                this.handleCollisionWithBlocks(bossBoundingBox);
 //                this.handleCollisionWithLivingEntities(bossBoundingBox);
+
+//                var b = getFrontDestroyAABB(this);
+//                destroyBlocksInBox((ServerLevel) level(), b);
             }
         }
 
         super.tick();
     }
 
-
-    protected boolean isMoving() {
-        var vel = this.getDeltaMovement();
-        return Mth.abs((float)vel.x) > 0 || Mth.abs((float)vel.z) > 0 || Mth.abs((float)vel.y) > 0;
-    }
-
-    protected void handleCollisionWithBlocks(AABB bossBoundingBox) {
-        // ロボットのAABBを取得
-        bossBoundingBox.setMaxY(bossBoundingBox.minY + 10);
-        bossBoundingBox.setMinY(bossBoundingBox.minY + 5);
-        breakBlocksInAABB(bossBoundingBox);
-    }
-
-    protected void breakBlocksInAABB(AABB aabb) {
-        // 範囲の座標を計算
-        int minX = Mth.floor(aabb.minX);
-        int maxX = Mth.floor(aabb.maxX);
-        int minZ = Mth.floor(aabb.minZ);
-        int maxZ = Mth.floor(aabb.maxZ);
-        int minY = Mth.floor(aabb.minY);
-        int maxY = Mth.floor(aabb.maxY);
-
-        // 範囲内のブロックをループ処理
-        for (int x = minX; x <= maxX; x++) {
-            for (int z = minZ; z <= maxZ; z++) {
-                for (int y = minY; y <= maxY; y++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    BlockState blockState = level().getBlockState(pos);
-
-                    // ブロックが破壊可能か確認
-                    if (!blockState.isAir()) {
-                        level().destroyBlock(pos, false, this);
-                    }
-                }
-            }
+    private void gatlingAction(BossActionController.BossAction action) {
+        var target = this.getTarget();
+        if (target == null) {
+            return;
         }
-    }
 
-    protected void handleCollisionWithLivingEntities(AABB bossBoundingBox) {
-        // ボスのAABB（現在の位置からの範囲）
-        bossBoundingBox = bossBoundingBox.setMaxY(this.getBoundingBox().minY + 3);
+        if (action.currentActionTick == 2) {
+            for (int side = -1; side < 2; side += 2) {
+                for (int r = 0; r < 3; r++) {
+                    BulletMachineEntity be = new BulletMachineEntity(
+                            PomkotsMechs.BULLET_MACHINE.get(), this.level(),
+                            this,
+                            getMechData().bulletDamage / 2);
+                    be.setNoGravity(true);
+                    be.setStunPoint(2);
 
-        List<LivingEntity> ents = this.level().getEntitiesOfClass(
-                LivingEntity.class, // Projectileエンティティのクラス
-                bossBoundingBox.inflate(1.0D), // 判定範囲を少し拡大
-                entity -> !(entity instanceof LivingEntity) // 削除されていないエンティティのみ
-        );
+                    var offset = this.position();
 
+                    var muzzlPos = new Vec3(12 * side, 22 + r * 2, 15);
+                    muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
 
-        for (LivingEntity ent : ents) {
-            if (bossBoundingBox.intersects(ent.getBoundingBox())) {
-                if (this.isSelf(ent)) {
-                    continue;
+                    be.setPos(offset.add(muzzlPos));
+
+                    float[] angle = Utils.getShootingAngle(be, target, true);
+
+                    be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
+
+                    this.level().addFreshEntity(be);
                 }
-
-                var kbVel = ent.position().vectorTo(this.position()).normalize();
-                DamageSource ds;
-                ds = this.damageSources().generic();
-
-                ent.knockback(4, kbVel.x, kbVel.z);
-                ent.hurt(ds, 20);
             }
         }
     }
@@ -241,19 +224,17 @@ public class Pmb06Entity extends BaseBossEntity {
 
                 var offset = this.position();
 
-                var muzzlPos = new Vec3(side * 2, 28, 15);
+                var muzzlPos = new Vec3(side * 2, 30, 15);
                 muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
 
                 be.setPos(offset.add(muzzlPos));
 
-                if (!Utils.isObstructed(this.level(), be, target)) {
-                    float[] angle = Utils.getShootingAngle(be, target, true);
+                float[] angle = Utils.getShootingAngle(be, target, true);
 
-                    be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
-                            getMechData().bulletSpeed, 0F);
+                be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
+                        getMechData().bulletSpeed, 0F);
 
-                    this.level().addFreshEntity(be);
-                }
+                this.level().addFreshEntity(be);
             }
         }
     }
@@ -271,23 +252,59 @@ public class Pmb06Entity extends BaseBossEntity {
             BulletGrenadeEntity be = new BulletGrenadeEntity(PomkotsMechs.BULLET_GRENADE.get(), this.level(), this,
                     getMechData().grenadeDamage);
             be.setNoGravity(true);
+            be.setExplosionScale(5);
 
             var offset = this.position();
 
             // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
 
-            var muzzlPos = new Vec3(0, 24, 15);
+            var muzzlPos = new Vec3(0, 30, 15);
             muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
 
             be.setPos(offset.add(muzzlPos));
 
-            if (!Utils.isObstructed(this.level(), be, target)) {
-                float[] angle = Utils.getShootingAngle(be, target, true);
+            float[] angle = Utils.getShootingAngle(be, target, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
-                        getMechData().grenadeSpeed, 0F);
+            be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(),
+                    getMechData().grenadeSpeed, 0F);
 
-                this.level().addFreshEntity(be);
+            this.level().addFreshEntity(be);
+        }
+    }
+
+    private void missileVerticalAction(BossActionController.BossAction action) {
+        var target = this.getTarget();
+        if (target == null) {
+            return;
+        }
+
+        if (action.onStartOfAction()) {
+            this.triggerAnim("action_controller", "missile");
+
+        } else if (action.currentActionTick == 2) {
+            for (int row = 0; row < 2; row++) {
+                for (int col = 0; col < 2; col++) {
+                    for (int side = -1; side < 2; side += 2) {
+                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
+                                getMechData().missileDamage, getMechData().missileSpeed);
+                        be.setMaxRotationAnglePerTick(2);
+                        be.setSwitchTick(16);
+                        be.setMaxLifeTick(150);
+
+                        var offset = this.position();
+                        var muzzlPos = new Vec3((10 + col * 2) * side , 40 + row * 2, 10);
+                        muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * this.getYRot()));
+
+                        be.setPos(offset.add(muzzlPos));
+
+                        float[] angle = Utils.getShootingAngle(be, target, true);
+
+                        be.shootFromRotation(be, -80, angle[1], this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
+
+                        this.level().addFreshEntity(be);
+                    }
+                }
             }
         }
     }
@@ -305,9 +322,11 @@ public class Pmb06Entity extends BaseBossEntity {
             for (int row = 0; row < 2; row++) {
                 for (int col = 0; col < 2; col++) {
                     for (int side = -1; side < 2; side += 2) {
-                        MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
+                        MissileGenericEnemyEntity be = new MissileGenericEnemyEntity(PomkotsMechs.MISSILE_GENERIC.get(), this.level(), this, target,
                                 getMechData().missileDamage, getMechData().missileSpeed);
                         be.setMaxRotationAnglePerTick(2);
+                        be.setSwitchTick(16);
+                        be.setMaxLifeTick(150);
 
                         var offset = this.position();
                         var muzzlPos = new Vec3((10 + col * 2) * side , 40 + row * 2, 10);
@@ -315,14 +334,12 @@ public class Pmb06Entity extends BaseBossEntity {
 
                         be.setPos(offset.add(muzzlPos));
 
-                        if (!Utils.isObstructed(this.level(), be, target)) {
-                            float[] angle = Utils.getShootingAngle(be, target, true);
+                        float[] angle = Utils.getShootingAngle(be, target, true);
 
-                            be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
-                                    getMechData().missileSpeed, 0F);
+                        be.shootFromRotation(be, angle[0], angle[1] - side * 30, this.getFallFlyingTicks(),
+                                getMechData().missileSpeed, 0F);
 
-                            this.level().addFreshEntity(be);
-                        }
+                        this.level().addFreshEntity(be);
                     }
                 }
             }
@@ -414,6 +431,10 @@ public class Pmb06Entity extends BaseBossEntity {
                         dir = getDirectionVector(this.getYRot(), this.getXRot()).normalize().scale(3 + spawnedCount);
                     }
                     mob.setDeltaMovement(dir.x, 1, dir.z);
+                    if (this.getTarget() != null) {
+                        mob.setTarget(this.getTarget());
+                    }
+//                    mob.setPersistence(true);
 
                     spawnedMonsters.add(mob.getUUID());
 
@@ -473,7 +494,7 @@ public class Pmb06Entity extends BaseBossEntity {
                 laserLookAtPos = targetPosHistory.get(targetPosHistory.size() - 6);
             }
             this.fireLaser(
-                    this.position().add(0, 3.6F, 0), // start pos
+                    this.position().add(0, this.getLaserHeight(), 0), // start pos
                     laserLookAtPos, // end pos
                     getMechData().laserDamage / 2, // damage
                     2 // explosion scale
@@ -486,7 +507,12 @@ public class Pmb06Entity extends BaseBossEntity {
     }
 
     public float getEyeHeight(Pose pose) {
-        return 3.6F;
+        return getLaserHeight();
+    }
+
+    private float getLaserHeight() {
+        return 5.5F;
+//        return 3.6F;
     }
 
     private Vec3 laserLookAtPos = Vec3.ZERO;
@@ -514,7 +540,7 @@ public class Pmb06Entity extends BaseBossEntity {
 
             } else if (explosionScale > 0) {
                 var pos = laserHitBlockPos;
-                this.level().explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
+                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK, this.level());
 
             }
         }
@@ -609,6 +635,16 @@ public class Pmb06Entity extends BaseBossEntity {
         }
     }
 
+    @Override
+    protected void onStun() {
+        this.triggerAnim("action_controller", "on_stun");
+    }
+
+    @Override
+    protected void offStun() {
+        this.triggerAnim("action_controller", "off_stun");
+    }
+
     public final AnimationController<Pmb06Entity> trigger = new AnimationController<>(this, "action_controller", state -> PlayState.STOP)
             .triggerableAnim("hadoho", RawAnimation.begin().thenPlay("animation.pmb03.hadoho_1").thenPlay("animation.pmb03.hadoho_2"))
             .triggerableAnim("small_canon", RawAnimation.begin().thenPlayXTimes("animation.pmb03.small_canon", 5))
@@ -619,9 +655,12 @@ public class Pmb06Entity extends BaseBossEntity {
             .triggerableAnim("jump", RawAnimation.begin().thenPlay("animation.pmb03.jump"))
             .triggerableAnim("onground", RawAnimation.begin().thenPlay("animation.pmb03.onground"))
             .triggerableAnim("boot", RawAnimation.begin().thenPlay("animation.pmb03.boot"))
+
+            .triggerableAnim("on_stun", RawAnimation.begin().thenPlay("animation.pmb03.hurt").thenPlayAndHold("animation.pmb03.down"))
+            .triggerableAnim("off_stun", RawAnimation.begin().thenPlay("animation.pmb03.up"))
             .setSoundKeyframeHandler(this::playSounds);
 
-    private final AnimationController<Pmb06Entity> base = new AnimationController<>(this, "basic_move", 1, event -> {
+    private final AnimationController<Pmb06Entity> base = new AnimationController<>(this, "basic_move", 0, event -> {
         if (!trigger.isPlayingTriggeredAnimation()) {
             if (this.getAiMode() == AI_MODE_INACTIVE) {
                 return event.setAndContinue(RawAnimation.begin().thenLoop("animation.pmb03.inactive"));
@@ -719,5 +758,116 @@ public class Pmb06Entity extends BaseBossEntity {
 
     public int getLaserLength() {
         return this.entityData.get(LASER_LENGTH);
+    }
+
+
+    protected boolean isMoving() {
+        var vel = this.getDeltaMovement();
+        return Mth.abs((float)vel.x) > 0 || Mth.abs((float)vel.z) > 0 || Mth.abs((float)vel.y) > 0;
+    }
+
+    public static AABB getFrontDestroyAABB(Entity e) {
+        Direction dir = e.getDirection();
+        double w = e.getBbWidth() + 10;
+        double h = e.getBbHeight();
+
+        double half = w / 2.0;
+        Vec3 pos = e.position();
+
+        switch (dir) {
+            case NORTH: // -Z
+                return new AABB(
+                        pos.x - half, pos.y, pos.z - 2.0,
+                        pos.x + half, pos.y + h, pos.z - 0.1
+                );
+
+            case SOUTH: // +Z
+                return new AABB(
+                        pos.x - half, pos.y, pos.z + 0.1,
+                        pos.x + half, pos.y + h, pos.z + 2.0
+                );
+
+            case WEST: // -X
+                return new AABB(
+                        pos.x - 2.0, pos.y, pos.z - half,
+                        pos.x - 0.1, pos.y + h, pos.z + half
+                );
+
+            case EAST: // +X
+                return new AABB(
+                        pos.x + 0.1, pos.y, pos.z - half,
+                        pos.x + 2.0, pos.y + h, pos.z + half
+                );
+        }
+
+        // 上下は使わないが一応
+        return new AABB(pos, pos);
+    }
+
+    public static void destroyBlocksInBox(ServerLevel level, AABB aabb) {
+        BlockPos.betweenClosedStream(aabb).forEach(pos -> {
+            if (!level.isEmptyBlock(pos)) {
+                Utils.destroyBlock(level, pos, false);
+            }
+        });
+    }
+
+    protected void handleCollisionWithBlocks(AABB bossBoundingBox) {
+        // ロボットのAABBを取得
+        bossBoundingBox.setMaxY(bossBoundingBox.minY + 13);
+        bossBoundingBox.setMinY(bossBoundingBox.minY + 3);
+        breakBlocksInAABB(bossBoundingBox);
+    }
+
+    protected void breakBlocksInAABB(AABB aabb) {
+        // 範囲の座標を計算
+        int minX = Mth.floor(aabb.minX);
+        int maxX = Mth.floor(aabb.maxX);
+        int minZ = Mth.floor(aabb.minZ);
+        int maxZ = Mth.floor(aabb.maxZ);
+        int minY = Mth.floor(aabb.minY);
+        int maxY = Mth.floor(aabb.maxY);
+
+        // 範囲内のブロックをループ処理
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                for (int y = minY; y <= maxY; y++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    BlockState blockState = level().getBlockState(pos);
+
+                    // ブロックが破壊可能か確認
+                    if (!blockState.isAir()) {
+                        Utils.destroyBlock(level(), pos, false);
+                    }
+                }
+            }
+        }
+    }
+
+    protected void handleCollisionWithLivingEntities(AABB bossBoundingBox) {
+        // ボスのAABB（現在の位置からの範囲）
+        bossBoundingBox = bossBoundingBox.setMaxY(this.getBoundingBox().minY + 3);
+
+        List<LivingEntity> ents = this.level().getEntitiesOfClass(
+                LivingEntity.class, // Projectileエンティティのクラス
+                bossBoundingBox.inflate(1.0D), // 判定範囲を少し拡大
+                entity -> !(entity instanceof LivingEntity) // 削除されていないエンティティのみ
+        );
+
+
+        for (LivingEntity ent : ents) {
+            if (bossBoundingBox.intersects(ent.getBoundingBox())) {
+                if (this.isSelf(ent)) {
+                    continue;
+                }
+
+                var kbVel = ent.position().vectorTo(this.position()).normalize();
+                DamageSource ds;
+                ds = this.damageSources().generic();
+
+                ent.knockback(4, kbVel.x, kbVel.z);
+                ent.hurt(ds, 20);
+            }
+        }
     }
 }

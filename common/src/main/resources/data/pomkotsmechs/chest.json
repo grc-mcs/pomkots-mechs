@@ -1,0 +1,26 @@
+{
+  "pomkotsmechs:pomkotscube/scattered/loot_yellow": {
+    "type": "raid",
+    "raid_id": "yellow_cube_default"
+  },
+  "pomkotsmechs:pomkotscube/scattered/loot_yellow_survive": {
+    "type": "raid",
+    "raid_id": "yellow_cube_survive"
+  },
+  "pomkotsmechs:pomkotscube/scattered/loot_yellow_mini": {
+    "type": "raid",
+    "raid_id": "yellow_cube_mini"
+  },
+  "pomkotsmechs:pomkotscube/scattered/loot_red": {
+    "type": "raid",
+    "raid_id": "yellow_cube_boss"
+  },
+  "pomkotsmechs:pomkotscube/scattered/loot_red_raid": {
+    "type": "raid",
+    "raid_id": "raid_01"
+  },
+  "pomkotsmechs:pomkotscube/scattered/loot_red_activate": {
+    "type": "raid",
+    "raid_id": "yellow_cube_boss_activate"
+  }
+}

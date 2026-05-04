@@ -1,5 +1,6 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,5 +71,9 @@ public class ActionController {
 
     public void setBoost(boolean b) {
         this.isDash = b;
+    }
+
+    public Collection<Action> getAllActions() {
+        return actionMap.values();
     }
 }

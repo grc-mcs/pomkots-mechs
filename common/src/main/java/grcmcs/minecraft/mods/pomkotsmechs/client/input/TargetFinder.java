@@ -1,5 +1,8 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.input;
 
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PlateEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -54,8 +57,12 @@ public class TargetFinder {
         AABB roughBox = createDirectionalAABB(eyePos, lookDirection, maxDistance, searchWidth);
 
         return level.getEntitiesOfClass(LivingEntity.class, roughBox, entity -> {
-            return entity != player && !isSelf(entity, player) && hasLineOfSight(player, entity);
+            return entity != player && !isSelf(entity, player) && isTargetClass(entity) && hasLineOfSight(player, entity);
         });
+    }
+
+    private boolean isTargetClass(LivingEntity entity) {
+        return entity instanceof PomkotsVehicleBase || entity instanceof GenericPomkotsMonster || entity instanceof BossHitBoxEntity || entity instanceof Player || entity instanceof PlateEntity;
     }
 
     private boolean hasLineOfSight(Entity src, Entity candidate) {

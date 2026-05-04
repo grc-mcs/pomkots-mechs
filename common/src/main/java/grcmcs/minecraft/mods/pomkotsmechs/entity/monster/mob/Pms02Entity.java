@@ -1,11 +1,14 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.FlyingMobGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.SimpleMobAttackGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.BulletMiddleEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.MissileEnemyEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEnemyEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -52,7 +55,6 @@ public class Pms02Entity extends BaseSmallMonsterEntity implements GeoEntity, Ge
 
         this.goalSelector.addGoal(1, new FlyingMobGoal(this, getMechData().speed,  20, 100, 10, 30));
         this.goalSelector.addGoal(1, new SimpleMobAttackGoal(this, 0.5F));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
     }
 
     @Override
@@ -64,7 +66,8 @@ public class Pms02Entity extends BaseSmallMonsterEntity implements GeoEntity, Ge
             if (pattern == 0) {
                 for (int i = 0; i < 2; i++) {
                     for (int j = 0; j < 2; j++) {
-                        MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(), this,
+                        MissileGenericEnemyEntity be = new MissileGenericEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(),
+                                this, this.getTarget(),
                                 getMechData().missileDamage, getMechData().missileSpeed);
 
                         var offset = this.position();

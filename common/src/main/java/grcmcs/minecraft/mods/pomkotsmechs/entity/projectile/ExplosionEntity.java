@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
@@ -17,7 +18,7 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class ExplosionEntity extends ThrowableProjectile implements GeoEntity, GeoAnimatable {
+public class ExplosionEntity extends PomkotsThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final int MAX_LIFE_TICKS = 50;
     private int lifeTicks = 0;
@@ -45,16 +46,16 @@ public class ExplosionEntity extends ThrowableProjectile implements GeoEntity, G
         } else if (this.lifeTicks == 5) {
             this.generateLava();
             if (level.isClientSide) {
-                level.playLocalSound(this.getX(), this.getY(), this.getZ(), PomkotsMechs.SE_EXPLOSION_EVENT.get(), SoundSource.PLAYERS, 1.0F, 1.0F, false);
+                this.playSoundEffect(PomkotsMechs.SE_EXPLOSION_EVENT.get());
             }
 
         } else if (this.lifeTicks == 4 && !level.isClientSide && explosionScale > 0) {
             var pos = this.position();
 
             if (PomkotsMechs.CONFIG.enableEntityBlockDestruction) {
-                level.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK);
+                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.BLOCK, this.level());
             } else {
-                level.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE);
+                Utils.explode(this,  pos.x, pos.y, pos.z, explosionScale, false, Level.ExplosionInteraction.NONE, this.level());
             }
         }
     }
@@ -87,16 +88,6 @@ public class ExplosionEntity extends ThrowableProjectile implements GeoEntity, G
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
 
-    }
-
-    @Override
-    public boolean shouldBeSaved() {
-        return false;
-    }
-
-    @Override
-    public boolean ignoreExplosion() {
-        return true;
     }
 
     @Override

@@ -1,10 +1,13 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RollerDashGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.BulletMiddleEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.MissileEnemyEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEnemyEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
@@ -51,7 +54,6 @@ public class Pms06Entity extends BaseSmallMonsterEntity implements GeoEntity, Ge
                 40,
                 60
         ));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal(this, Player.class, false, false));
     }
 
     @Override
@@ -62,7 +64,10 @@ public class Pms06Entity extends BaseSmallMonsterEntity implements GeoEntity, Ge
             int pattern = this.random.nextInt(5);
             if (pattern == 0) {
                 for (int j = 0; j < 2; j++) {
-                    MissileEnemyEntity be = new MissileEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(), this, getMechData().missileDamage, getMechData().missileSpeed);
+                    MissileGenericEnemyEntity be = new MissileGenericEnemyEntity(PomkotsMechs.MISSILE_ENEMY.get(), this.level(),
+                            this, this.getTarget(),
+                            getMechData().missileDamage, getMechData().missileSpeed);
+                    be.setSwitchTick(32);
 
                     var offset = this.position();
 

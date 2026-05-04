@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.model.Pmvc01EntityModel;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb99Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
@@ -16,12 +17,15 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
+import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 
@@ -39,7 +43,6 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
 
     public Pmvc01EntityRenderer(EntityRendererProvider.Context renderManager, Pmvc01EntityModel model) {
         super(renderManager, model);
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
         addRenderLayer(new Pmvc01EntityPartsLayer<>(this, renderManager.getItemRenderer()));
         this.itemRenderer = renderManager.getItemRenderer();
     }
@@ -48,6 +51,12 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
     public void actuallyRender(PoseStack poseStack, Pmvc01Entity animatable, BakedGeoModel model, RenderType renderType,
                                MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
                                int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+        //@JOKE
+        if (animatable.getVehicle() instanceof Pmb99Entity pmb99) {
+            poseStack.pushPose();
+            poseStack.translate(pmb99.seatPos.x, pmb99.seatPos.y, pmb99.seatPos.z);
+        }
+
         super.actuallyRender(poseStack, animatable, model, renderType,
                 bufferSource, buffer, isReRender, partialTick,
         packedLight, packedOverlay, red, green, blue, alpha);
@@ -62,7 +71,12 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
 
         }
 
-        RenderUtils.renderAdditionalHud(poseStack, animatable, this.entityRenderDispatcher.cameraOrientation(), bufferSource);
+        RenderUtils.renderAdditionalHud2(animatable, poseStack, bufferSource, this.entityRenderDispatcher, 1);
+
+        //@JOKE
+        if (animatable.getVehicle() instanceof Pmb99Entity pmb99) {
+            poseStack.popPose();
+        }
     }
 
     public void renderParts(PoseStack poseStack, Pmvc01Entity animatable, BakedGeoModel bakedModel, RenderType renderType,
@@ -92,7 +106,7 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
         renderPart(itemStack, isTarget, null, poseStack, animatable, bakedModel, renderType, bufferSource, packedLight, packedOverlay);
     }
 
-    public void renderPart(ItemStack itemStack, Predicate<Item> isTarget, String side, PoseStack poseStack, Pmvc01Entity animatable, BakedGeoModel bakedModel, RenderType renderType,
+    public void renderPart(ItemStack itemStack, Predicate<Item> isTarget, BasePartsItem.AttachSide side, PoseStack poseStack, Pmvc01Entity animatable, BakedGeoModel bakedModel, RenderType renderType,
                            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         if (!itemStack.isEmpty()) {
             Item i = itemStack.getItem();
@@ -162,19 +176,141 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
         this.scaleWidth = Pmvc01Entity.DEFAULT_SCALE;
         animatable.setupBoneFinder(model);
         setWeaponsVisibility(model, animatable, animatable.isMainMode());
-        setBoosterVisibilitty(model, animatable);
-
+//        setBoosterVisibilitty(model, animatable);
+//        rotateBooster(animatable, 0, 0);
         super.preApplyRenderLayers(poseStack, animatable, model, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+    }
+
+    private void rotateBooster(Pmvc01Entity entity, long uniqueId, float partialTick) {
+        CoreGeoBone flame = this.getGeoModel().getBone("fire_bpc_super_boost").orElse(null);
+
+        if (flame == null) return;
+
+        if (!entity.isSuperBoost()) {
+            flame.setRotY(0);
+            flame.setRotX(0);
+            return;
+        }
+
+        float bodyYaw = entity.getYRot();   // degrees
+        float bodyPitch = entity.getXRot(); // degrees
+
+        // ---- ② エンティティの速度ベクトルを取得 ----
+        Vec3 vel = entity.getDeltaMovement();
+        if (vel.lengthSqr() < 1e-6) return; // 静止中は回転不要
+
+        // ---- ③ 進行方向をワールド空間で角度化 ----
+        float velocityYaw = (float)(Mth.atan2(vel.z, vel.x) * (180.0 / Math.PI)) - 90f;
+        float velocityPitch = (float)(-Mth.atan2(vel.y, Math.sqrt(vel.x * vel.x + vel.z * vel.z)) * (180.0 / Math.PI));
+
+        // ---- ④ ロボの向きとの差分をローカル座標に変換 ----
+        float localYaw = velocityYaw - bodyYaw;
+        float localPitch = velocityPitch - bodyPitch;
+
+        // ---- ⑤ 進行方向「と逆」に炎を向けたい場合 ----
+        localYaw += 180f;
+        localPitch *= -1f;
+
+        // ---- ⑥ 滑らかに補間 ----
+        float currentYaw = flame.getRotY() * Mth.RAD_TO_DEG;
+        float currentPitch = flame.getRotX() * Mth.RAD_TO_DEG;
+
+        float smoothYaw = Mth.lerp(0.2f, currentYaw, localYaw);
+        float smoothPitch = Mth.lerp(0.2f, currentPitch, localPitch);
+
+        // ---- ⑦ GeckoLib にセット（ラジアンで）----
+        flame.setRotY(smoothYaw * Mth.DEG_TO_RAD);
+        flame.setRotX(smoothPitch * Mth.DEG_TO_RAD);
+    }
+
+    private void rotateBooster3(Pmvc01Entity entity, long uniqueId, float partialTick) {
+
+        CoreGeoBone flame = this.getGeoModel().getBone("fire_bpcr_quick").orElse(null);
+
+        if (flame == null) return;
+
+        if (!entity.getActionEvasion().isInAction()) {
+            flame.setRotY(0);
+            flame.setRotX(0);
+            return;
+        }
+
+        Vec3 motion = entity.getDeltaMovement();
+
+        // --- 進行方向ベクトルから目標角度算出 ---
+        float targetYaw = (float) Math.toDegrees(Math.atan2(-motion.x, motion.z));
+        float targetPitch = (float) Math.toDegrees(Math.atan2(motion.y, Math.sqrt(motion.x * motion.x + motion.z * motion.z)));
+
+        // --- 現在角度を取得 ---
+        float currentYaw = (float) Math.toDegrees(flame.getRotY());
+        float currentPitch = (float) Math.toDegrees(flame.getRotX());
+
+        // --- 角度差をwrap（-180〜180の範囲に収める） ---
+        float deltaYaw = Mth.wrapDegrees(targetYaw - currentYaw);
+        float deltaPitch = Mth.wrapDegrees(targetPitch - currentPitch);
+
+        // --- 1tickあたりの最大回転量 ---
+        float maxTurnPerTick = 5f; // ←ここを調整（小さいほど滑らか）
+
+        // --- 上限を付けてスムーズに補間 ---
+        deltaYaw = Mth.clamp(deltaYaw, -maxTurnPerTick, maxTurnPerTick);
+        deltaPitch = Mth.clamp(deltaPitch, -maxTurnPerTick, maxTurnPerTick);
+
+        float newYaw = Mth.wrapDegrees(currentYaw + deltaYaw * 0.5f);   // ←0.5で補間率調整
+        float newPitch = Mth.wrapDegrees(currentPitch + deltaPitch * 0.5f);
+
+        // --- GeckoLibはラジアン指定 ---
+        flame.setRotY((float) Math.toRadians(newYaw));
+        flame.setRotX((float) Math.toRadians(newPitch));
+    }
+    private void rotateBooster2(Pmvc01Entity entity, long uniqueId, float partialTick) {
+        if (!entity.getActionEvasion().isInAction()) {
+            return;
+        }
+
+        // 炎ボーン（Blockbench側で作ったボーン名）
+        CoreGeoBone flame1 = this.getGeoModel().getBone("fire_bpcr_quick").orElse(null);
+        if (flame1 == null) return;
+
+        CoreGeoBone flame2 = this.getGeoModel().getBone("fire_bpcl_quick").orElse(null);
+        if (flame2 == null) return;
+
+        // 進行方向ベクトルを計算
+        double dx = entity.getDeltaMovement().x;
+        double dy = entity.getDeltaMovement().y;
+        double dz = entity.getDeltaMovement().z;
+
+        // 静止時は処理しない
+//        if (dx * dx + dy * dy + dz * dz < 1e-4) return;
+
+        // 進行方向のYaw, Pitchを計算
+        float yaw = (float)(Mth.atan2(-dx, dz) * (180F / Math.PI));
+        float pitch = (float)(Mth.atan2(dy, Math.sqrt(dx * dx + dz * dz)) * (180F / Math.PI));
+
+        // 進行方向の逆向きに炎を向けたい場合は反転
+        yaw += 180F;
+        pitch = -pitch;
+
+        yaw = Mth.wrapDegrees(yaw);
+        pitch = Mth.wrapDegrees(pitch);
+
+        // GeckoLibはラジアン指定なので変換
+        flame1.setRotX(pitch * Mth.DEG_TO_RAD);
+        flame1.setRotY(yaw * Mth.DEG_TO_RAD);
+
+        flame2.setRotX(pitch * Mth.DEG_TO_RAD);
+        flame2.setRotY(yaw * Mth.DEG_TO_RAD);
     }
 
     private void setBoosterVisibilitty(BakedGeoModel model, Pmvc01Entity ent) {
         var vel = ent.getDeltaMovement();
         vel = vel.yRot((float) Math.toRadians(ent.getYRot()));
+        var hasHorizontalBoost = !ent.noHorizontalBoost();
 
-        if (vel.x > 1) {
+        if (vel.x > 1 && hasHorizontalBoost) {
             model.getBone("fire_rsb").get().setHidden(false);
             model.getBone("fire_lsb").get().setHidden(true);
-        } else if (vel.x < -1) {
+        } else if (vel.x < -1 && hasHorizontalBoost) {
             model.getBone("fire_rsb").get().setHidden(true);
             model.getBone("fire_lsb").get().setHidden(false);
         } else {
@@ -182,7 +318,7 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
             model.getBone("fire_lsb").get().setHidden(true);
         }
 
-        if (vel.z > 1) {
+        if (vel.z > 1 && hasHorizontalBoost) {
             model.getBone("fire_bpcr").get().setHidden(false);
             model.getBone("fire_bpcl").get().setHidden(false);
             model.getBone("fire_rl").get().setHidden(false);
@@ -196,7 +332,7 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
 
         }
 
-        if (ent.getDriverInput() != null && ent.getDriverInput().isJumpPressed()) {
+        if (ent.getDriverInput() != null && ent.getDriverInput().isJumpPressed() && ent.isNoGravity() && !ent.isOverHeat()) {
             model.getBone("fire_bpcr").get().setHidden(false);
             model.getBone("fire_bpcl").get().setHidden(false);
 

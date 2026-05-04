@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.KagenobuItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
@@ -11,6 +12,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -24,7 +27,6 @@ public class KagenobuItem extends BasePartsItem.WeaponArm {
     public KagenobuItem(Properties properties) {
         super(properties);
         SingletonGeoAnimatable.registerSyncedAnimatable(this);
-
     }
 
     public void tickWeaponInAction(ActionWeapon.WeaponMechInterface mechInterface, int tick, boolean isOnFire) {
@@ -43,7 +45,8 @@ public class KagenobuItem extends BasePartsItem.WeaponArm {
 
                 if (ent instanceof LivingEntity le) {
                     if (!world.isClientSide()) {
-                        le.knockback(2, kbVel.x, kbVel.z);
+                        int sbModifier = mechInterface.isSuperBoost()? 2: 1;
+                        le.knockback(sbModifier * 4, sbModifier * kbVel.x, sbModifier * kbVel.z);
 
                         DamageSource ds;
                         if (driver instanceof Player p) {
@@ -51,7 +54,12 @@ public class KagenobuItem extends BasePartsItem.WeaponArm {
                         } else {
                             ds = mechInterface.damageSources().generic();
                         }
-                        le.hurt(ds, this.getDamage(mechInterface.getItemStack()));
+                        var baseDamage = this.getDamage(mechInterface.getItemStack());
+
+                        if (le instanceof BossHitBoxEntity hit) {
+                            hit.addStunPoint(sbModifier * 50);
+                        }
+                        le.hurt(ds, sbModifier * baseDamage);
                     } else {
                         mechInterface.addHitParticles(le);
                     }
@@ -87,13 +95,27 @@ public class KagenobuItem extends BasePartsItem.WeaponArm {
     }
 
     @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity ent, int slotIndex, boolean bl) {
+        super.inventoryTick(stack, level, ent, slotIndex, bl);
+
+        if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+            GeoItem.getOrAssignId(stack, serverLevel);
+        }
+    }
+
+    @Override
     public KagenobuItemRenderer newRenderer() {
         return new KagenobuItemRenderer();
     }
 
     @Override
-    public String getWeaponAttachPoint() {
-        return WeaponInterface.ATTACH_POINT_ARM;
+    public WeaponAttachPoint getWeaponAttachPoint() {
+        return WeaponAttachPoint.ATTACH_POINT_ARM;
+    }
+
+    @Override
+    public WeaponCategory getWeaponCategory() {
+        return WeaponCategory.MELEE;
     }
 
     @Override

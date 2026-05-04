@@ -32,12 +32,15 @@ public class UserInteractionManager {
         JUMP               ((short)0b0000000000100000, InputConstants.KEY_B, "jump"),
         WEAPON_ARM_R       ((short)0b0000000001000000, InputConstants.KEY_J, "weapon_arm_r"),
         WEAPON_ARM_L       ((short)0b0000000010000000, InputConstants.KEY_K, "weapon_arm_l"),
+//        WEAPON_ARM_R       ((short)0b0000000001000000, InputConstants.MOUSE_BUTTON_RIGHT, "weapon_arm_r"),
+//        WEAPON_ARM_L       ((short)0b0000000010000000, InputConstants.MOUSE_BUTTON_LEFT, "weapon_arm_l"),
         WEAPON_SHOULDER_R  ((short)0b0000000100000000, InputConstants.KEY_P, "weapon_shld_r"),
         WEAPON_SHOULDER_L  ((short)0b0000001000000000, InputConstants.KEY_O, "weapon_shld_l"),
         LOCK               ((short)0b0000010000000000, InputConstants.KEY_U, "lock"),
         MODE               ((short)0b0000100000000000, InputConstants.KEY_Y, "mode"),
         EXT1               ((short)0b0001000000000000, InputConstants.KEY_N, "ext1"),
-        EXT2               ((short)0b0010000000000000, InputConstants.KEY_M, "ext2");
+        EXT2               ((short)0b0010000000000000, InputConstants.KEY_M, "ext2"),
+        RELOAD             ((short)0b0100000000000000, InputConstants.KEY_H, "reload");
 
         private final short keyID;
         private final int id;
@@ -119,10 +122,10 @@ public class UserInteractionManager {
                         keyPressStatus |= Keys.LEFT.getKeyID();
                     }
                     if (client.options.keyAttack.isDown()) {
-                        keyPressStatus |= Keys.WEAPON_ARM_R.getKeyID();
+                        keyPressStatus |= Keys.WEAPON_ARM_L.getKeyID();
                     }
                     if (client.options.keyUse.isDown()) {
-                        keyPressStatus |= Keys.WEAPON_ARM_L.getKeyID();
+                        keyPressStatus |= Keys.WEAPON_ARM_R.getKeyID();
                     }
                     if (client.options.keyJump.isDown()) {
                         keyPressStatus |= Keys.JUMP.getKeyID();

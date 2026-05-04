@@ -56,13 +56,15 @@ public class BossDashAttackGoal extends BossDashGoal {
         List<LivingEntity> nearbyEntities = level.getEntitiesOfClass(LivingEntity.class, damageArea);
 
         for (LivingEntity entity : nearbyEntities) {
-            if (!mob.isSelf(entity) && mob.distanceTo(entity) <= 10) {
+            if (!mob.isSelf(entity) && mob.distanceTo(entity) <= 20) {
                 // ダメージ処理
-                entity.hurt(mob.damageSources().mobAttack(mob), 8.0f);
+                entity.hurt(mob.damageSources().mobAttack(mob), mob.getMechData().meleeDamage);
 
-                // ノックバック
-                Vec3 knockback = entity.position().subtract(mob.position()).normalize().scale(1.0);
-                entity.setDeltaMovement(entity.getDeltaMovement().add(knockback.x, 0.3, knockback.z));
+//                // ノックバック
+//                Vec3 knockback = entity.position().subtract(mob.position()).normalize().scale(1.0);
+//                entity.setDeltaMovement(entity.getDeltaMovement().add(knockback.x, 0.3, knockback.z));
+                Vec3 knockback = entity.getDeltaMovement().normalize().scale(3);
+                entity.knockback(10, -knockback.x, -knockback.y);
             }
         }
     }

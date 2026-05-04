@@ -1,0 +1,25 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "A": {
+            "item": "minecraft:iron_ingot"
+        },
+        "B": {
+            "item": "minecraft:gunpowder"
+        },
+        "C": {
+            "item": "pomkotsmechs:p_titanium_nugget"
+        }
+    },
+    "pattern": [
+        "CCC",
+        "BBB",
+        "AAA"
+    ],
+    "result": {
+        "item": "pomkotsmechs:magazinerifle",
+        "count": 1
+    },
+    "show_notification": true
+}

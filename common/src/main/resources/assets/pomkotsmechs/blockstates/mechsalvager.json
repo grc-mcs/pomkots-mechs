@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "pomkotsmechs:block/mechsalvager", "y": 0 },
+    "facing=east":  { "model": "pomkotsmechs:block/mechsalvager", "y": 90 },
+    "facing=south": { "model": "pomkotsmechs:block/mechsalvager", "y": 180 },
+    "facing=west":  { "model": "pomkotsmechs:block/mechsalvager", "y": 270 }
+  }
+}

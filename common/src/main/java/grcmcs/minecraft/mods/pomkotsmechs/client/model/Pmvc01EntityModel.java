@@ -1,7 +1,6 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.model;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
@@ -20,6 +19,10 @@ public class Pmvc01EntityModel extends GeoModel<Pmvc01Entity> {
 
     @Override
     public ResourceLocation getTextureResource(Pmvc01Entity animatable) {
-        return new ResourceLocation(PomkotsMechs.MODID, "textures/entity/pmvc01.png");
+        if (animatable.canWork(false) && !animatable.isBroken()) {
+            return new ResourceLocation(PomkotsMechs.MODID, "textures/entity/pmvc01.png");
+        } else {
+            return new ResourceLocation(PomkotsMechs.MODID, "textures/entity/pmvc01stop.png");
+        }
     }
 }

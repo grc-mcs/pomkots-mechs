@@ -14,8 +14,7 @@ import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 public class ExplosionEntityRenderer extends GeoEntityRenderer<ExplosionEntity> {
     public ExplosionEntityRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new ExplosionEntityModel());
-
-        addRenderLayer(new AutoGlowingGeoLayer<>(this));
+//        addRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override

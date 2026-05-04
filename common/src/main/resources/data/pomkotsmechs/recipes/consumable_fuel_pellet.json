@@ -1,0 +1,22 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "key": {
+        "A": {
+            "item": "minecraft:iron_ingot"
+        },
+        "B": {
+            "item": "minecraft:coal"
+        }
+    },
+    "pattern": [
+        "BBB",
+        "BBB",
+        "AAA"
+    ],
+    "result": {
+        "item": "pomkotsmechs:pellet",
+        "count": 8
+    },
+    "show_notification": true
+}
