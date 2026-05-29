@@ -342,10 +342,6 @@
   "text.pomkotsmechs.advancement.ride_the_mech.desc": "It's your first time to ride a mech!",
   "text.pomkotsmechs.advancement.defeat_pmb03.title": "Legendary Mercenary",
   "text.pomkotsmechs.advancement.defeat_pmb03.desc": "Defeated PMB03",
-<<<<<<< HEAD
+  "tooltip.pomkotsmechs.pomkots_spanner": "Retrieves Pomkots functional blocks (such as the Mech Workbench).",
   "generator.pomkotsmechs.pomkots_world": "Pomkots Mechs World"
 }
-=======
-  "tooltip.pomkotsmechs.pomkots_spanner": "Retrieves Pomkots functional blocks (such as the Mech Workbench)."
-}
->>>>>>> e16c3eea925f2dbf5bf180d6691eec18af9c9a5a
