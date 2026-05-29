@@ -22,7 +22,8 @@
     "LocalPlayerAccessor",
     "MultiPlayerGameModeMixin",
     "LevelRendererMixin",
-    "SoundBufferLibraryMixin"
+    "SoundBufferLibraryMixin",
+    "CreateWorldScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

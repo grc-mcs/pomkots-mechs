@@ -1,0 +1,598 @@
+{
+  "outsidestyle": "outside",
+  "settings": {
+    "railwayavoidance": "block_railway",
+    "railpartheight6": 2
+  },
+  "multisettings": {
+    "areasize": 20,
+    "minimum": 5,
+    "maximum": 20,
+    "correctstylefactor": 1,
+    "attempts": 50
+  },
+  "scattered": {
+    "areasize": 15,
+    "chance": 1,
+    "weightnone": 30,
+    "list": [
+      {
+        "name": "pomkotsmechs:scattered_antenna",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_building_01",
+        "weight": 20,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_building_02",
+        "weight": 10,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_container",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_down_satelite",
+        "weight": 5,
+        "maxheightdiff": 50,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_farmland",
+        "weight": 8,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_furnace",
+        "weight": 8,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_garage",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_gasstand",
+        "weight": 8,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_hanger",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_high_tower",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_highway",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_labo",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_lighthouse",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_mine",
+        "weight": 20,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_minifactory",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_radiotower",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_scaffold",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_tank_medium",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_tank_sphere",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_tank_water",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_telescope",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_train",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_ufo",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:scattered_watertank",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:wind_mill",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_deep_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:warship",
+        "weight": 15,
+        "maxheightdiff": 100,
+        "biomes": {
+          "if_any": [
+            "#minecraft:is_deep_ocean"
+          ]
+        }
+      },
+      {
+        "name": "pomkotsmechs:mega_platform",
+        "weight": 5,
+        "maxheightdiff": 100,
+        "biomes": {
+          "if_any": [
+            "#minecraft:is_deep_ocean"
+          ]
+        }
+      },
+      {
+        "name": "radiotower",
+        "weight": 1,
+        "maxheightdiff": 3,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      },
+      {
+        "name": "oilrig",
+        "weight": 1,
+        "maxheightdiff": 100,
+        "biomes": {
+          "if_any": [
+            "#minecraft:is_deep_ocean"
+          ]
+        }
+      },
+      {
+        "name": "cabin",
+        "weight": 10,
+        "maxheightdiff": 2,
+        "biomes": {
+          "excluding": [
+            "#minecraft:is_ocean",
+            "#minecraft:is_river",
+            "#minecraft:is_beach"
+          ]
+        }
+      }
+    ]
+  },
+  "citybiomemultipliers": [
+    {
+      "multiplier": 0.3,
+      "biomes": {
+        "if_any": [
+          "#minecraft:is_deep_ocean"
+        ]
+      }
+    },
+    {
+      "multiplier": 0.6,
+      "biomes": {
+        "if_any": [
+          "minecraft:cold_ocean",
+          "minecraft:frozen_ocean",
+          "minecraft:lukewarm_ocean",
+          "minecraft:ocean",
+          "minecraft:warm_ocean"
+        ]
+      }
+    },
+    {
+      "multiplier": 0.3,
+      "biomes": {
+        "if_any": [
+          "#minecraft:is_river"
+        ]
+      }
+    }
+  ],
+  "citystyles": [
+    {
+      "citystyle": "pomkotsmechs:port",
+      "factor": 9,
+      "biomes": {
+        "if_any": [
+          "minecraft:cold_ocean",
+          "minecraft:frozen_ocean",
+          "minecraft:ocean",
+          "minecraft:warm_ocean",
+          "minecraft:stony_shore",
+          "minecraft:snowy_beach",
+          "minecraft:beach"
+        ]
+      }
+    },
+    {
+      "citystyle": "pomkotsmechs:base",
+      "factor": 9,
+      "biomes": {
+        "if_any": [
+          "#minecraft:is_mountain",
+          "minecraft:desert",
+          "minecraft:snowy_plains",
+          "minecraft:lukewarm_ocean",
+          "minecraft:ice_spikes"
+        ]
+      }
+    },
+    {
+      "citystyle": "pomkotsmechs:quarry",
+      "factor": 9,
+      "biomes": {
+        "if_any": [
+          "minecraft:sunflower_plains",
+          "#minecraft:is_mountain",
+          "minecraft:eroded_badlands",
+          "minecraft:wooded_badlands",
+          "minecraft:badlands",
+          "minecraft:windswept_savanna",
+          "minecraft:sparse_jungle",
+          "minecraft:forest"
+        ]
+      }
+    },
+    {
+      "citystyle": "pomkotsmechs:powerplant",
+      "factor": 9,
+      "biomes": {
+        "if_any": [
+          "minecraft:savanna",
+          "minecraft:windswept_gravelly_hills",
+          "minecraft:windswept_hills",
+          "minecraft:savanna_plateau"
+        ]
+      }
+    },
+    {
+      "citystyle": "pomkotsmechs:factory",
+      "factor": 9,
+      "biomes": {
+        "if_any": [
+          "minecraft:plains"
+        ]
+      }
+    },
+    {
+      "citystyle": "pomkotsmechs:standard",
+      "factor": 9,
+      "biomes": {
+        "if_any": [
+          "minecraft:flower_forest",
+          "minecraft:jungle",
+          "minecraft:bamboo_jungle"
+        ]
+      }
+    },
+    {
+      "citystyle": "pomkotsmechs:standard2",
+      "factor": 0.001,
+      "biomes": {
+        "excluding": [
+          "minecraft:plains"
+        ]
+      }
+    },
+    {
+      "citystyle": "pomkotsmechs:weatheredcity",
+      "factor": 0.001,
+      "biomes": {
+        "excluding": [
+          "minecraft:plains"
+        ]
+      }
+    }
+  ],
+  "parts": {
+    "highways": {
+      "bridge": [
+        "pomkotsmechs:common/highway_bridge"
+      ],
+      "bridge_bi": [
+        "pomkotsmechs:common/highway_bridge_bi"
+      ],
+      "tunnel": [
+        "pomkotsmechs:common/highway_tunnel"
+      ],
+      "tunnel_bi": [
+        "pomkotsmechs:common/highway_tunnel_bi"
+      ],
+      "open": [
+        "pomkotsmechs:common/highway_open"
+      ],
+      "open_bi": [
+        "pomkotsmechs:common/highway_open_bi"
+      ]
+    },
+    "railways": {
+      "stationunderground": [
+        "pomkotsmechs:common/station_underground"
+      ],
+      "stationundergroundstairs": [
+        "pomkotsmechs:common/station_underground_stairs"
+      ],
+      "railshorizontal": [
+        "pomkotsmechs:common/rails_horizontal"
+      ],
+      "railshorizontalend": [
+        "pomkotsmechs:common/rails_horizontal_end"
+      ],
+      "railshorizontalwater": [
+        "pomkotsmechs:common/rails_horizontal_water"
+      ],
+      "railsvertical": [
+        "pomkotsmechs:common/rails_vertical"
+      ],
+      "railsverticalwater": [
+        "pomkotsmechs:common/rails_vertical_water"
+      ],
+      "rails3split": [
+        "pomkotsmechs:common/rails_3split"
+      ],
+      "railsbend": [
+        "pomkotsmechs:common/rails_bend"
+      ],
+      "railsflat": [
+        "pomkotsmechs:common/rails_flat"
+      ],
+      "railsdown1": [
+        "pomkotsmechs:common/rails_down1"
+      ],
+      "railsdown2": [
+        "pomkotsmechs:common/rails_down2"
+      ]
+    }
+  }
+}
