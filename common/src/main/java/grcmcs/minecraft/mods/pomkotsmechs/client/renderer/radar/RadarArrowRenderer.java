@@ -53,8 +53,8 @@ public class RadarArrowRenderer {
 
     // 矢印の色（RGBA）
     private static final int COLOR_R = 0;
-    private static final int COLOR_G = 255;
-    private static final int COLOR_B = 80;
+    private static final int COLOR_G = 80;
+    private static final int COLOR_B = 255;
     private static final int COLOR_A = 128;
 
     // 矢印のベースサイズ

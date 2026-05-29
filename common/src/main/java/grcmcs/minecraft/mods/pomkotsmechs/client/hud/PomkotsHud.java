@@ -2,14 +2,19 @@ package grcmcs.minecraft.mods.pomkotsmechs.client.hud;
 
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.TargetLocker;
+import grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientHudShake;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.BasePartsItemRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.PomkotsCustomThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.turret.Pmvt01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -22,6 +27,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
 import org.joml.Quaternionf;
@@ -40,7 +47,9 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
     private static final ResourceLocation TARGET_LOCK_TEXTURE = PomkotsMechs.id("textures/crosshair/crosshair2.png");
     private static final ResourceLocation TARGET_LOCK_HARD_TEXTURE = PomkotsMechs.id("textures/crosshair/custom/target_hard.png");
     private static final ResourceLocation TARGET_LOCK_SOFT_TEXTURE = PomkotsMechs.id("textures/crosshair/custom/target_soft.png");
+    private static final ResourceLocation TARGET_LOCK_SOFT_TEXTURE2 = PomkotsMechs.id("textures/crosshair/custom/target_icon.png");
     private static final ResourceLocation TARGET_LOCK_MULTI_TEXTURE = PomkotsMechs.id("textures/crosshair/custom/target_multi.png");
+    private static final ResourceLocation REPAIR_KIT_ICON = PomkotsMechs.id("textures/crosshair/custom/repair_icon.png");
 
     protected Minecraft mc = Minecraft.getInstance();
 
@@ -76,22 +85,22 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         LocalPlayer pl = mc.player;
 
         if (pl != null) {
-            if (pl.getVehicle() instanceof PomkotsVehicleBase protobot) {
+            if (pl.getVehicle() instanceof PomkotsVehicleBase mech) {
                 if (prevTick != pl.tickCount) {
-                    updateValues(protobot);
+                    updateValues(mech);
                 }
 
-                renderLockOnMarks(guiGraphics, tickDelta);
+                renderLockOnMarks(mech, guiGraphics, tickDelta);
 
-                if (protobot instanceof Pmvc01Entity mech) {
-                    renderCustomMechHud(mech, guiGraphics, tickDelta);
-                } else if (protobot instanceof Pmvt01Entity tr) {
+                if (mech instanceof Pmvc01Entity pmvc01) {
+                    renderCustomMechHud(pmvc01, guiGraphics, tickDelta);
+                } else if (mech instanceof Pmvt01Entity tr) {
                     renderTurretHud(tr, guiGraphics, tickDelta);
                 } else {
-                    if (protobot.isMainMode()) {
-                        renderHudBattle(protobot, guiGraphics, tickDelta);
+                    if (mech.isMainMode()) {
+                        renderHudBattle(mech, guiGraphics, tickDelta);
                     } else {
-                        renderHudNormal(protobot, guiGraphics, tickDelta);
+                        renderHudNormal(mech, guiGraphics, tickDelta);
                     }
                 }
 
@@ -100,20 +109,20 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         }
     }
 
-    public void renderLockOnMarks(GuiGraphics guiGraphics, float tickDelta) {
+    public void renderLockOnMarks(PomkotsVehicleBase mech, GuiGraphics guiGraphics, float tickDelta) {
         TargetLocker locker = TargetLocker.getInstance();
 
         if (locker.getHardLockTarget() != null) {
-            renderLockOnMark(locker.getHardLockTarget(), TARGET_LOCK_HARD_TEXTURE, guiGraphics, tickDelta, true);
+            renderLockOnMark(mech, locker.getHardLockTarget(), TARGET_LOCK_HARD_TEXTURE, guiGraphics, tickDelta, true);
         } else if (locker.getSoftLockTarget() != null) {
-            renderLockOnMark(locker.getSoftLockTarget(), TARGET_LOCK_SOFT_TEXTURE, guiGraphics, tickDelta, true);
+            renderLockOnMark(mech, locker.getSoftLockTarget(), TARGET_LOCK_SOFT_TEXTURE, guiGraphics, tickDelta, true);
         }
 
-        renderMultiLockOnMarks(locker.targetMulti, guiGraphics, tickDelta);
-        renderMultiLockOnMarks(locker.targetMultiRA, guiGraphics, tickDelta);
-        renderMultiLockOnMarks(locker.targetMultiLA, guiGraphics, tickDelta);
-        renderMultiLockOnMarks(locker.targetMultiRS, guiGraphics, tickDelta);
-        renderMultiLockOnMarks(locker.targetMultiLS, guiGraphics, tickDelta);
+        renderMultiLockOnMarks(mech, locker.targetMulti, guiGraphics, tickDelta);
+        renderMultiLockOnMarks(mech, locker.targetMultiRA, guiGraphics, tickDelta);
+        renderMultiLockOnMarks(mech, locker.targetMultiLA, guiGraphics, tickDelta);
+        renderMultiLockOnMarks(mech, locker.targetMultiRS, guiGraphics, tickDelta);
+        renderMultiLockOnMarks(mech, locker.targetMultiLS, guiGraphics, tickDelta);
     }
 
     private static boolean shouldRenderDistanceOnTarget() {
@@ -121,28 +130,30 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         return locker.getSoftLockTarget() != null || locker.getHardLockTarget() != null;
     }
 
-    private void renderMultiLockOnMarks(Map<Integer, Entity> multiLock, GuiGraphics guiGraphics, float tickDelta) {
+    private void renderMultiLockOnMarks(PomkotsVehicleBase mech,Map<Integer, Entity> multiLock, GuiGraphics guiGraphics, float tickDelta) {
         if (!multiLock.isEmpty()) {
             for (var entry: multiLock.entrySet()) {
-                renderLockOnMark(entry.getValue(), TARGET_LOCK_MULTI_TEXTURE, guiGraphics, tickDelta, false);
+                renderLockOnMark(mech, entry.getValue(), TARGET_LOCK_MULTI_TEXTURE, guiGraphics, tickDelta, false);
             }
         }
     }
 
-    private void renderLockOnMark(Entity targetEntity, ResourceLocation texture, GuiGraphics guiGraphics, float tickDelta, boolean renderDistance) {
+    private void renderLockOnMark(PomkotsVehicleBase mech, Entity targetEntity, ResourceLocation texture, GuiGraphics guiGraphics, float tickDelta, boolean renderDistance) {
         Vector3f screenPos = projectEntityToScreen(targetEntity, tickDelta);
         if (screenPos == null) return;
 
         int screenX = (int) screenPos.x();
         int screenY = (int) screenPos.y();
 
-        if (renderDistance) {
-            renderDistance(screenX, screenY, new EntityHitResult(targetEntity), guiGraphics, tickDelta, Minecraft.getInstance());
+        if (renderDistance && mech instanceof Pmvc01Entity pmvc01) {
+            renderDistance(pmvc01, screenX, screenY, new EntityHitResult(targetEntity), guiGraphics, tickDelta, Minecraft.getInstance());
         }
 
         int size = 16;
+        int sizeSub = 10;
 
         guiGraphics.blit(texture, screenX - size / 2, screenY - size / 2, 0, 0, size, size, size, size);
+        guiGraphics.blit(TARGET_LOCK_SOFT_TEXTURE2, screenX - sizeSub / 2, screenY - sizeSub * 2, sizeSub, sizeSub, 0, 0, 15, 16, 15, 16);
     }
 
     private Vector3f projectEntityToScreen(Entity entity, float tickDelta) {
@@ -375,22 +386,38 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
     private static final ResourceLocation DONUT_AM_FORE = PomkotsMechs.id("textures/crosshair/custom/front_ammo.png");
 
     protected void renderCustomMechHud(Pmvc01Entity mech, GuiGraphics guiGraphics, float tickDelta) {
+        PoseStack pose = guiGraphics.pose();
+
+        pose.pushPose();
+
+        float shake = ClientHudShake.shake;
+        if (shake > 0f) {
+            float offsetX =
+                    (Minecraft.getInstance().level.random.nextFloat() - 0.5f)
+                            * shake;
+            float offsetY =
+                    (Minecraft.getInstance().level.random.nextFloat() - 0.5f)
+                            * shake;
+            pose.translate(offsetX, offsetY, 0);
+        }
+
         renderCrossHair2(guiGraphics, tickDelta);
-        renderPickedDistance(guiGraphics, tickDelta);
+        renderPickedDistance(mech, guiGraphics, tickDelta);
         renderWeaponInformation(mech, guiGraphics, tickDelta);
         renderHealthBar2(mech, guiGraphics, tickDelta);
         renderFuelBar(mech, guiGraphics, tickDelta);
         renderEnergyBar2(mech, guiGraphics, tickDelta);
+        renderRepairKitNum(mech, guiGraphics, tickDelta);
+        renderMechHPWarnings(mech, guiGraphics, tickDelta);
+
+        pose.popPose();
     }
 
-    private static final int COLOR_LINE   = 0xFF00FF88;
-    private static final int COLOR_TEXT   = 0xFF00FF88;
-    private static final int COLOR_SHADOW = 0xFF003322;
-    private static final int COLOR_ENTITY_LINE   = 0xFFFF4444;
-    private static final int COLOR_ENTITY_TEXT   = 0xFFFF4444;
-    private static final int COLOR_ENTITY_SHADOW = 0xFF330000;
+    private static final int[] DIST_COLOR_GREEN   = {0xFF00FF88, 0xFF003322};
+    private static final int[] DIST_COLOR_YELLOW  = {0xE6DA00, 0xFF5E5A00};
+    private static final int[] DIST_COLOR_RED     = {0xFFFF4444, 0xFF330000};
 
-    public static void renderPickedDistance(GuiGraphics guiGraphics, float partialTick) {
+    public static void renderPickedDistance(Pmvc01Entity mech, GuiGraphics guiGraphics, float partialTick) {
         if (shouldRenderDistanceOnTarget()) {
             return;
         }
@@ -426,38 +453,66 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         int centerX = guiGraphics.guiWidth()  / 2;
         int centerY = guiGraphics.guiHeight() / 2;
 
-        renderDistance(centerX, centerY, blockHit, guiGraphics, partialTick, mc);
+        renderDistance(mech, centerX, centerY, blockHit, guiGraphics, partialTick, mc);
     }
 
-    private static void renderDistance(int centerX, int centerY, HitResult hitResult, GuiGraphics guiGraphics, float partialTick, Minecraft mc) {
-        if (hitResult.getType() == HitResult.Type.MISS) return;
+    private static void renderDistance(Pmvc01Entity mech, int centerX, int centerY, HitResult hitResult, GuiGraphics guiGraphics, float partialTick, Minecraft mc) {
+        String distText;
+        int[] color;
 
-        boolean isEntity = hitResult.getType() == HitResult.Type.ENTITY;
-        int colorLine   = isEntity ? COLOR_ENTITY_LINE   : COLOR_LINE;
-        int colorText   = isEntity ? COLOR_ENTITY_TEXT   : COLOR_TEXT;
-        int colorShadow = isEntity ? COLOR_ENTITY_SHADOW : COLOR_SHADOW;
-
-        Vec3 playerEye = mc.player.getEyePosition(partialTick);
-        double dist    = playerEye.distanceTo(hitResult.getLocation());
-        String distText = String.format("%.1fm", dist);
-
+        if (hitResult.getType() == HitResult.Type.MISS) {
+            distText = "-- m";
+            color = DIST_COLOR_GREEN;
+        } else {
+            Vec3 playerEye = mc.player.getEyePosition(partialTick);
+            double dist    = playerEye.distanceTo(hitResult.getLocation());
+            distText = String.format("%.1fm", dist);
+            color = chooseColor(mech, hitResult.getType() == HitResult.Type.ENTITY, dist);
+        }
 
         int lineStartX = centerX + 12;
         int lineEndX   = centerX + 40;
         int lineY      = centerY;
 
         // 横線
-        guiGraphics.fill(lineStartX, lineY,     lineEndX,     lineY + 1, colorLine);
+        guiGraphics.fill(lineStartX, lineY,     lineEndX,     lineY + 1, color[0]);
         // 縦線アクセント
-        guiGraphics.fill(lineEndX,   lineY - 4, lineEndX + 1, lineY + 1, colorLine);
+        guiGraphics.fill(lineEndX,   lineY - 4, lineEndX + 1, lineY + 1, color[0]);
 
         // テキスト
         Font font  = mc.font;
         int textX  = lineEndX + 3;
         int textY  = lineY - font.lineHeight / 2;
 
-        guiGraphics.drawString(font, distText, textX + 1, textY + 1, colorShadow, false);
-        guiGraphics.drawString(font, distText, textX,     textY,     colorText,   false);
+        guiGraphics.drawString(font, distText, textX + 1, textY + 1, color[1], false);
+        guiGraphics.drawString(font, distText, textX,     textY,     color[0],   false);
+    }
+
+    private static int[] chooseColor(Pmvc01Entity mech, boolean isEntity, double dist) {
+        if (isEntity) {
+            if (mech.getDriverInput().isWeaponRightHandPressed()) {
+                return chooseColorFromWeapon(mech.getRightArmWeapon().getItem(), dist);
+            } else if (mech.getDriverInput().isWeaponLeftHandPressed()) {
+                return chooseColorFromWeapon(mech.getLeftArmWeapon().getItem(), dist);
+            } else {
+                return chooseColorFromWeapon(mech.getRightArmWeapon().getItem(), dist);
+            }
+        } else {
+            return DIST_COLOR_GREEN;
+        }
+    }
+
+    private static int[] chooseColorFromWeapon(Item item, double distance) {
+        if (item instanceof BasePartsItem.Weapon weapon) {
+            return switch (weapon.getCurrentRange((int)distance)) {
+                case OPTIMAL -> DIST_COLOR_GREEN;
+                case EFFECTIVE -> DIST_COLOR_YELLOW;
+                case MAXIMUM, OUT -> DIST_COLOR_RED;
+                default -> DIST_COLOR_GREEN;
+            };
+        } else {
+            return DIST_COLOR_GREEN;
+        }
     }
 
     private static HitResult pickClosest(Vec3 eyePos, BlockHitResult blockHit, EntityHitResult entityHit) {
@@ -681,6 +736,84 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
             // 前景バー
             guiGraphics.fill((int)(x + ((float)width - fuelWidth)/2), y, (int)(x + ((float)width - fuelWidth)/2 + fuelWidth) + 1, y + height, FG_COLOR2);
 
+        }
+    }
+
+    private void renderRepairKitNum(PomkotsVehicleBase protobot, GuiGraphics guiGraphics, float tickDelta) {
+        if (!(protobot instanceof Pmvc01Entity pmvc01)) {
+            return;
+        }
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+        // 体力バーの位置とサイズ
+        int width = 120;
+
+        // 画面中央の位置を計算
+        int x = (screenWidth / 2) + (width / 2) + 8;
+        int y = screenHeight - 13;
+
+        if (protobot.shouldRenderDefaultHud("renderHotbar")) {
+            y -= 20;
+        }
+
+        int size = 8;
+
+        guiGraphics.blit(REPAIR_KIT_ICON, x, y, 0, 0, size, size, size, size);
+        guiGraphics.drawString(Minecraft.getInstance().font, String.format("%2s", pmvc01.getRepairKitNum()), (x + 10), y, FG_COLOR2, false);
+
+    }
+
+    private void renderMechHPWarnings(PomkotsVehicleBase mech, GuiGraphics guiGraphics, float tickDelta) {
+        Minecraft mc = Minecraft.getInstance();
+
+        float hpRatio = mech.getHealth() / mech.getMaxHealth();
+
+        if (hpRatio <= 0.4f) {
+            String text;
+            int rgb;
+            float speed;
+
+            if (hpRatio <= 0.3f) {
+                text = "DANGER: ARMOR LOW";
+                rgb = 0xFF0000;
+                speed = 0.4f;
+
+            } else {
+                text = "WARNING: ARMOR LOW";
+                rgb = 0xFFFF00;
+                speed = 0.15f;
+            }
+
+            float time = (mc.player.tickCount + tickDelta) * speed;
+
+            float alpha = (Mth.sin(time) + 1.0f) * 0.5f;
+            alpha = 0.2f + alpha * 0.8f;
+
+            int a = (int)(alpha * 255.0f);
+            int color = (a << 24) | rgb;
+
+            int screenWidth = mc.getWindow().getGuiScaledWidth();
+            int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+            // 画面中央の位置を計算
+            int x = (screenWidth / 2) ;
+            int y = (screenHeight / 2) + 40;
+
+            Font font = mc.font;
+
+            int textWidth = font.width(text);
+
+            int xx = x - textWidth / 2;
+
+            guiGraphics.drawString(
+                    font,
+                    text,
+                    xx,
+                    y,
+                    color,
+                    false
+            );
         }
     }
 

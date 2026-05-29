@@ -47,19 +47,25 @@ public class PomkotsRadarItem extends Item {
     public static void addTarget(ItemStack stack, RadarTarget target) {
         var targets = getTargets(stack);
 
-        for (RadarTarget t: targets) {
+
+        for (int i = 0; i < targets.size(); i++) {
+            RadarTarget t = targets.get(i);
+
             if (t.label().equals(target.label())) {
+                setSelectedIndex(stack, i);
                 return;
             }
         }
 
         targets.add(target);
         setTargets(stack, targets);
+        setSelectedIndex(stack, targets.size() - 1);
     }
 
     public static List<RadarTarget> getTargets(ItemStack stack) {
         ListTag list = stack.getOrCreateTag().getList(NBT_TARGETS, Tag.TAG_COMPOUND);
         List<RadarTarget> result = new ArrayList<>();
+
         for (Tag tag : list) {
             result.add(RadarTarget.fromNbt((CompoundTag) tag));
         }

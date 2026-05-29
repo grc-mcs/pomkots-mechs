@@ -2,11 +2,13 @@ package grcmcs.minecraft.mods.pomkotsmechs.block;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.items.PomkotsSpannerItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -29,7 +31,7 @@ public class PartsWorkbenchBlock extends HorizontalDirectionalBlock implements E
 
     public PartsWorkbenchBlock() {
         super(Properties.of()
-                .strength(-1.0F, 3600000.0F)
+                .strength(100.0F, 3600000.0F)
                 .sound(SoundType.METAL));
         this.registerDefaultState(this.stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
@@ -76,6 +78,11 @@ public class PartsWorkbenchBlock extends HorizontalDirectionalBlock implements E
 
     @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemStack held = player.getItemInHand(hand);
+        if (held.getItem() instanceof PomkotsSpannerItem) {
+            return InteractionResult.PASS;
+        }
+
         if (!level.isClientSide) {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof PartsWorkbenchBlockEntity station) {

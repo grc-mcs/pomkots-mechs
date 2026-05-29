@@ -4,6 +4,8 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.MashuItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletBeamEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletMachineEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.PomkotsCustomThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
@@ -48,6 +50,11 @@ public class MashuItem extends BasePartsItem.WeaponArm {
                 mechInterface.playSoundEffect(PomkotsMechs.SE_RIFLE.get());
             }
         }
+    }
+
+    @Override
+    public PomkotsCustomThrowableProjectile.RangeCategory getCurrentRange(int distance) {
+        return BulletBeamEntity.calcRangeCategoryStatic(distance);
     }
 
     @Override

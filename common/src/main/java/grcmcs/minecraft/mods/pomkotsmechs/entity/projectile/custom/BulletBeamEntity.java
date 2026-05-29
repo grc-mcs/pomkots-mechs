@@ -22,7 +22,7 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class BulletBeamEntity extends PomkotsCustomThrowableProjectile implements GeoEntity, GeoAnimatable {
+public class BulletBeamEntity extends PomkotsCustomDecayedThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     private float explosionScale = 5;
@@ -82,5 +82,33 @@ public class BulletBeamEntity extends PomkotsCustomThrowableProjectile implement
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.geoCache;
+    }
+
+    @Override
+    public RangeCategory calcRangeCategory(int distance) {
+        return calcRangeCategoryStatic(distance);
+    }
+
+    @Override
+    protected float getDamageModifier(RangeCategory range) {
+        return switch (range) {
+            case OPTIMAL -> 1.0F;
+            case EFFECTIVE -> 0.8F;
+            case MAXIMUM -> 0.5F;
+            case OUT -> 0.1F;
+            default -> 1F;
+        };
+    }
+
+    public static RangeCategory calcRangeCategoryStatic(int distance) {
+        if (distance < 80) {
+            return RangeCategory.OPTIMAL;
+        } else if (distance < 150) {
+            return RangeCategory.EFFECTIVE;
+        } else if (distance < 200){
+            return RangeCategory.MAXIMUM;
+        } else {
+            return RangeCategory.OUT;
+        }
     }
 }

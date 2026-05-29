@@ -37,6 +37,8 @@ public class Pmb08Entity extends BaseBossEntity {
 
         actionController.registerAction("gatling", new BossActionController.BossAction(40,5, this::gatlingAction));
 
+        actionController.registerAction("onsmalldown", new BossActionController.BossAction(20,15, this::smallDown));
+
         this.goalSelector.addGoal(1, new HelicopterHoverMoveGoal(
                 this,
                 2,
@@ -315,6 +317,17 @@ public class Pmb08Entity extends BaseBossEntity {
     }
 
     @Override
+    protected void onSmallDown() {
+        this.actionController.reset();
+        this.actionController.getAction("onsmalldown").startAction();
+        this.triggerAnim("action_controller", "on_small_down");
+    }
+
+    private void smallDown(BossActionController.BossAction action) {
+
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "basic_move", 0, event -> {
             if (this.getAiMode() == AI_MODE_INACTIVE) {
@@ -349,6 +362,9 @@ public class Pmb08Entity extends BaseBossEntity {
 
                 .triggerableAnim("on_stun", RawAnimation.begin().thenPlay("animation.pmb03.hurt").thenPlayAndHold("animation.pmb03.down"))
                 .triggerableAnim("off_stun", RawAnimation.begin().thenPlay("animation.pmb03.up"))
+
+                .triggerableAnim("on_small_down", RawAnimation.begin().thenPlay("animation.pmb03.hurt"))
+
                 .setSoundKeyframeHandler(this::playSounds)
         );
     }

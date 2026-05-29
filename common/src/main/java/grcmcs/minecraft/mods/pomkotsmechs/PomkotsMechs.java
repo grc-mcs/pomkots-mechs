@@ -92,6 +92,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.MenuType;
@@ -360,6 +361,8 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<SimpleParticleType> MISSILE_SMOKE = PARTICLES.register("missilesmoke", () -> new PomkotsSimpleParticleType(false));
 	public static final RegistrySupplier<SimpleParticleType> EXPLOSION_CORE = PARTICLES.register("explosioncore", () -> new PomkotsSimpleParticleType(false));
 	public static final RegistrySupplier<SimpleParticleType> SPARK = PARTICLES.register("spark", () -> new PomkotsSimpleParticleType(false));
+	public static final RegistrySupplier<SimpleParticleType> SPARK_ORANGE = PARTICLES.register("spark_orange", () -> new PomkotsSimpleParticleType(false));
+	public static final RegistrySupplier<SimpleParticleType> SPARK_RED = PARTICLES.register("spark_red", () -> new PomkotsSimpleParticleType(false));
 	public static final RegistrySupplier<SimpleParticleType> SPIRAL = PARTICLES.register("sparkb", () -> new PomkotsSimpleParticleType(false));
 	public static final RegistrySupplier<SimpleParticleType> MAGAZINE = PARTICLES.register("magazine", () -> new PomkotsSimpleParticleType(false));
 	public static final RegistrySupplier<SimpleParticleType> MAGAZINE_RIGHT = PARTICLES.register("magazine_right", () -> new PomkotsSimpleParticleType(false));
@@ -402,6 +405,8 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Item> PLACE_HOLDER_BLOCK_ITEM = ITEMS.register("place_holder", () -> new BlockItem(PLACE_HOLDER_BLOCK.get(), new Item.Properties().stacksTo(64)));
 
 	public static final RegistrySupplier<Item> WRENCH_ITEM = ITEMS.register("pomkots_wrench", () -> new PomkotsWrenchItem(new Item.Properties().stacksTo(1)));
+	public static final RegistrySupplier<Item> SPANNER_ITEM = ITEMS.register("pomkots_spanner", () -> new PomkotsSpannerItem(new Item.Properties().stacksTo(1)));
+
 	public static final RegistrySupplier<Item> MECH_CLONER_ITEM = ITEMS.register("mech_cloner", () -> new MechClonerItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> MECH_CAPSULE_ITEM = ITEMS.register("mech_capsule", () -> new MechCapsuleItem(new Item.Properties().stacksTo(1)));
 
@@ -479,6 +484,7 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Item> SB_PROTO = ITEMS.register("protosbunit", () -> new SBUnitProtoTypeItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> BUILDER_UNIT = ITEMS.register("builderunit", () -> new BuilderUnitItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> CORE_DRILL = ITEMS.register("coredrill", () -> new CoreDrillItem(new Item.Properties().stacksTo(1)));
+	public static final RegistrySupplier<Item> GLIDER_UNIT = ITEMS.register("gliderunit", () -> new GliderUnitItem(new Item.Properties().stacksTo(1)));
 
 	// WEAPONS
 
@@ -608,6 +614,7 @@ public class PomkotsMechs {
 				output.accept(new ItemStack(PLACE_HOLDER_BLOCK_ITEM.get()));
 
 				output.accept(new ItemStack(WRENCH_ITEM.get()));
+				output.accept(new ItemStack(SPANNER_ITEM.get()));
 				output.accept(new ItemStack(MECH_CLONER_ITEM.get()));
 				output.accept(new ItemStack(MECH_CAPSULE_ITEM.get()));
 
@@ -755,6 +762,7 @@ public class PomkotsMechs {
 				output.accept(new ItemStack(RAIL_SLIDER.get()));
 				output.accept(new ItemStack(SB_PROTO.get()));
 				output.accept(new ItemStack(BUILDER_UNIT.get()));
+				output.accept(new ItemStack(GLIDER_UNIT.get()));
 				output.accept(new ItemStack(CORE_DRILL.get()));
 
 				output.accept(new ItemStack(PELLET.get()));
@@ -878,6 +886,7 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Item> BLUE_PRINT_BUILDER_UNIT = ITEMS.register("blue_print_builder_unit", () -> new BluePrintItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> BLUE_PRINT_HOVER_UNIT = ITEMS.register("blue_print_hover_unit", () -> new BluePrintItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> BLUE_PRINT_RAIL_SLIDER_UNIT = ITEMS.register("blue_print_rail_slider_unit", () -> new BluePrintItem(new Item.Properties().stacksTo(1)));
+	public static final RegistrySupplier<Item> BLUE_PRINT_GLIDER_UNIT = ITEMS.register("blue_print_glider_unit", () -> new BluePrintItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistrySupplier<Item> HM_ARMOR_SHARD = ITEMS.register("materials/heavy_mech_armor_shard", () -> new MaterialItem(new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> HM_BLADE_FRAGMENT = ITEMS.register("materials/heavy_mech_blade_fragment", () -> new MaterialItem(new Item.Properties().stacksTo(64)));
@@ -969,6 +978,7 @@ public class PomkotsMechs {
 								output.accept(new ItemStack(BLUE_PRINT_BUILDER_UNIT.get()));
 								output.accept(new ItemStack(BLUE_PRINT_HOVER_UNIT.get()));
 								output.accept(new ItemStack(BLUE_PRINT_RAIL_SLIDER_UNIT.get()));
+								output.accept(new ItemStack(BLUE_PRINT_GLIDER_UNIT.get()));
 
 								output.accept(new ItemStack(QUEST_SHEET_01.get()));
 								output.accept(new ItemStack(QUEST_SHEET_02.get()));
@@ -1005,6 +1015,8 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<SoundEvent> SE_GATLING_EVENT = SOUNDS.register(id("se_gatling"), () -> SoundEvent.createVariableRangeEvent(id("se_gatling")));
 	public static final RegistrySupplier<SoundEvent> SE_GRENADE_EVENT = SOUNDS.register(id("se_grenade"), () -> SoundEvent.createVariableRangeEvent(id("se_grenade")));
 	public static final RegistrySupplier<SoundEvent> SE_HIT_EVENT = SOUNDS.register(id("se_hit"), () -> SoundEvent.createVariableRangeEvent(id("se_hit")));
+	public static final RegistrySupplier<SoundEvent> SE_HIT_MIDDLE_EVENT = SOUNDS.register(id("se_hit_middle"), () -> SoundEvent.createVariableRangeEvent(id("se_hit_middle")));
+	public static final RegistrySupplier<SoundEvent> SE_HIT_HEAVY_EVENT = SOUNDS.register(id("se_hit_heavy"), () -> SoundEvent.createVariableRangeEvent(id("se_hit_heavy")));
 	public static final RegistrySupplier<SoundEvent> SE_JUMP_EVENT = SOUNDS.register(id("se_jump"), () -> SoundEvent.createVariableRangeEvent(id("se_jump")));
 	public static final RegistrySupplier<SoundEvent> SE_MISSILE_EVENT = SOUNDS.register(id("se_missile"), () -> SoundEvent.createVariableRangeEvent(id("se_missile")));
 	public static final RegistrySupplier<SoundEvent> SE_ONGROUND_EVENT = SOUNDS.register(id("se_onground"), () -> SoundEvent.createVariableRangeEvent(id("se_onground")));
@@ -1235,6 +1247,7 @@ public class PomkotsMechs {
 	public static final String PACKET_UPDATE_DATAPACK = "udp";
 	public static final String PACKET_SECURITY_GENCARD = "sgc";
 	public static final String PACKET_REPAIR_MECH = "rpm";
+	public static final String PACKET_AUTO_SUPPLY = "asp";
 	public static final String PACKET_SUMMON_MECH = "smm";
 	public static final String PACKET_PARTS_WKBNCH_TAB_CHANGE = "pwt";
 	public static final String PACKET_PARTS_WKBNCH_CRAFT = "pwc";
@@ -1314,14 +1327,10 @@ public class PomkotsMechs {
 			var entity = ((ServerLevel)context.getPlayer().level()).getEntity(targetEntityId);
 
 			if (entity instanceof Pmvc01Entity mech) {
-				var inv = mech.getItemStacks();
-
-				if (inv.size() >= 18 && inv.get(17).isEmpty()) {
-					ItemStack stack = new ItemStack(PomkotsMechs.KEYCARD_ITEM.get());
-					if (stack.getItem() instanceof KeycardItem keycard) {
-						keycard.setMech(stack, mech, entity.level());
-						inv.set(17, stack);
-					}
+				ItemStack stack = new ItemStack(PomkotsMechs.KEYCARD_ITEM.get());
+				if (stack.getItem() instanceof KeycardItem keycard && context.getPlayer() instanceof ServerPlayer sp) {
+					keycard.setMech(stack, mech, entity.level());
+					giveItemToPlayer(sp, stack);
 				}
 			}
 		});
@@ -1338,6 +1347,44 @@ public class PomkotsMechs {
 				}
 			}
 		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_AUTO_SUPPLY), (buf, context) -> {
+			UUID targetEntityId = buf.readUUID();
+			ServerPlayer player = (ServerPlayer) context.getPlayer();
+
+			var entity = ((ServerLevel)player.level()).getEntity(targetEntityId);
+			if (entity instanceof Pmvc01Entity mech) {
+				if (player.containerMenu instanceof MechWorkbenchMenu menu) {
+					menu.autoSupplyAll();
+					player.sendSystemMessage(Utils.string2Component("{text.pomkotsmechs.messages.pmvc01.autosupply}"));
+				}
+			}
+		});
+	}
+
+	public static boolean giveItemToPlayer(ServerPlayer player, ItemStack stack) {
+		Inventory inventory = player.getInventory();
+
+		// 空きスロット検索
+		int freeSlot = inventory.getFreeSlot();
+
+		// 空き無し
+		if (freeSlot == -1) {
+
+			player.sendSystemMessage(
+					Component.literal("Inventory is full!")
+			);
+
+			return false;
+		}
+
+		// 空きスロットへセット
+		inventory.setItem(freeSlot, stack);
+
+		// インベントリ同期
+		player.containerMenu.broadcastChanges();
+
+		return true;
 	}
 
 	public static void registerServerTargetLock() {

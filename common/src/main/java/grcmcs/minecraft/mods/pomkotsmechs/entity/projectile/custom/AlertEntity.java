@@ -68,7 +68,7 @@ public class AlertEntity extends ThrowableProjectile implements GeoEntity, GeoAn
             if (lifeTicks < 10) {
                 return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.alert.idle"));
             } else if (lifeTicks == 10) {
-                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), PomkotsMechs.SE_ALERT.get(), SoundSource.PLAYERS, 1.0F, 1.0F, false);
+                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), PomkotsMechs.SE_ALERT.get(), SoundSource.PLAYERS, 0.3F, 1.0F, false);
                 return event.setAndContinue(RawAnimation.begin().thenPlay("animation.alert.start").thenLoop("animation.alert.alert"));
             } else if (lifeTicks == 50) {
                 return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.alert.end"));

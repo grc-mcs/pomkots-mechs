@@ -14,6 +14,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.HateTargetGoa
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RaidTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BluePrintItem;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -24,8 +25,10 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -35,9 +38,15 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -252,8 +261,99 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
                     this.hateTargetGoal.addDamageHate(cause, amount);
                 }
             }
-
             return super.hurt(source, amount);
+        }
+    }
+
+    protected void actuallyHurt(DamageSource damageSource, float f) {
+        float beforeRatio = getHealth() / getMaxHealth();
+
+        super.actuallyHurt(damageSource, f);
+
+        if (level().isClientSide || this.isStunning()) {
+            return;
+        }
+
+        float afterRatio = getHealth() / getMaxHealth();
+
+        int beforeStage = (int)(beforeRatio * 5F);
+        int afterStage = (int)(afterRatio * 5F);
+
+        if (afterStage != 4 && afterStage < beforeStage) {
+            this.goalSelector.getRunningGoals().forEach(WrappedGoal::stop);
+            this.onSmallDown();
+            burstArmorDrops(1F, true);
+        }
+    }
+
+    private void burstArmorDrops(
+            float ratio, boolean dropBlueprint
+    ) {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        LootTable lootTable =
+                serverLevel.getServer()
+                        .getLootData()
+                        .getLootTable(getLootTable());
+
+        LootParams params = new LootParams.Builder(serverLevel)
+                .withParameter(
+                        LootContextParams.THIS_ENTITY,
+                        this
+                )
+                .withParameter(
+                        LootContextParams.ORIGIN,
+                        position()
+                )
+                .withParameter(
+                        LootContextParams.DAMAGE_SOURCE,
+                        damageSources().generic()
+                )
+                .create(LootContextParamSets.ENTITY);
+
+        List<ItemStack> drops =
+                lootTable.getRandomItems(params);
+
+        RandomSource random = this.random;
+
+        for (ItemStack stack : drops) {
+//            if (random.nextFloat() > ratio) {
+//                continue;
+//            }
+
+            if (stack.getItem() instanceof BluePrintItem) {
+                if (!dropBlueprint || random.nextInt() % 8 < 7) {
+                    continue;
+                }
+            }
+
+            Vec3 pos = new Vec3(
+                    getX(),
+                    getY() + getBbHeight() * 0.7,
+                    getZ()
+            );
+
+            stack.setCount(1);
+
+            ItemEntity item = new ItemEntity(
+                    level(),
+                    pos.x,
+                    pos.y,
+                    pos.z,
+                    stack.copy()
+            );
+
+            item.setDeltaMovement(
+                    random.nextGaussian() * 0.5,
+                    random.nextDouble() * 0.5 + 0.2,
+                    random.nextGaussian() * 0.5
+            );
+
+            item.setPickUpDelay(40);
+
+            level().addFreshEntity(item);
         }
     }
 
@@ -551,11 +651,12 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
             current += point;
             if (current >= STUN_STUN_START) {
                 current = STUN_MAX;
-                this.onStun();
 
                 this.getAttribute(Attributes.ARMOR).setBaseValue(0);
 
                 this.goalSelector.getRunningGoals().forEach(WrappedGoal::stop);
+                this.actionController.reset();
+                this.onStun();
             }
         }
 
@@ -587,6 +688,10 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
     }
 
     protected void offStun() {
+
+    }
+
+    protected void onSmallDown() {
 
     }
 

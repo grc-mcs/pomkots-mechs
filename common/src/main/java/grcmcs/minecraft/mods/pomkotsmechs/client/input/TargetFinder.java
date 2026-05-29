@@ -1,5 +1,6 @@
 package grcmcs.minecraft.mods.pomkotsmechs.client.input;
 
+import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PlateEntity;
@@ -62,7 +63,12 @@ public class TargetFinder {
     }
 
     private boolean isTargetClass(LivingEntity entity) {
-        return entity instanceof PomkotsVehicleBase || entity instanceof GenericPomkotsMonster || entity instanceof BossHitBoxEntity || entity instanceof Player || entity instanceof PlateEntity;
+        return (entity instanceof PomkotsVehicleBase && PomkotsMechs.CONFIG.targetLockPomkotsVehicles)
+                || entity instanceof GenericPomkotsMonster
+                || entity instanceof BossHitBoxEntity
+                || (entity instanceof Player && PomkotsMechs.CONFIG.targetLockPlayers)
+                || entity instanceof PlateEntity
+                || (PomkotsMechs.CONFIG.targetLockNonPomkotsMobs && entity != null);
     }
 
     private boolean hasLineOfSight(Entity src, Entity candidate) {

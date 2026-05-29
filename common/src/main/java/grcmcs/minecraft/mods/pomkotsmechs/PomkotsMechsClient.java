@@ -15,7 +15,10 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.gui.PartsWorkbenchScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.RadarTargetSelectScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.narration.IntroNarrationScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.hud.PomkotsHud;
+import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
+import grcmcs.minecraft.mods.pomkotsmechs.client.input.MechCameraHandler;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.UserInteractionManager;
+import grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientHudShake;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.*;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.*;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.misc.BlockPlacementPreviewRenderer;
@@ -28,13 +31,17 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.turret.Pmt04EntityRend
 import grcmcs.minecraft.mods.pomkotsmechs.client.sound.PomkotsSoundManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.sound.PomkotsBGMManager;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
 import grcmcs.minecraft.mods.pomkotsmechs.sounds.bgm.BGMState;
+import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.nbt.CompoundTag;
 
 import java.io.ByteArrayInputStream;
+import java.util.Map;
 
 public class PomkotsMechsClient {
 	private static final UserInteractionManager keyPressManager = new UserInteractionManager();
@@ -359,6 +366,8 @@ public class PomkotsMechsClient {
 		ParticleProviderRegistry.register(PomkotsMechs.MISSILE_SMOKE, MissileSmokeParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.EXPLOSION_CORE, ExplosionCore.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.SPARK, SparkParticle.Provider::new);
+		ParticleProviderRegistry.register(PomkotsMechs.SPARK_ORANGE, SparkParticle.Provider::new);
+		ParticleProviderRegistry.register(PomkotsMechs.SPARK_RED, SparkParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.SPIRAL, SpiralAttractParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MAGAZINE, MagazineParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MAGAZINE_RIGHT, MagazineParticle.ProviderR::new);
@@ -368,6 +377,8 @@ public class PomkotsMechsClient {
 
 		ClientGuiEvent.RENDER_HUD.register(new PomkotsHud());
 		ClientTickEvent.CLIENT_POST.register(PomkotsSoundManager::cleanup);
+		ClientTickEvent.CLIENT_POST.register(MechCameraHandler::tick);
+		ClientTickEvent.CLIENT_POST.register(ClientHudShake::tick);
 
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_UPDATE_DATAPACK), (buf, context) -> {
 			try {

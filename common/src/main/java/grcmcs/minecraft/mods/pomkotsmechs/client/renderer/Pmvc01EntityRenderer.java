@@ -17,7 +17,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.slf4j.Logger;
@@ -25,9 +24,7 @@ import org.slf4j.LoggerFactory;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
-import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
-import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 
 import java.util.function.Predicate;
 
@@ -343,10 +340,14 @@ public class Pmvc01EntityRenderer extends GeoEntityRenderer<Pmvc01Entity> {
         }
     }
 
-
     private void setWeaponsVisibility(BakedGeoModel model,Pmvc01Entity ent, boolean b) {
 
         model.getBone("left_shoulder_hunger").get().setHidden(animatable.getLeftShoulderWeapon().isEmpty());
         model.getBone("right_shoulder_hunger").get().setHidden(animatable.getRightShoulderWeapon().isEmpty());
+    }
+
+    @Override
+    public boolean shouldShowName(Pmvc01Entity entity) {
+        return false;
     }
 }

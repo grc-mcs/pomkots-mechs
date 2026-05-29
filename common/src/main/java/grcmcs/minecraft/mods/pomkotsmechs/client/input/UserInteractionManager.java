@@ -40,7 +40,8 @@ public class UserInteractionManager {
         MODE               ((short)0b0000100000000000, InputConstants.KEY_Y, "mode"),
         EXT1               ((short)0b0001000000000000, InputConstants.KEY_N, "ext1"),
         EXT2               ((short)0b0010000000000000, InputConstants.KEY_M, "ext2"),
-        RELOAD             ((short)0b0100000000000000, InputConstants.KEY_H, "reload");
+        RELOAD             ((short)0b0100000000000000, InputConstants.KEY_H, "reload"),
+        REPAIR             ((short)0b1000000000000000, InputConstants.KEY_COMMA, "repair");
 
         private final short keyID;
         private final int id;
