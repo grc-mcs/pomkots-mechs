@@ -11,10 +11,6 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPack;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
-import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.BuilderUnitItem;
-import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.HoverUnitItem;
-import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.RailSliderItem;
-import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.SBUnitProtoTypeItem;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
@@ -159,6 +155,7 @@ public class PartsWorkbenchScreen  extends AbstractContainerScreen<PartsWorkbenc
         this.registerParts(PomkotsMechs.HARD_LOCK_CIRCUIT);
         this.registerParts(PomkotsMechs.HOVER_UNIT);
         this.registerParts(PomkotsMechs.RAIL_SLIDER);
+        this.registerParts(PomkotsMechs.GLIDER_UNIT);
     }
 
     private void registerParts(RegistrySupplier<Item> partsSupplier) {
@@ -183,8 +180,14 @@ public class PartsWorkbenchScreen  extends AbstractContainerScreen<PartsWorkbenc
 
     private boolean hasBluePrint(Inventory inventory, ResourceLocation partsId) {
         String partsName = partsId.getPath();
-        if (partsName.endsWith("head") || partsName.endsWith("body") || partsName.endsWith("arm") || partsName.endsWith("legs")) {
-            partsName = partsName.replaceAll("head", "").replaceAll("body", "").replaceAll("arm", "").replaceAll("legs", "");
+        if (partsName.endsWith("head")
+                || partsName.endsWith("body")
+                || partsName.endsWith("arm")
+                || partsName.endsWith("legs")) {
+            partsName = partsName.replaceAll("head", "")
+                    .replaceAll("body", "")
+                    .replaceAll("arm", "")
+                    .replaceAll("legs", "");
         }
 
         ResourceLocation bluePrintId = getBluePrintId(partsId.getNamespace(), partsName);
@@ -201,6 +204,7 @@ public class PartsWorkbenchScreen  extends AbstractContainerScreen<PartsWorkbenc
             case "railslider" -> new ResourceLocation(nameSpace, "blue_print_rail_slider_unit");
             case "protosbunit" -> new ResourceLocation(nameSpace, "blue_print_proto_super_boost_unit");
             case "builderunit" -> new ResourceLocation(nameSpace, "blue_print_builder_unit");
+            case "gliderunit" -> new ResourceLocation(nameSpace, "blue_print_glider_unit");
             default -> new ResourceLocation(
                     nameSpace,
                     "blue_print_" + partsName
@@ -711,6 +715,8 @@ public class PartsWorkbenchScreen  extends AbstractContainerScreen<PartsWorkbenc
         requiredMaterials.clear();
 
         if (partsData.recipes.size() <= level) {
+            return false;
+        } else if (partsData.levels.size() == level) {
             return false;
         }
 

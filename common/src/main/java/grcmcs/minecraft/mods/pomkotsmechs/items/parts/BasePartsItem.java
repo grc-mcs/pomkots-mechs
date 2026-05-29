@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.items.parts;
 
 import dev.architectury.platform.Platform;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.PomkotsCustomThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
@@ -537,6 +538,10 @@ public abstract class BasePartsItem extends Item implements GeoItem {
 
         public void tickWeaponInAction(ActionWeapon.WeaponMechInterface context, int tick, boolean isOnFire) {
             //NOP
+        }
+
+        public PomkotsCustomThrowableProjectile.RangeCategory getCurrentRange(int distance) {
+            return PomkotsCustomThrowableProjectile.RangeCategory.OPTIMAL;
         }
 
         public PartsCategory getPartsCategory() {

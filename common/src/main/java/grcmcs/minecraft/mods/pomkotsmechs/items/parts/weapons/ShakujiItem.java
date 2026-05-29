@@ -4,6 +4,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.ShakujiItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletRifleEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.PomkotsCustomThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
@@ -48,6 +49,11 @@ public class ShakujiItem extends BasePartsItem.WeaponArm {
                 mechInterface.playSoundEffect(PomkotsMechs.SE_GUN_2.get());
             }
         }
+    }
+
+    @Override
+    public PomkotsCustomThrowableProjectile.RangeCategory getCurrentRange(int distance) {
+        return BulletRifleEntity.calcRangeCategoryStatic(distance);
     }
 
     @Override

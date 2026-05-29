@@ -102,6 +102,16 @@
       "pomkotsmechs:se_hit"
     ]
   },
+  "se_hit_middle": {
+    "sounds": [
+      "pomkotsmechs:se_hit_middle"
+    ]
+  },
+  "se_hit_heavy": {
+    "sounds": [
+      "pomkotsmechs:se_hit_heavy"
+    ]
+  },
   "se_gatling": {
     "sounds": [
       "pomkotsmechs:se_gatling"

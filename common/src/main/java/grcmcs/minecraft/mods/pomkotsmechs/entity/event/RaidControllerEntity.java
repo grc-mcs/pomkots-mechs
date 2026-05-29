@@ -536,12 +536,13 @@ public class RaidControllerEntity extends LivingEntity {
         timeBar.setProgress(Mth.clamp(timeProgress, 0f, 1f));
 
         RaidType type = RaidType.of(raidDefinition.type);
-        if ((type == RaidType.SWEEP || type == RaidType.SWEEP_BOSS_BOX) && remainingMobs != null) {
+        if ((type == RaidType.SWEEP || type == RaidType.SWEEP_BOSS_BOX || type == RaidType.ACTIVATE) && remainingMobs != null) {
             int total   = remainingMobs[0] + spawnedMobs.size();
             float prog  = total / (float) remainingMobs[1];
             baseHpBar.setName(Component.literal("Target Monsters: " + total + "/" + remainingMobs[1]));
             baseHpBar.setProgress(Mth.clamp(prog, 0f, 1f));
-        } else if (type != RaidType.ACTIVATE) {
+        }
+        else if (type != RaidType.ACTIVATE) {
             float hp = raidTargetEntity.getHealth() / raidTargetEntity.getMaxHealth();
             baseHpBar.setName(Component.literal(
                     "Target HP: " + (int) raidTargetEntity.getHealth() + "/" + (int) raidTargetEntity.getMaxHealth()

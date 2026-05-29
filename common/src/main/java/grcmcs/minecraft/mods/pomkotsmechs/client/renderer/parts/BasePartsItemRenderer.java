@@ -3,8 +3,6 @@ package grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.model.parts.BasePartsItemModel;
-import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.RenderUtils;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.CachedBoneFinder;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -12,7 +10,6 @@ import net.minecraft.client.renderer.RenderType;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 
 public class BasePartsItemRenderer<T extends BasePartsItem> extends GeoItemRenderer<T> {
     public BasePartsItemRenderer(BasePartsItemModel model) {

@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.BaseSmallMonsterEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
@@ -159,14 +160,20 @@ public class MissileGenericEntity extends PomkotsCustomThrowableProjectile imple
             terminalPhase = true;
         }
 
-        if (!terminalPhase) {
+        if (!terminalPhase || target instanceof BaseSmallMonsterEntity) {
             float period = Math.max(remainingTicks / 20.0f, 0.05f);
+
+            float homingRate = 2.0F;
+            if (target instanceof BaseSmallMonsterEntity) {
+                homingRate = 7;
+            }
 
             Vec3 acceleration = diff
                     .subtract(velocity.scale(period))
-                    .scale(2.0 / (period * period));
+                    .scale(homingRate / (period * period));
 
             double maxAcc = getSpeed() * 8.0;
+
             if (acceleration.length() > maxAcc) {
                 acceleration = acceleration.normalize().scale(maxAcc);
             }
@@ -176,6 +183,7 @@ public class MissileGenericEntity extends PomkotsCustomThrowableProjectile imple
         }
 
         double maxSpeed = getSpeed();
+
         if (velocity.length() > maxSpeed) {
             velocity = velocity.normalize().scale(maxSpeed);
         }
@@ -273,7 +281,7 @@ public class MissileGenericEntity extends PomkotsCustomThrowableProjectile imple
     protected void createExplosion(Vec3 pos) {
         Level world = level();
         if (world.isClientSide) {
-            addParticles(this.position());
+            addParticles(4F, this.position());
         } else {
             if (Utils.isBlockDestructionAllowed(shooter)) {
                 Utils.explode(this,  pos.x, pos.y, pos.z, BattleBalance.MECH_MISSILE_EXPLOSION, false, Level.ExplosionInteraction.BLOCK, this.level());
@@ -283,28 +291,36 @@ public class MissileGenericEntity extends PomkotsCustomThrowableProjectile imple
         }
     }
 
-    protected void addParticles(Vec3 offset) {
-        Level world = level();
-        for (int i = 0; i < 3; i++) {
-            int rad = Math.abs(i - 3);
+    protected void addParticles(float scale, Vec3 offset) {
+        var level = this.level();
 
-            for (int j = 0; j < 3 - rad; j++) {
-                for (int k = 0; k < 3 - rad; k++) {
-                    world.addParticle(
-                            ParticleTypes.EXPLOSION,
-                            offset.x - (k - (1 - rad/2)) * 2,
-                            offset.y - (i - 1) * 2,
-                            offset.z - (j - (1 - rad/2)) * 2,
-                            0,0,0);
-                }
-            }
+        if (!(scale < 2.0F)) {
+            level.addParticle(ParticleTypes.EXPLOSION_EMITTER, offset.x, offset.y, offset.z, 1.0, 0.0, 0.0);
+        } else {
+            level.addParticle(ParticleTypes.EXPLOSION, offset.x, offset.y, offset.z, 1.0, 0.0, 0.0);
         }
+
+//        Level world = level();
+//        for (int i = 0; i < 3; i++) {
+//            int rad = Math.abs(i - 3);
+//
+//            for (int j = 0; j < 3 - rad; j++) {
+//                for (int k = 0; k < 3 - rad; k++) {
+//                    world.addParticle(
+//                            ParticleTypes.EXPLOSION,
+//                            offset.x - (k - (1 - rad/2)) * 2,
+//                            offset.y - (i - 1) * 2,
+//                            offset.z - (j - (1 - rad/2)) * 2,
+//                            0,0,0);
+//                }
+//            }
+//        }
     }
 
     @Override
     public void onClientRemoval() {
         if (this.level().isClientSide) {
-            addParticles(this.position());
+            addParticles(1F, this.position());
         }
     }
 

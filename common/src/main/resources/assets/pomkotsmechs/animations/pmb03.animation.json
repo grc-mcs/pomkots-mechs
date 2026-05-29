@@ -3334,6 +3334,16 @@
 							"easing": "linear"
 						}
 					}
+				},
+				"right_booster_fire": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"left_booster_fire": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
 				}
 			}
 		},
@@ -3429,11 +3439,21 @@
 							"easing": "linear"
 						}
 					}
+				},
+				"right_booster_fire": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"left_booster_fire": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
 				}
 			}
 		},
 		"animation.pmb03.up": {
-			"animation_length": 0.25,
+			"animation_length": 1,
 			"bones": {
 				"spine": {
 					"rotation": {
@@ -3523,6 +3543,16 @@
 							"vector": [0, 0, 0],
 							"easing": "linear"
 						}
+					}
+				},
+				"right_booster_fire": {
+					"scale": {
+						"vector": [0, 0, 0]
+					}
+				},
+				"left_booster_fire": {
+					"scale": {
+						"vector": [0, 0, 0]
 					}
 				}
 			}

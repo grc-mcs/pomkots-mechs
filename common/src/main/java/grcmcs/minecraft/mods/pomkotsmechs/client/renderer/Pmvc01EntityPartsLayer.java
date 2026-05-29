@@ -6,6 +6,7 @@ import com.mojang.math.Axis;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.BuilderUnitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.GliderUnitItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.HoverUnitItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.SBUnitProtoTypeItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons.TenpouItem;
@@ -111,6 +112,7 @@ public class Pmvc01EntityPartsLayer <T extends Pmvc01Entity> extends GeoRenderLa
         if (!ext1Stack.isEmpty() && (
                 ext1Stack.getItem() instanceof SBUnitProtoTypeItem
                         || ext1Stack.getItem() instanceof BuilderUnitItem
+                        || ext1Stack.getItem() instanceof GliderUnitItem
         )) {
             renderExtension(ext1Stack, (BasePartsItem.Extension)ext1Stack.getItem(), poseStack,  animatable,  bone,  renderType,  bufferSource,  buffer,  partialTick,  packedLight,  packedOverlay);
         }
@@ -118,6 +120,7 @@ public class Pmvc01EntityPartsLayer <T extends Pmvc01Entity> extends GeoRenderLa
         if (!ext2Stack.isEmpty() && (
                 ext2Stack.getItem() instanceof SBUnitProtoTypeItem
                         || ext2Stack.getItem() instanceof BuilderUnitItem
+                        || ext2Stack.getItem() instanceof GliderUnitItem
         )) {
             renderExtension(ext2Stack, (BasePartsItem.Extension)ext2Stack.getItem(), poseStack,  animatable,  bone,  renderType,  bufferSource,  buffer,  partialTick,  packedLight,  packedOverlay);
         }

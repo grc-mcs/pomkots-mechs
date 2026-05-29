@@ -362,7 +362,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
         if (ds.getEntity() != null && ds.getEntity().equals(this.getDrivingPassenger())) {
             return false;
         } else {
-            if (this.isClientSide()) {
+            if (this.isClientSide() && !(this instanceof Pmvc01Entity)) {
                 this.playSoundEffect(PomkotsMechs.SE_HIT_EVENT.get());
                 ParticleUtil.addParticles(ds,this);
             }

@@ -7,22 +7,19 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.TargetLocker;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.BaseSmallMonsterEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3d;
@@ -36,19 +33,20 @@ public class RenderUtils {
             EntityRenderDispatcher erd,
             float heightOffset) {
         Minecraft client = Minecraft.getInstance();
-
-        if (!client.options.hideGui) {
-            double distance = client.gameRenderer.getMainCamera().getPosition().distanceTo(entity.position());
-            if (distance > 64 * 64) {
-                return;
-            }
-
-            if (!entity.equals(client.player.getVehicle())) {
-                if (PomkotsMechs.CONFIG.enableHudHealthBar) {
-                    renderVehicleBars(entity, poseStack, bufferSource, erd, heightOffset);
-                }
-            }
+        if (
+                client.options.hideGui
+                || !PomkotsMechs.CONFIG.enableHudHealthBar
+                || entity.equals(client.player.getVehicle())
+                || (entity instanceof Pmvc01Entity pmvc01 && !pmvc01.showCustomHealthBar())
+        ) {
+            return;
         }
+
+        double distance = client.gameRenderer.getMainCamera().getPosition().distanceTo(entity.position());
+        if (distance > 64 * 64) {
+            return;
+        }
+        renderVehicleBars(entity, poseStack, bufferSource, erd, heightOffset);
     }
 
     public static void renderVehicleBars(
@@ -126,7 +124,7 @@ public class RenderUtils {
     ) {
         Minecraft client = Minecraft.getInstance();
 
-        if (entity.getAiMode() == BaseBossEntity.AI_MODE_INACTIVE || client.options.hideGui) {
+        if (entity.getAiMode() == BaseBossEntity.AI_MODE_INACTIVE || client.options.hideGui  || entity.tickCount < 5) {
             return;
         }
 
@@ -189,9 +187,9 @@ public class RenderUtils {
             EntityRenderDispatcher erd,
             float heightOffset
     ) {
-        Minecraft client = Minecraft.getInstance();
+        Minecraft mc = Minecraft.getInstance();
 
-        if (client.options.hideGui) {
+        if (mc.options.hideGui || entity.tickCount < 5) {
             return;
         }
 

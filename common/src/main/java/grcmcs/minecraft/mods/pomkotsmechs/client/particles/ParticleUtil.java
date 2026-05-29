@@ -4,6 +4,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PomkotsThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -63,6 +64,30 @@ public class ParticleUtil {
         }
 
         for (int i = 0; i < 3; i++) {
+            level.addAlwaysVisibleParticle(PomkotsMechs.MISSILE_SMOKE.get(), true,
+                    offset.x(), offset.y() + random.nextDouble(), offset.z(), // 位置
+                    0, random.nextDouble(), 0 // 速度
+            );
+        }
+    }
+
+    public static void addSparkParticles(Vec3 offset, Level level, int num, ParticleOptions particle) {
+        RandomSource random = level.getRandom();
+
+        for (int i = 0; i < num; i++) {
+            // ランダムな速度を生成
+            double velocityX = random.nextDouble() * 2.0 - 1;
+            double velocityY = random.nextDouble() * 2.0 - 1;
+            double velocityZ = random.nextDouble() * 2.0 - 1;
+
+            // パーティクルをクライアント側で発生させる
+            level.addAlwaysVisibleParticle(particle, true,
+                    offset.x(), offset.y(), offset.z(), // 位置
+                    velocityX, velocityY, velocityZ // 速度
+            );
+        }
+
+        for (int i = 0; i < num / 3; i++) {
             level.addAlwaysVisibleParticle(PomkotsMechs.MISSILE_SMOKE.get(), true,
                     offset.x(), offset.y() + random.nextDouble(), offset.z(), // 位置
                     0, random.nextDouble(), 0 // 速度

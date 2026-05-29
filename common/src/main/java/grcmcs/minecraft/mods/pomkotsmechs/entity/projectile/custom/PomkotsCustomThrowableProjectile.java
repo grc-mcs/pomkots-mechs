@@ -5,6 +5,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PomkotsThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ProjectileUtil;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,10 +18,30 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableProjectile {
+    public enum RangeCategory {
+        OPTIMAL            ((short)0),
+        EFFECTIVE            ((short)1),
+        MAXIMUM            ((short)2),
+        OUT            ((short)3),
+        SUPER            ((short)4);
+
+        private final short category;
+
+        RangeCategory(final short category) {
+            this.category = category;
+        }
+
+        public short category() {
+            return this.category;
+        }
+    }
+
     protected int maxLifeTicks = 20;
     protected int lifeTicks = 0;
     protected float damage;
     protected int stun;
+    protected double initialSpeed = 0;
+    protected boolean toDiscard = false;
 
     private static final int SUBSTEPS = 1;
 
@@ -32,10 +53,18 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
         this.maxLifeTicks = maxLifeTicks;
         this.damage = damage;
         this.stun = stun;
+
+        if (shooter instanceof Pmvc01Entity pmvc01 && pmvc01.getDrivingPassenger() != null) {
+            this.setOwner(pmvc01.getDrivingPassenger());
+        }
     }
 
     @Override
     public void tick() {
+        if (toDiscard) {
+            this.discard();
+        }
+
         this.setOldPosAndRot();
 
         if (this.level().isClientSide) {
@@ -55,6 +84,10 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
     }
 
     protected boolean performSubStepMovement() {
+        if (firstTick) {
+            initialSpeed = this.getDeltaMovement().distanceTo(Vec3.ZERO);
+        }
+
         Vec3 totalMovement = this.getDeltaMovement();
         Vec3 subStepMovement = totalMovement;
 
@@ -172,10 +205,10 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
         }
 
         // ダメージ計算（射出直後はボーナスダメージ）
-        float finalDamage = damage;
-        if (lifeTicks < 10) {
-            finalDamage += (10 - (float) lifeTicks) * damage / 20;
-        }
+        float finalDamage = calcFinalDamage(damage);
+//        if (lifeTicks < 10) {
+//            finalDamage += (10 - (float) lifeTicks) * damage / 20;
+//        }
 
         // スタン付与
         if (entity instanceof BaseBossEntity boss) {
@@ -188,7 +221,12 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
         ProjectileUtil.hurt(entity, this, this.getOwner(), finalDamage);
         entity.invulnerableTime = 0;
 
-        this.discard();
+        toDiscard = true;
+//        this.discard();
+    }
+
+    protected float calcFinalDamage(float baseDamage) {
+        return baseDamage;
     }
 
     public int getStunPoint() {
@@ -201,7 +239,9 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
 
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
-        this.discard();
+
+        toDiscard = true;
+//        this.discard();
     }
 
     @Override

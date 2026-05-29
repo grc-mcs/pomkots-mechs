@@ -4,6 +4,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.block.MechWorkbenchBlockEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchMenu;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
+import grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientHudShake;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.client.sound.PomkotsSoundManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.sound.SoundConfig;
@@ -17,6 +18,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.ActionController;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
+import grcmcs.minecraft.mods.pomkotsmechs.items.RepairKitItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.CachedBoneFinder;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.*;
@@ -25,13 +27,13 @@ import grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons.ShoutouItem;
 import grcmcs.minecraft.mods.pomkotsmechs.save.PomkotsMechsSaveData;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -84,7 +86,8 @@ import java.util.function.Supplier;
 
 public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInventoryScreen, Container, MenuProvider {
     public static final float DEFAULT_SCALE = 1f;
-    public static final int CONTAINER_SIZE = 27;
+    public static final int CONTAINER_SIZE = 64;
+    public static final int CONTAINER_GENERAL_ITEM_START_INDEX = CONTAINER_SIZE - 36 - 1;
 
     @Override
     protected String getMechName() {
@@ -95,6 +98,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     private int fuel = 0;
     private int inAirTicks = 0;
+    private float prevHealth = 0;
+    private int damageSoundCooldown = 0;
 
     private BlockPlacementPreviewEntity blockPreviewEntity = null;
 
@@ -133,58 +138,24 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             firstTickEvent();
         }
 
-        // @JOKE
-        if (this.actionController.getAction(ACT_GATTAI).isInAction()) {
-            this.setNoGravity(true);
-
-            super.tick();
-
-            var act = this.actionController.getAction(ACT_GATTAI);
-            if (this.isServerSide()) {
-                if (act.currentFireTime < 15) {
-                    this.setDeltaMovement(0, 0, 0);
-                } else  {
-                    this.setDeltaMovement(0, -2, 0);
-
-                    if (this.onGround()) {
-                        act.reset();
-                        this.setNoGravity(false);
-                    }
-
-                    var ents = level().getEntitiesOfClass(Pmb99Entity.class, this.getBoundingBox());
-                    if (!ents.isEmpty()) {
-                        var tgt = ents.get(0);
-                        this.startRiding(tgt);
-                        act.reset();
-                    }
-                }
-            } else {
-                if (act.currentFireTime < 15) {
-                } else  {
-                    if (this.onGround()) {
-                        act.reset();
-                        this.setNoGravity(false);
-                    }
-
-                    var ents = level().getEntitiesOfClass(Pmb99Entity.class, this.getBoundingBox());
-                    if (!ents.isEmpty() || this.getVehicle() != null) {
-                        this.playSoundEffect(PomkotsMechs.SE_GASHAN.get());
-
-                        var p1 = new Vec3(-1, 7, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
-                        var p2 = new Vec3(1, 7, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
-                        var p3 = new Vec3(-1, 7, 1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
-                        var p4 = new Vec3(1, 7, 1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
-
-                        ParticleUtil.addSparkParticles(p1, this.level());
-                        ParticleUtil.addSparkParticles(p2, this.level());
-                        ParticleUtil.addSparkParticles(p3, this.level());
-                        ParticleUtil.addSparkParticles(p4, this.level());
-
-                        act.reset();
-                    }
-                }
+        if (this.isClientSide()) {
+            if (damageSoundCooldown > 0) {
+                damageSoundCooldown--;
             }
 
+            float current = this.getHealth();
+
+            clientDamageThisTick = prevHealth - current;
+            if (clientDamageThisTick > 0.0f && consumeWasHurtClient()) {
+                onClientDamage(clientDamageThisTick);
+            }
+
+            prevHealth = current;
+        }
+
+        // @JOKE
+        if (this.actionController.getAction(ACT_GATTAI).isInAction()) {
+            handleGattaiMode();
             return;
         }
 
@@ -249,6 +220,95 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                     spawnMovingParticles(6, 3, true);
                 } else if (this.actionController.isBoost() || isSuperBoost()) {
                     spawnMovingParticles(20, 0.8F,true);
+                }
+            }
+        }
+    }
+
+    private float clientDamageThisTick = 0;
+
+    public float getClientDamageThisTick () {
+        return clientDamageThisTick;
+    }
+
+    private void onClientDamage(float damage) {
+        if (damage > 50f) {
+            this.playDamageSound(PomkotsMechs.SE_HIT_HEAVY_EVENT.get());
+            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 50, PomkotsMechs.SPARK.get());
+        } else if (damage > 15f) {
+            this.playDamageSound(PomkotsMechs.SE_HIT_MIDDLE_EVENT.get());
+            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 25, PomkotsMechs.SPARK.get());
+        } else {
+            this.playDamageSound(PomkotsMechs.SE_HIT_EVENT.get());
+            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 10, PomkotsMechs.SPARK.get());
+        }
+
+        if (this.getDrivingPassenger() instanceof LocalPlayer) {
+            ClientHudShake.addShake(
+                    Math.min(damage * 0.5f, 10f)
+            );
+        }
+    }
+
+    private void playDamageSound(SoundEvent se) {
+        if (damageSoundCooldown <= 0) {
+            this.playSoundEffect(se);
+            damageSoundCooldown = 10;
+        }
+    }
+
+    @Override
+    protected void playHurtSound(DamageSource damageSource) {
+        //NOP
+    }
+
+    private void handleGattaiMode() {
+        this.setNoGravity(true);
+
+        super.tick();
+
+        var act = this.actionController.getAction(ACT_GATTAI);
+        if (this.isServerSide()) {
+            if (act.currentFireTime < 15) {
+                this.setDeltaMovement(0, 0, 0);
+            } else  {
+                this.setDeltaMovement(0, -2, 0);
+
+                if (this.onGround()) {
+                    act.reset();
+                    this.setNoGravity(false);
+                }
+
+                var ents = level().getEntitiesOfClass(Pmb99Entity.class, this.getBoundingBox());
+                if (!ents.isEmpty()) {
+                    var tgt = ents.get(0);
+                    this.startRiding(tgt);
+                    act.reset();
+                }
+            }
+        } else {
+            if (act.currentFireTime < 15) {
+            } else  {
+                if (this.onGround()) {
+                    act.reset();
+                    this.setNoGravity(false);
+                }
+
+                var ents = level().getEntitiesOfClass(Pmb99Entity.class, this.getBoundingBox());
+                if (!ents.isEmpty() || this.getVehicle() != null) {
+                    this.playSoundEffect(PomkotsMechs.SE_GASHAN.get());
+
+                    var p1 = new Vec3(-1, 7, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+                    var p2 = new Vec3(1, 7, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+                    var p3 = new Vec3(-1, 7, 1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+                    var p4 = new Vec3(1, 7, 1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
+
+                    ParticleUtil.addSparkParticles(p1, this.level());
+                    ParticleUtil.addSparkParticles(p2, this.level());
+                    ParticleUtil.addSparkParticles(p3, this.level());
+                    ParticleUtil.addSparkParticles(p4, this.level());
+
+                    act.reset();
                 }
             }
         }
@@ -436,7 +496,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                 && !this.getLegsParts().isEmpty()
                 && !this.getGenerator().isEmpty();
 
-        if (consumeFuel) {
+        if (consumeFuel && this.isServerSide()) {
             res = res && this.consumeFuel();
         } else {
             res = res && this.getFuelNow() != 0;
@@ -454,6 +514,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.isHovering = false;
         this.unbindFromRail();
         this.setSuperBoost(false);
+        this.setGliding(false);
     }
 
     @Override
@@ -625,6 +686,9 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         if (driverInput.isExtension2Released()) {
             applyPlayerInputExtension(getExtension2Weapon());
         }
+        if (driverInput.isRepairReleased()) {
+            repair();
+        }
     }
 
     protected void applyPlayerInputWeapon(ActionWeapon act, ActionWeapon actLinked, DriverInput driverInput, boolean isPressed, boolean isReleased, AmmoManager ammoManager) {
@@ -657,7 +721,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             }
         } else if (act.getMotion().getType().equals(Motion.MotionType.CONTINUOUS)) {
             if (act.canStartAction() && isPressed) {
-                if (act.getMotion().concurrentAvailable() || !isUsingWeapons()) {
+                if (act.getMotion().concurrentAvailable() || !isUsingUnConcurrentWeapons()) {
                     act.startAction();
                 }
             } else if (act.isInAction() && isReleased) {
@@ -665,7 +729,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             }
         } else if (act.getMotion().getType().equals(Motion.MotionType.CHARGE)) {
             if (act.canStartAction() && isPressed) {
-                if (act.getMotion().concurrentAvailable() || !isUsingWeapons()) {
+                if (act.getMotion().concurrentAvailable() || !isUsingUnConcurrentWeapons()) {
                     act.startAction();
                 }
             } else if (act.isInAction() && isReleased && !act.isInFire()) {
@@ -673,13 +737,13 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             }
         } else if (act.getMotion().getType().equals(Motion.MotionType.TOGGLE)) {
             if (act.canStartAction() && isPressed) {
-                if (act.getMotion().concurrentAvailable() || !isUsingWeapons()) {
+                if (act.getMotion().concurrentAvailable() || !isUsingUnConcurrentWeapons()) {
                     act.startAction();
                 }
             }
         } else {
             if (act.canStartAction() && isPressed) {
-                if (act.getMotion().concurrentAvailable() || !isUsingWeapons()) {
+                if (act.getMotion().concurrentAvailable() || !isUsingUnConcurrentWeapons()) {
                     act.startAction();
                 }
             }
@@ -705,11 +769,15 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         };
     }
 
-    private boolean isUsingWeapons() {
-        return this.actionController.getAction(ACT_RIGHT_HAND).isInAction()
-                || this.actionController.getAction(ACT_LEFT_HAND).isInAction()
-                || this.actionController.getAction(ACT_RIGHT_SHOULDER).isInAction()
-                || this.actionController.getAction(ACT_LEFT_SHOULDER).isInAction();
+    private boolean isUsingUnConcurrentWeapons() {
+        return isUsingUnConcurrentWeapon((ActionWeapon) this.actionController.getAction(ACT_RIGHT_HAND))
+                || isUsingUnConcurrentWeapon((ActionWeapon) this.actionController.getAction(ACT_LEFT_HAND))
+                || isUsingUnConcurrentWeapon((ActionWeapon) this.actionController.getAction(ACT_RIGHT_SHOULDER))
+                || isUsingUnConcurrentWeapon((ActionWeapon) this.actionController.getAction(ACT_LEFT_SHOULDER));
+    }
+
+    private boolean isUsingUnConcurrentWeapon(ActionWeapon act) {
+        return !act.getMotion().concurrentAvailable() && act.isInAction();
     }
 
     protected void applyPlayerInputExtension(ItemStack extensionStack) {
@@ -729,13 +797,27 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                         this.setSuperBoost(false);
                         this.actionController.setBoost(true);
                     }
-                } else if (!this.actionController.isInActionAll()){
+                } else if (!this.actionController.isInActionAll() && !this.isGliding()){
                     this.isHovering = false;
                     this.unbindFromRail();
                     this.actionController.getAction(ACT_SUPER_BOOST).startAction();
 
                     if (this.isServerSide()) {
                         this.actionController.setBoost(false);
+                    }
+                }
+            } else if (extensionItem instanceof GliderUnitItem glider) {
+                if (this.isServerSide()) {
+                    if (this.isGliding()) {
+                        this.setGliding(false);
+                        glider.endUsing(this.level(), extensionStack, this);
+
+                    } else if (!this.onGround()){
+                        this.setSuperBoost(false);
+                        this.isHovering = false;
+                        this.unbindFromRail();
+                        this.setGliding(true);
+                        glider.startUsing(this.level(), extensionStack, this);
                     }
                 }
             } else if (extensionItem instanceof BuilderUnitItem && isServerSide()) {
@@ -921,6 +1003,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                 && !this.actionController.getAction(ACT_EVASION).isInAction()
                 && !this.actionController.getAction(ACT_EVASION).isInCooltime()
                 && !this.actionController.getAction(ACT_WALL_JUMP).isInAction()
+                && !this.isGliding()
         ) {
 
             if (this.noHorizontalBoost()) {
@@ -1012,21 +1095,41 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
                 if (!tryVerticalBoost()) {
                     if (isServerSide()) {
-                        this.push(0, -0.18 * 0.9800000190734863D, 0);
+                        var delta = this.getDeltaMovement();
+                        if (isGliding() && delta.y < 0) {
+                            this.setDeltaMovement(delta.x, -0.2, delta.z);
+                        } else {
+                            this.push(0, -0.18 * 0.9800000190734863D, 0);
+                        }
                     }
                 }
             } else if (isServerSide()){
                 if (isHovering()) {
                     this.handleHovering();
                 } else if (!isBoundToRail()) {
-                    this.push(0, -0.18 * 0.9800000190734863D, 0);
+                    var delta = this.getDeltaMovement();
+                    if (isGliding() && delta.y < 0) {
+                        this.setDeltaMovement(delta.x, -0.2, delta.z);
+                    } else {
+                        this.push(0, -0.18 * 0.9800000190734863D, 0);
+                    }
                 }
             }
         } else {
             if (isHovering()) {
                 this.handleHovering();
             }
-            if (this.isServerSide()) this.setNoGravity(false);
+            if (this.isServerSide()) {
+                this.setNoGravity(false);
+                if (this.isGliding()) {
+                    if (this.getExtension1Weapon().getItem() instanceof GliderUnitItem glider1) {
+                        glider1.endUsing(this.level(), this.getExtension1Weapon(), this);
+                    } else if (this.getExtension2Weapon().getItem() instanceof GliderUnitItem glider2) {
+                        glider2.endUsing(this.level(), this.getExtension2Weapon(), this);
+                    }
+                    this.setGliding(false);
+                }
+            }
         }
     }
 
@@ -1124,6 +1227,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     @Override
     protected boolean tryVerticalBoost() {
+        if (this.isGliding()) {
+            return false;
+        }
+
         if (useEnergy(this.getEnergyConsumeVertical())) {
             if (isServerSide() && this.getDeltaMovement().y() < getVerticalBoostMaxSpeed()) {
                 if (isHovering) {
@@ -1207,6 +1314,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected void chargeEnergy() {
         if (overHeatCooltime-- == 0) {
             this.setOverHeat(false);
+        }
+
+        if (this.isGliding()) {
+            return;
         }
 
         if (this.energy + this.getEnergyChargePerTick() > this.getMaxEnergy()) {
@@ -1926,6 +2037,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     public static final int INV_AMMO_RS = 14;
     public static final int INV_AMMO_LS = 15;
     public static final int INV_FUEL = 16;
+    public static final int INV_REPAIR_KIT = 17;
 
     protected ItemStack getHeadPartsFromInventory() {
         return getItem(INV_PARTS_HEAD);
@@ -2117,7 +2229,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         ItemStack stack = player.getItemInHand(interactionHand);
         Level level = this.level();
 
-        if (stack.is(PomkotsMechs.REPAIRKIT_ITEM.get()) || stack.is(PomkotsMechs.KEYCARD_ITEM.get()) || stack.is(PomkotsMechs.MECH_CLONER_ITEM.get())) {
+        if ((stack.is(PomkotsMechs.REPAIRKIT_ITEM.get()) && this.canRepair(this) ) || stack.is(PomkotsMechs.KEYCARD_ITEM.get()) || stack.is(PomkotsMechs.MECH_CLONER_ITEM.get())) {
             return InteractionResult.PASS;
 
         } else if (this.canAddPassenger(player) && !player.isSecondaryUseActive()) {
@@ -2129,6 +2241,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                 }
                 return InteractionResult.CONSUME;
             }
+
+            player.setSprinting(false);
 
             var res = super.interact(player, interactionHand);
             this.tickAllParts();
@@ -2160,6 +2274,47 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             double dz = this.getZ() + (level.random.nextDouble() - 0.5) * this.getBbWidth();
             level.sendParticles(ParticleTypes.HAPPY_VILLAGER, dx, dy, dz, 1, 0.0, 0.1, 0.0, 0.1);
         }
+    }
+
+    // @TODO healと統合する
+    public void repair() {
+        ItemStack repairKitItemStack = getItem(INV_REPAIR_KIT);
+
+        if (this.level() instanceof ServerLevel serverLevel
+                && canRepair(this)
+                && repairKitItemStack.getItem() instanceof RepairKitItem
+                && repairKitItemStack.getCount() > 0
+        ) {
+            float healed = Math.min(this.getMaxHealth(), this.getHealth() + RepairKitItem.HEAL_AMOUNT);
+            this.setHealth(healed);
+            repairKitItemStack.shrink(1);
+            this.entityData.set(REPAIR_KIT_NUM, this.getItem(INV_REPAIR_KIT).getCount());
+        }
+
+        if (this.isClientSide() && canRepair(this) && getRepairKitNum() > 0) {
+            healEffectClient(this.level(), this);
+        }
+    }
+
+    protected boolean canRepair(LivingEntity target) {
+        return target.getMaxHealth() > target.getHealth() && target instanceof Pmvc01Entity;
+    }
+
+    public void healEffectClient(Level level, LivingEntity target) {
+        // パーティクルを出す
+        for (int i = 0; i < 30; i++) {
+            double dx = target.getX() + (level.random.nextDouble() - 0.5) * target.getBbWidth();
+            double dy = target.getY() + level.random.nextDouble() * target.getBbHeight();
+            double dz = target.getZ() + (level.random.nextDouble() - 0.5) * target.getBbWidth();
+
+            level.addAlwaysVisibleParticle(
+                    ParticleTypes.HAPPY_VILLAGER,
+                    true,
+                    dx, dy, dz,
+                    0, 0.1, 0
+            );
+        }
+        this.playSoundPublic(SoundEvents.PLAYER_LEVELUP);
     }
 
     public void warpEffect(ServerLevel level) {
@@ -2694,6 +2849,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected static final EntityDataAccessor<Integer> FUEL_MAX = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> FUEL_NOW = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
 
+    protected static final EntityDataAccessor<Integer> REPAIR_KIT_NUM = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
+
     protected static final EntityDataAccessor<Boolean> IS_BOUND_TO_RAIL = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
 
     protected static final EntityDataAccessor<Integer> TEXTURE_COLOR = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
@@ -2710,6 +2867,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected static final EntityDataAccessor<Boolean> BUILD_MODE = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
 
     protected static final EntityDataAccessor<Optional<UUID>> HAVING_ENTITY = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.OPTIONAL_UUID);
+
+    protected static final EntityDataAccessor<Boolean> IS_GLIDING = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
 
 
     @Override
@@ -2753,6 +2912,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.entityData.define(FUEL_MAX, 0);
         this.entityData.define(FUEL_NOW, 0);
 
+        this.entityData.define(REPAIR_KIT_NUM, 0);
+
         this.entityData.define(IS_BOUND_TO_RAIL, false);
 
         this.entityData.define(TEXTURE_COLOR, 0);
@@ -2767,6 +2928,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.entityData.define(SHOW_PLAYER_INV_SLOT, false);
 
         this.entityData.define(BUILD_MODE, false);
+        this.entityData.define(IS_GLIDING, false);
 
         this.entityData.define(HAVING_ENTITY, Optional.empty());
     }
@@ -2791,6 +2953,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
         this.entityData.set(W_EXTENSION1, this.getExtension1FromInventory());
         this.entityData.set(W_EXTENSION2, this.getExtension2FromInventory());
+
+        this.entityData.set(REPAIR_KIT_NUM, this.getItem(INV_REPAIR_KIT).getCount());
 
         this.updateShowPlaeyrInv();
 
@@ -3008,6 +3172,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         return this.entityData.get(FUEL_NOW);
     }
 
+    public int getRepairKitNum() {
+        return this.entityData.get(REPAIR_KIT_NUM);
+    }
+
     public boolean isBroken() {
         return this.entityData.get(IS_BROKEN);
     }
@@ -3078,6 +3246,14 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     public void setHavingEntity(Optional<UUID> b) {
         this.entityData.set(HAVING_ENTITY, b);
+    }
+
+    protected boolean isGliding() {
+        return entityData.get(IS_GLIDING);
+    }
+
+    protected void setGliding(boolean b) {
+        this.entityData.set(IS_GLIDING, b);
     }
 
     private static class MechParam {
@@ -3180,11 +3356,42 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                     super.travelBypass(this.position().add(this.getDeltaMovement()));
                 }
             } else {
-                super.travel(pos);
+                travelInternal(pos);
             }
         } else {
             super.travelBypass(pos);
         }
+    }
+
+    public void travelInternal(Vec3 pos) {
+        if (this.isAlive() && this.isVehicle() && this.canWork()) {
+            LivingEntity pilot = this.getDrivingPassenger();
+
+            if (pilot != null) {
+                this.setYRot(pilot.getYRot());
+                this.setXRot(pilot.getXRot() * 0.5F);
+
+                this.setYBodyRot(this.getYRot());
+                this.setYHeadRot(this.getYRot());
+
+                float strafe = pilot.xxa * 0.5F;
+                float forward = pilot.zza * 0.5F;
+
+                if (!this.level().isClientSide) {
+                    if (this.actionController.isBoost()) {
+                        this.setSpeed(this.getRunSpeed());
+                    } else {
+                        this.setSpeed(this.getWalkSpeed());
+                    }
+                    this.hasImpulse = true;
+                }
+
+                super.travelBypass(new Vec3(strafe, pos.y, forward));
+                return;
+            }
+        }
+
+        super.travelBypass(pos);
     }
 
     private ItemStack getSuperBoostUnit() {
@@ -3197,8 +3404,23 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         return ItemStack.EMPTY;
     }
 
+    private boolean wasHurtClient = false;
+
+    private boolean consumeWasHurtClient() {
+        if (!wasHurtClient) {
+            return false;
+        } else {
+            wasHurtClient = false;
+            return true;
+        }
+    }
+
     @Override
     public boolean hurt(DamageSource source, float amount) {
+        if (this.isClientSide()) {
+            wasHurtClient = true;
+        }
+
         if (this.isBroken()) {
             if (isForceKillSource(source)) {
                 return super.hurt(source, amount);
@@ -3347,5 +3569,15 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     @Override
     public boolean shouldRenderDefaultHud(String hudName) {
         return "renderHotbar".equals(hudName) && (this.isShowPlayerInventory() || this.isBuildMode());
+    }
+
+    private boolean showCustomHealthBar = true;
+
+    public boolean showCustomHealthBar() {
+        return showCustomHealthBar;
+    }
+
+    public void setShowCustomHealthBar(boolean b) {
+        showCustomHealthBar = b;
     }
 }

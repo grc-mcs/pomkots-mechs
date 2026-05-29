@@ -16,4 +16,8 @@ public class PomkotsConfig implements ConfigData {
     public boolean enablePartsLevelCompatibility = true;
     public boolean survivalModeEnabled = false;
     public boolean debugModeEnabled = false;
+    public boolean forceThirdPersonViewWhenRidingMech = true;
+    public boolean targetLockNonPomkotsMobs = false;
+    public boolean targetLockPlayers = false;
+    public boolean targetLockPomkotsVehicles = false;
 }

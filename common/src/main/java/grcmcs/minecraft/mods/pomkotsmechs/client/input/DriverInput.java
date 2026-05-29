@@ -140,6 +140,15 @@ public class DriverInput {
         }
     }
 
+    public boolean isRepairReleased() {
+        if (this.prevInput != null) {
+            return ((this.prevInput.keyPressStatus & UserInteractionManager.Keys.REPAIR.getKeyID()) != 0)
+                    && ((this.keyPressStatus & UserInteractionManager.Keys.REPAIR.getKeyID()) == 0);
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public String toString() {
         return "key status:" + keyPressStatus;

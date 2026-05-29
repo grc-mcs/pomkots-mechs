@@ -1121,6 +1121,17 @@
         {"pomkotsmechs:blue_print_builder_unit": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_construction_unit_debris": 8, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 8}
       ]
     },
+    "gliderunit": {
+      "type": "extension",
+      "description": "Glider Unit",
+      "weight": 0,
+      "level_param": [
+        {"energy_consume_per_tick": 6}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_glider_unit": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_booster_debris": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 8}
+      ]
+    },
     "magazinerifle": {
       "type": "magazine",
       "description": "Magazine for Rifle",

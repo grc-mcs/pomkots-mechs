@@ -52,6 +52,8 @@ public class Pmb07Entity extends BaseBossEntity {
         actionController.registerAction("throw", new BossActionController.BossAction(40,30, this::throwAction));
         actionController.registerAction("onground", new BossActionController.BossAction(20,15, this::onGroundAction));
 
+        actionController.registerAction("onsmalldown", new BossActionController.BossAction(20,15, this::smallDown));
+
         this.registerActionGoal(
                 new SimpleBossWalkGoal(this, getMechData().speed, 10),
                 AI_MODE_ALL,
@@ -513,6 +515,17 @@ public class Pmb07Entity extends BaseBossEntity {
         this.triggerAnim("action_controller", "off_stun");
     }
 
+    @Override
+    protected void onSmallDown() {
+        this.actionController.reset();
+        this.actionController.getAction("onsmalldown").startAction();
+        this.triggerAnim("action_controller", "on_small_down");
+    }
+
+    private void smallDown(BossActionController.BossAction action) {
+
+    }
+
     private final AnimationController<Pmb07Entity> trigger = new AnimationController<>(this, "action_controller", state -> PlayState.STOP)
             .triggerableAnim("saber_tate", RawAnimation.begin().thenPlay("animation.pmb01.attacktate"))
             .triggerableAnim("saber_upper", RawAnimation.begin().thenPlay("animation.pmb01.attackupper"))
@@ -536,6 +549,9 @@ public class Pmb07Entity extends BaseBossEntity {
 
             .triggerableAnim("on_stun", RawAnimation.begin().thenPlay("animation.pmb01.hurt").thenPlayAndHold("animation.pmb01.down"))
             .triggerableAnim("off_stun", RawAnimation.begin().thenPlay("animation.pmb01.up"))
+
+            .triggerableAnim("on_small_down", RawAnimation.begin().thenPlay("animation.pmb01.hurt"))
+
             .setSoundKeyframeHandler(this::playSounds);
 
     private final AnimationController<Pmb07Entity> base = new AnimationController<>(this, "basic_move", 0, event -> {
