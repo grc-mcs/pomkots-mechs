@@ -331,5 +331,6 @@
   "text.pomkotsmechs.advancement.ride_the_mech.title": "T..This mech works..!?",
   "text.pomkotsmechs.advancement.ride_the_mech.desc": "It's your first time to ride a mech!",
   "text.pomkotsmechs.advancement.defeat_pmb03.title": "Legendary Mercenary",
-  "text.pomkotsmechs.advancement.defeat_pmb03.desc": "Defeated PMB03"
+  "text.pomkotsmechs.advancement.defeat_pmb03.desc": "Defeated PMB03",
+  "generator.pomkotsmechs.pomkots_world": "Pomkots Mechs World"
 }
