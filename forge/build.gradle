@@ -5,6 +5,7 @@ plugins {
 loom {
     forge {
         mixinConfig "pomkotsmechs.mixins.json"
+        mixinConfig "pomkots.forge.mixins.json"
     }
 }
 

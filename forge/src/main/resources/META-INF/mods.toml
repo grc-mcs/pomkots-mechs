@@ -13,6 +13,9 @@ Add massive mechs to your world!
 '''
 logoFile = "assets/pomkotsmechs/icon.png"
 
+[[mixins]]
+config="pomkots.forge.mixins.json"
+
 [[dependencies.pomkotsmechs]]
 modId = "forge"
 mandatory = true

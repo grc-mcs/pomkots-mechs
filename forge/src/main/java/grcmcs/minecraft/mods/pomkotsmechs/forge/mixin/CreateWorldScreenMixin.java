@@ -1,6 +1,6 @@
-package grcmcs.minecraft.mods.pomkotsmechs.mixin;
+package grcmcs.minecraft.mods.pomkotsmechs.forge.mixin;
 
-import dev.architectury.platform.Platform;
+import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import mcjty.lostcities.setup.Config;
 import mcjty.lostcities.gui.LostCitySetup;
 import mcjty.lostcities.config.LostCityProfile;
@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.levelgen.presets.WorldPreset;
+import net.minecraftforge.fml.ModList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -23,6 +24,9 @@ import java.util.Optional;
 
 @Mixin(CreateWorldScreen.class)
 public class CreateWorldScreenMixin {
+    static {
+        PomkotsMechs.LOGGER.info("MIXIN CreateWorldScreen LOADED");
+    }
 
     @Unique
     private String pomkots$lastPreset = "UNKNOWN";
@@ -48,7 +52,7 @@ public class CreateWorldScreenMixin {
     )
     private static Optional<ResourceKey<WorldPreset>> modifyDefaultPreset(Optional<ResourceKey<WorldPreset>> original) {
         Optional<ResourceKey<WorldPreset>> result = original;
-        if (Platform.isModLoaded("lostcities")) {
+        if (ModList.get().isLoaded("lostcities")) {
             result = Optional.of(CUSTOM_PRESET_KEY);
         }
         return result;
@@ -56,7 +60,7 @@ public class CreateWorldScreenMixin {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
-        if (!Platform.isModLoaded("lostcities")) {
+        if (!ModList.get().isLoaded("lostcities")) {
             return;
         }
 

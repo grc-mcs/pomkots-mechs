@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "grcmcs.minecraft.mods.pomkotsmechs.forge.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+  ],
+  "client": [
+    "CreateWorldScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
