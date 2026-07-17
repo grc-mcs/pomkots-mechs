@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.radar.RadarArrowRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.scan.ScanBlockEntityHighlightRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
@@ -37,8 +38,6 @@ public class LevelRendererMixin {
 
         RadarArrowRenderer.onRenderWorld(poseStack, bufferSource, camera, partialTick);
 
-
-
 //        MultiBufferSource.BufferSource bufferSource =
 //                Minecraft.getInstance().renderBuffers().bufferSource();
 //
@@ -46,5 +45,7 @@ public class LevelRendererMixin {
 //
         bufferSource.endBatch(RadarArrowRenderer.WIREFRAME);
         bufferSource.endBatch(RadarArrowRenderer.TRIANGLE);
+
+        ScanBlockEntityHighlightRenderer.render(poseStack, camera, bufferSource);
     }
 }

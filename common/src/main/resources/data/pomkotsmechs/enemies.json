@@ -310,14 +310,14 @@
       "explosion_damage_modifier": 0.3
     },
     "pmb01mk2": {
-      "health": 768.0,
+      "health": 5120.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 30.0,
@@ -330,14 +330,14 @@
       "melee_damage": 30.0
     },
     "pmb02": {
-      "health": 768.0,
+      "health": 5120.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.8,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 30.0,
@@ -350,14 +350,14 @@
       "melee_damage": 100.0
     },
     "pmb03": {
-      "health": 512.0,
+      "health": 3840.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 10.0,
@@ -370,14 +370,14 @@
       "melee_damage": 60.0
     },
     "pmb04": {
-      "health": 768.0,
+      "health": 3840.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 15.0,
@@ -390,14 +390,14 @@
       "melee_damage": 60.0
     },
     "pmb05": {
-      "health": 768.0,
+      "health": 5120.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "laser_damage": 60.0,
@@ -411,14 +411,14 @@
       "melee_damage": 60.0
     },
     "pmb06": {
-      "health": 768.0,
+      "health": 7144.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "laser_damage": 60.0,
@@ -432,14 +432,14 @@
       "melee_damage": 60.0
     },
     "pmb07": {
-      "health": 768.0,
+      "health": 5120.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 15.0,
@@ -452,14 +452,14 @@
       "melee_damage": 60.0
     },
     "pmb08": {
-      "health": 768.0,
+      "health": 3840.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.8,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 30.0,
@@ -472,14 +472,14 @@
       "melee_damage": 100.0
     },
     "pmb99": {
-      "health": 768.0,
+      "health": 5120.0,
       "armor": 20.0,
       "armor_toughness": 8.0,
       "speed": 0.7,
       "max_step_up": 5.0,
       "knock_back_resistance": 1,
       "follow_range": 200.0,
-      "base_damage_modifier": 0.2,
+      "base_damage_modifier": 1,
       "explosion_damage_modifier": 0.3,
 
       "bullet_damage": 60.0,

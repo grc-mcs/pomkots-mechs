@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.EarthbreakEntity;
@@ -11,6 +12,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGeneri
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -426,6 +428,13 @@ public class Pmb04Entity extends BaseBossEntity {
             be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
 
             this.level().addFreshEntity(be);
+
+            ParticleUtil.spawnAttachedMuzzleFlash(
+                    (ServerLevel) level(),
+                    this,
+                    50D,
+                    new Vec3(7, 11, 17)
+            );
         }
     }
 

@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.AttachedMuzzleFlashOptions;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
@@ -244,6 +245,16 @@ public class ActionWeapon extends Action {
             }
         }
 
+        public int getAttachPoint() {
+            return switch (action.weaponItemSlot) {
+                case Pmvc01Entity.INV_WEAPON_RIGHT_HAND -> AttachedMuzzleFlashOptions.WEAPON_POINT_RIGHT_ARM;
+                case Pmvc01Entity.INV_WEAPON_LEFT_HAND -> AttachedMuzzleFlashOptions.WEAPON_POINT_LEFT_ARM;
+                case Pmvc01Entity.INV_WEAPON_RIGHT_SHOULDER -> AttachedMuzzleFlashOptions.WEAPON_POINT_RIGHT_SHOULDER;
+                case Pmvc01Entity.INV_WEAPON_LEFT_SHOULDER -> AttachedMuzzleFlashOptions.WEAPON_POINT_LEFT_SHOULDER;
+                default -> AttachedMuzzleFlashOptions.WEAPON_POINT_RIGHT_ARM;
+            };
+        }
+
         public boolean consumeEnergy(int num) {
             return owner.consumeEnergy(num);
         }
@@ -318,6 +329,24 @@ public class ActionWeapon extends Action {
 
         public boolean onGround() {
             return owner.onGround();
+        }
+
+        public float applySkillDamageModifier(float baseDamage, BasePartsItem.WeaponCategory category) {
+            var stats = owner.getModifiedMechStatus().stats();
+
+            var modifier = switch(category) {
+                case RIFLE -> stats.rifleDamage();
+                case MACHINE_GUN -> stats.machineGunDamage();
+                case SHOT_GUN -> stats.shotgunDamage();
+                case GRENADE -> stats.grenadeDamage();
+                case MELEE -> stats.meleeDamage();
+                case MISSILE -> stats.missileDamage();
+                case MISC, NONE -> 1;
+            };
+
+            modifier += stats.damageAll() - 1;
+
+            return (float) (baseDamage * modifier);
         }
 
         public void knockBack(float strength) {

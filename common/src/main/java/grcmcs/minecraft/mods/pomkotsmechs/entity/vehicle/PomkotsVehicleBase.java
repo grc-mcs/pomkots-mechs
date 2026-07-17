@@ -562,7 +562,7 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
     /**
      * キー入力関係の処理群
      */
-    private DriverInput driverInput = null;
+    private DriverInput driverInput = new DriverInput((short)0);
 
     public static final SerializableDataTicket<Short> DRIVER_INPUT_SERIALIZABLE_DATA_TICKET =
             GeckoLibUtil.addDataTicket(

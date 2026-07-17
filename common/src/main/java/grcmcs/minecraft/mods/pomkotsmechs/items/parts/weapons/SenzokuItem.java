@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.SenzokuItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletMachineEntity;
@@ -10,6 +11,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.magazine.MagazineMissileItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.magazine.MagazineShotGunItem;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.core.animation.AnimatableManager;
@@ -36,7 +38,8 @@ public class SenzokuItem extends BasePartsItem.WeaponArm {
                         BulletMachineEntity be = new BulletMachineEntity(
                                 PomkotsMechs.BULLET_MACHINE.get(), world,
                                 mechInterface.getMechEntity(),
-                                this.getDamage(mechInterface.getItemStack()));
+                                mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory())
+                        );
 
                         var offset = mechInterface.getOffset();
 
@@ -51,6 +54,14 @@ public class SenzokuItem extends BasePartsItem.WeaponArm {
 
                         world.addFreshEntity(be);
                     } else if (i == 0){
+
+                        ParticleUtil.spawnAttachedMuzzleFlash(
+                                (ClientLevel) world,
+                                mechInterface.getMechEntity(),
+                                mechInterface.getAttachPoint(),
+                                16.0D,
+                                new Vec3(1.8 * mechInterface.isRight(), 3.0F, 5F)
+                        );
                         mechInterface.playSoundEffect(PomkotsMechs.SE_GUN_3.get());
                     }
                 }
@@ -87,7 +98,7 @@ public class SenzokuItem extends BasePartsItem.WeaponArm {
 
     @Override
     public WeaponCategory getWeaponCategory() {
-        return WeaponCategory.RIFLE;
+        return WeaponCategory.SHOT_GUN;
     }
 
     @Override

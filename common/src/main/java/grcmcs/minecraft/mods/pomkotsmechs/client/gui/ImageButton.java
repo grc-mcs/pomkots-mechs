@@ -89,7 +89,7 @@ public class ImageButton extends Button {
                 1.0F,
                 1.0F,
                 1.0F,
-                0.5F
+                0.9F
         );
         guiGraphics.blit(
                 texture,
@@ -146,5 +146,59 @@ public class ImageButton extends Button {
                 color,
                 false
         );
+
+        renderBadge(guiGraphics);
+    }
+
+    private void renderBadge(
+            GuiGraphics graphics
+    ) {
+        if (badgeCount <= 0) {
+            return;
+        }
+
+        int badgeX =
+                getX()
+                        + width
+                        - 10;
+
+        int badgeY =
+                getY()
+                        - 2;
+
+        graphics.fill(
+                badgeX,
+                badgeY,
+                badgeX + 10,
+                badgeY + 10,
+                0xFFFF0000
+        );
+
+        String text =
+                badgeCount > 99
+                        ? "!"
+                        : String.valueOf(
+                        badgeCount
+                );
+
+        graphics.drawCenteredString(
+                Minecraft.getInstance().font,
+                text,
+                badgeX + 5,
+                badgeY + 1,
+                0xFFFFFFFF
+        );
+    }
+
+    private int badgeCount = 0;
+
+    public void setBadgeCount(
+            int badgeCount
+    ) {
+        this.badgeCount = badgeCount;
+    }
+
+    public int getBadgeCount() {
+        return badgeCount;
     }
 }

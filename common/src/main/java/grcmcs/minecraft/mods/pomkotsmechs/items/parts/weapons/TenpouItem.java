@@ -4,11 +4,14 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.KagenobuItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.TenpouItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
+import grcmcs.minecraft.mods.pomkotsmechs.misc.scan.ScanUtils;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -36,6 +39,8 @@ public class TenpouItem extends BasePartsItem.WeaponArm {
             var pilePos2 = new Vec3(-2 * mechInterface.isRight(), -4F, -4F).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot())).add(mechInterface.position());
 
             var kbVel = new Vec3(0, 0, -1F).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
+            var damage = mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory());
+
             for (var ent : world.getEntities(null, new AABB(pilePos1, pilePos2))) {
                 if (mechInterface.isSelf(ent)) {
                     continue;
@@ -53,9 +58,11 @@ public class TenpouItem extends BasePartsItem.WeaponArm {
                             ds = mechInterface.damageSources().generic();
                         }
 
-                        var baseDamage = this.getDamage(mechInterface.getItemStack());
+                        var baseDamage = damage;
                         if (le instanceof BossHitBoxEntity hit) {
                             hit.addStunPoint((int)(sbModifier * 50));
+                        } else if (le instanceof Pmvc01Entity) {
+                            baseDamage *= 1.5F;
                         }
 
                         if (PomkotsMechs.CONFIG.debugModeEnabled) {

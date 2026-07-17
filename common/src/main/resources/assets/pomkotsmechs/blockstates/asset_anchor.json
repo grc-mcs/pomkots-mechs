@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "pomkotsmechs:block/asset_anchor"
+    },
+    "facing=south": {
+      "model": "pomkotsmechs:block/asset_anchor",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "pomkotsmechs:block/asset_anchor",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "pomkotsmechs:block/asset_anchor",
+      "y": 90
+    }
+  }
+}

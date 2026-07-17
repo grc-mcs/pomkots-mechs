@@ -33,13 +33,16 @@ public class UguisuItem extends BasePartsItem.WeaponArm {
                 var muzzlPos = new Vec3(1.8 * mechInterface.isRight(), 3.0F, 5F);
 
                 var targets = mechInterface.consumeMultiLockTargets();
+                var damage = mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory());
+
                 for (int i = 0; i < targets.size(); i++) {
 
                     if (mechInterface.consumeAmmoFromServerSide(1)) {
                         var worldMuzzlPos = muzzlPos.add(1 * (i / 2 - 0.5),1 * (i % 2),0).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
 
                         MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), world, mechInterface.getMechEntity(),
-                                (LivingEntity) targets.get(i), this.getDamage(mechInterface.getItemStack()),
+                                (LivingEntity) targets.get(i),
+                                damage,
                                 BattleBalance.MECH_MISSILE_GENERIC_SPEED2);
 
                         be.setPos(offset.add(worldMuzzlPos));

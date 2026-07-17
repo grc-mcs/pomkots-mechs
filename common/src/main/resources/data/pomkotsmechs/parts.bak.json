@@ -1,0 +1,1192 @@
+{
+  "mech_parts": {
+    "rusty": {
+      "type": "parts",
+      "head": {
+        "description": "Rusty Abandoned Mech",
+        "weight": 100,
+        "level_param": [
+          {"durability": 5},
+          {"durability": 20}
+        ],
+        "recipes": [
+          {"pomkotsmechs:p_titanium_ingot": 64},
+          {"pomkotsmechs:p_titanium_ingot": 5, "minecraft:iron_ingot": 5}
+        ]
+      },
+      "body": {
+        "description": "Rusty Abandoned Mech",
+        "weight": 400,
+        "level_param": [
+          {"durability": 5},
+          {"durability": 60}
+        ],
+        "recipes": [
+          {"pomkotsmechs:p_titanium_ingot": 64},
+          {"pomkotsmechs:p_titanium_ingot": 5, "minecraft:iron_ingot": 5}
+        ]
+      },
+      "arm": {
+        "description": "Rusty Abandoned Mech",
+        "weight": 200,
+        "level_param": [
+          {"durability": 5},
+          {"durability": 30}
+        ],
+        "recipes": [
+          {"pomkotsmechs:p_titanium_ingot": 64},
+          {"pomkotsmechs:p_titanium_ingot": 5, "minecraft:iron_ingot": 5}
+        ]
+      },
+      "legs": {
+        "description": "Rusty Abandoned Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 5, "max_weight": 1900, "speed_modifier": 1.00, "jump_modifier": 1.5},
+          {"durability": 60, "max_weight": 2350, "speed_modifier": 1.2, "jump_modifier": 1.5}
+        ],
+        "recipes": [
+          {"pomkotsmechs:p_titanium_ingot": 64},
+          {"pomkotsmechs:p_titanium_ingot": 5, "minecraft:iron_ingot": 5}
+        ]
+      }
+    },
+    "deneb": {
+      "type": "parts",
+      "head": {
+        "description": "Light Weight Mech",
+        "weight": 75,
+        "level_param": [
+          {"durability": 5},
+          {"durability": 5},
+          {"durability": 10},
+          {"durability": 10},
+          {"durability": 15}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_deneb": 1, "pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3},
+          {"pomkotsmechs:p_titanium_ingot": 3, "minecraft:iron_ingot": 3, "minecraft:coal": 3, "minecraft:redstone": 3, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 6, "minecraft:iron_ingot": 6, "minecraft:coal": 6,"minecraft:redstone": 6, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 9, "minecraft:iron_ingot": 9, "minecraft:coal": 9,"minecraft:redstone": 9, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3}
+        ]
+      },
+      "body": {
+        "description": "Light Weight Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 35},
+          {"durability": 40},
+          {"durability": 45},
+          {"durability": 55},
+          {"durability": 60}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_deneb": 1, "pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2}
+        ]
+      },
+      "arm": {
+        "description": "Light Weight Mech",
+        "weight": 150,
+        "level_param": [
+          {"durability": 20},
+          {"durability": 20},
+          {"durability": 25},
+          {"durability": 25},
+          {"durability": 30}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_deneb": 1, "pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1},
+          {"pomkotsmechs:p_titanium_ingot": 3, "minecraft:iron_ingot": 3, "minecraft:coal": 3, "minecraft:redstone": 3, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 6, "minecraft:iron_ingot": 6, "minecraft:coal": 6,"minecraft:redstone": 6, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 9, "minecraft:iron_ingot": 9, "minecraft:coal": 9,"minecraft:redstone": 9, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1}
+        ]
+      },
+      "legs": {
+        "description": "Light Weight Mech",
+        "weight": 225,
+        "level_param": [
+          {"durability": 35, "max_weight": 1800, "speed_modifier": 1, "jump_modifier": 0.9},
+          {"durability": 35, "max_weight": 1850, "speed_modifier": 1.05, "jump_modifier": 0.95},
+          {"durability": 40, "max_weight": 1900, "speed_modifier": 1.1, "jump_modifier": 1},
+          {"durability": 40, "max_weight": 1950, "speed_modifier": 1.15, "jump_modifier": 1.05},
+          {"durability": 45, "max_weight": 2100, "speed_modifier": 1.5, "jump_modifier": 1.5}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_deneb": 1, "pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 6},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2}
+        ]
+      }
+    },
+    "altair": {
+      "type": "parts",
+      "head": {
+        "description": "Mid Weight Mech",
+        "weight": 125,
+        "level_param": [
+          {"durability": 10},
+          {"durability": 15},
+          {"durability": 20},
+          {"durability": 25},
+          {"durability": 30}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_altair": 1, "pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3},
+          {"pomkotsmechs:p_titanium_ingot": 3, "minecraft:iron_ingot": 3, "minecraft:coal": 3, "minecraft:redstone": 3, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 6, "minecraft:iron_ingot": 6, "minecraft:coal": 6,"minecraft:redstone": 6, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 9, "minecraft:iron_ingot": 9, "minecraft:coal": 9,"minecraft:redstone": 9, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3}
+        ]
+      },
+      "body": {
+        "description": "Mid Weight Mech",
+        "weight": 450,
+        "level_param": [
+          {"durability": 80},
+          {"durability": 90},
+          {"durability": 100},
+          {"durability": 110},
+          {"durability": 120}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_altair": 1, "pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2}
+        ]
+      },
+      "arm": {
+        "description": "Mid Weight Mech",
+        "weight": 250,
+        "level_param": [
+          {"durability": 40},
+          {"durability": 45},
+          {"durability": 50},
+          {"durability": 55},
+          {"durability": 60}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_altair": 1, "pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1},
+          {"pomkotsmechs:p_titanium_ingot": 3, "minecraft:iron_ingot": 3, "minecraft:coal": 3, "minecraft:redstone": 3, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 6, "minecraft:iron_ingot": 6, "minecraft:coal": 6,"minecraft:redstone": 6, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 9, "minecraft:iron_ingot": 9, "minecraft:coal": 9,"minecraft:redstone": 9, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1}
+        ]
+      },
+      "legs": {
+        "description": "Mid Weight Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 60, "max_weight": 2300, "speed_modifier": 0.80, "jump_modifier": 0.80},
+          {"durability": 65, "max_weight": 2350, "speed_modifier": 0.85, "jump_modifier": 0.85},
+          {"durability": 70, "max_weight": 2400, "speed_modifier": 0.90, "jump_modifier": 0.90},
+          {"durability": 75, "max_weight": 2450, "speed_modifier": 0.95, "jump_modifier": 0.95},
+          {"durability": 80, "max_weight": 2500, "speed_modifier": 1.3, "jump_modifier": 1.4}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_altair": 1, "pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 6},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2}
+        ]
+      }
+    },
+    "vega": {
+      "type": "parts",
+      "head": {
+        "description": "Heavy Weight Mech",
+        "weight": 150,
+        "level_param": [
+          {"durability": 20},
+          {"durability": 25},
+          {"durability": 30},
+          {"durability": 35},
+          {"durability": 40}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_vega": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3}
+        ]
+      },
+      "body": {
+        "description": "Heavy Weight Mech",
+        "weight": 600,
+        "level_param": [
+          {"durability": 120},
+          {"durability": 130},
+          {"durability": 140},
+          {"durability": 150},
+          {"durability": 160}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_vega": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32,"minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6},
+          {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32,"minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2}
+        ]
+      },
+      "arm": {
+        "description": "Heavy Weight Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 60},
+          {"durability": 65},
+          {"durability": 70},
+          {"durability": 75},
+          {"durability": 80}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_vega": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1}
+        ]
+      },
+      "legs": {
+        "description": "Heavy Weight Mech",
+        "weight": 450,
+        "level_param": [
+          {"durability": 80, "max_weight": 3600, "speed_modifier": 0.70, "jump_modifier": 0.65},
+          {"durability": 90, "max_weight": 3700, "speed_modifier": 0.75, "jump_modifier": 0.70},
+          {"durability": 100, "max_weight": 3800, "speed_modifier": 0.80, "jump_modifier": 0.75},
+          {"durability": 110, "max_weight": 3900, "speed_modifier": 0.85, "jump_modifier": 0.80},
+          {"durability": 120, "max_weight": 4000, "speed_modifier": 1.1, "jump_modifier": 1.2}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_vega": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32,"minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6},
+          {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32,"minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2}
+        ]
+      }
+    },
+    "sirius": {
+      "type": "parts",
+      "head": {
+        "description": "Reverse Joint Mech",
+        "weight": 100,
+        "level_param": [
+          {"durability": 10},
+          {"durability": 10},
+          {"durability": 15},
+          {"durability": 15},
+          {"durability": 20}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_sirius": 1, "pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3},
+          {"pomkotsmechs:p_titanium_ingot": 3, "minecraft:iron_ingot": 3, "minecraft:coal": 3, "minecraft:redstone": 3, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 6, "minecraft:iron_ingot": 6, "minecraft:coal": 6,"minecraft:redstone": 6, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 9, "minecraft:iron_ingot": 9, "minecraft:coal": 9,"minecraft:redstone": 9, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3}
+        ]
+      },
+      "body": {
+        "description": "Reverse Joint Mech",
+        "weight": 400,
+        "level_param": [
+          {"durability": 60},
+          {"durability": 65},
+          {"durability": 70},
+          {"durability": 75},
+          {"durability": 100}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_sirius": 1, "pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2}
+        ]
+      },
+      "arm": {
+        "description": "Reverse Joint Mech",
+        "weight": 200,
+        "level_param": [
+          {"durability": 30},
+          {"durability": 30},
+          {"durability": 35},
+          {"durability": 35},
+          {"durability": 40}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_sirius": 1, "pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1},
+          {"pomkotsmechs:p_titanium_ingot": 3, "minecraft:iron_ingot": 3, "minecraft:coal": 3, "minecraft:redstone": 3, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 6, "minecraft:iron_ingot": 6, "minecraft:coal": 6,"minecraft:redstone": 6, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 9, "minecraft:iron_ingot": 9, "minecraft:coal": 9,"minecraft:redstone": 9, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1}
+        ]
+      },
+      "legs": {
+        "description": "Reverse Joint Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 40, "max_weight": 2000, "speed_modifier": 0.90, "jump_modifier": 1.80},
+          {"durability": 45, "max_weight": 2050, "speed_modifier": 0.95, "jump_modifier": 1.85},
+          {"durability": 50, "max_weight": 2100, "speed_modifier": 1.00, "jump_modifier": 1.90},
+          {"durability": 55, "max_weight": 2150, "speed_modifier": 1.05, "jump_modifier": 1.95},
+          {"durability": 60, "max_weight": 2200, "speed_modifier": 1.3, "jump_modifier": 2.00}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_sirius": 1, "pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 6},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2}
+        ]
+      }
+    },
+    "aldebaran": {
+      "type": "parts",
+      "head": {
+        "description": "Tank Mech",
+        "weight": 150,
+        "level_param": [
+          {"durability": 20},
+          {"durability": 25},
+          {"durability": 30},
+          {"durability": 35},
+          {"durability": 40}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_aldebaran": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 3}
+        ]
+      },
+      "body": {
+        "description": "Tank Mech",
+        "weight": 600,
+        "level_param": [
+          {"durability": 120},
+          {"durability": 130},
+          {"durability": 140},
+          {"durability": 150},
+          {"durability": 160}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_aldebaran": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32,"minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6},
+          {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32,"minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 2}
+        ]
+      },
+      "arm": {
+        "description": "Tank Mech",
+        "weight": 300,
+        "level_param": [
+          {"durability": 60},
+          {"durability": 65},
+          {"durability": 70},
+          {"durability": 75},
+          {"durability": 80}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_aldebaran": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1},
+          {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_armor_shard": 1},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8,"minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12,"minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_armor_shard": 3},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1}
+        ]
+      },
+      "legs": {
+        "description": "Tank Mech",
+        "weight": 450,
+        "level_param": [
+          {"durability": 80, "max_weight": 7200, "speed_modifier": 0.80, "jump_modifier": 0},
+          {"durability": 90, "max_weight": 7400, "speed_modifier": 0.85, "jump_modifier": 0},
+          {"durability": 100, "max_weight": 7600, "speed_modifier": 0.90, "jump_modifier": 0},
+          {"durability": 110, "max_weight": 7800, "speed_modifier": 0.95, "jump_modifier": 0},
+          {"durability": 120, "max_weight": 8000, "speed_modifier": 1.4, "jump_modifier": 0}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_aldebaran": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32,"minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 16},
+          {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_armor_shard": 2},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16,"minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 4},
+          {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24,"minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_armor_shard": 6},
+          {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32,"minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 16}
+        ]
+      }
+    },
+    "muknvali": {
+      "type": "parts",
+      "head": {
+        "description": "Heavy Weight Mech",
+        "weight": 170,
+        "level_param": [
+          {"durability": 40},
+          {"durability": 50},
+          {"durability": 60},
+          {"durability": 70},
+          {"durability": 80}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_muknvali": 1, "pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 24,"minecraft:redstone": 64, "minecraft:netherite_ingot": 24},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 8, "minecraft:redstone": 16, "minecraft:netherite_ingot": 8},
+          {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 12,"minecraft:redstone": 32, "minecraft:netherite_ingot": 12},
+          {"pomkotsmechs:p_titanium_ingot": 48, "minecraft:iron_ingot": 48, "minecraft:coal": 16,"minecraft:redstone": 48, "minecraft:netherite_ingot": 16},
+          {"pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 24,"minecraft:redstone": 64, "minecraft:netherite_ingot": 24}
+        ]
+      },
+      "body": {
+        "description": "Heavy Weight Mech",
+        "weight": 700,
+        "level_param": [
+          {"durability": 160},
+          {"durability": 170},
+          {"durability": 180},
+          {"durability": 190},
+          {"durability": 200}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_muknvali": 1, "pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 24,"minecraft:redstone": 64, "minecraft:netherite_ingot": 24},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 8, "minecraft:redstone": 16, "minecraft:netherite_ingot": 8},
+          {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 12,"minecraft:redstone": 32, "minecraft:netherite_ingot": 12},
+          {"pomkotsmechs:p_titanium_ingot": 48, "minecraft:iron_ingot": 48, "minecraft:coal": 16,"minecraft:redstone": 48, "minecraft:netherite_ingot": 16},
+          {"pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 24,"minecraft:redstone": 64, "minecraft:netherite_ingot": 24}
+        ]
+      },
+      "arm": {
+        "description": "Heavy Weight Mech",
+        "weight": 400,
+        "level_param": [
+          {"durability": 60},
+          {"durability": 70},
+          {"durability": 80},
+          {"durability": 90},
+          {"durability": 100}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_muknvali": 1, "pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 24,"minecraft:redstone": 64, "minecraft:netherite_ingot": 24},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 8, "minecraft:redstone": 16, "minecraft:netherite_ingot": 8},
+          {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 12,"minecraft:redstone": 32, "minecraft:netherite_ingot": 12},
+          {"pomkotsmechs:p_titanium_ingot": 48, "minecraft:iron_ingot": 48, "minecraft:coal": 16,"minecraft:redstone": 48, "minecraft:netherite_ingot": 16},
+          {"pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 24,"minecraft:redstone": 64, "minecraft:netherite_ingot": 24}
+        ]
+      },
+      "legs": {
+        "description": "Heavy Weight Mech",
+        "weight": 550,
+        "level_param": [
+          {"durability": 110, "max_weight": 4600, "speed_modifier": 0.60, "jump_modifier": 0.40},
+          {"durability": 120, "max_weight": 4700, "speed_modifier": 0.65, "jump_modifier": 0.45},
+          {"durability": 130, "max_weight": 4800, "speed_modifier": 0.70, "jump_modifier": 0.50},
+          {"durability": 140, "max_weight": 4900, "speed_modifier": 0.75, "jump_modifier": 0.55},
+          {"durability": 150, "max_weight": 5000, "speed_modifier": 1.1, "jump_modifier": 1.2}
+        ],
+        "recipes": [
+          {"pomkotsmechs:blue_print_muknvali": 1, "pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 24,"minecraft:redstone": 64, "minecraft:netherite_ingot": 24},
+          {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 8, "minecraft:redstone": 16, "minecraft:netherite_ingot": 8},
+          {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 12,"minecraft:redstone": 32, "minecraft:netherite_ingot": 12},
+          {"pomkotsmechs:p_titanium_ingot": 48, "minecraft:iron_ingot": 48, "minecraft:coal": 16,"minecraft:redstone": 48, "minecraft:netherite_ingot": 16},
+          {"pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 24,"minecraft:redstone": 64, "minecraft:netherite_ingot": 24}
+        ]
+      }
+    },
+    "shakuji": {
+      "type": "weapon",
+      "description": "Rifle on arm",
+      "weight": 250,
+      "level_param": [
+        {"damage": 30},
+        {"damage": 33},
+        {"damage": 36},
+        {"damage": 39},
+        {"damage": 50}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_shakuji": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2}
+      ]
+    },
+    "shinobazu": {
+      "type": "weapon",
+      "description": "Sub machine gun on arm",
+      "weight": 250,
+      "level_param": [
+        {"damage": 6},
+        {"damage": 7},
+        {"damage": 8},
+        {"damage": 9},
+        {"damage": 10}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_shinobazu": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2}
+      ]
+    },
+    "senzoku": {
+      "type": "weapon",
+      "description": "Shot gun on arm",
+      "weight": 250,
+      "level_param": [
+        {"damage": 8},
+        {"damage": 9},
+        {"damage": 10},
+        {"damage": 11},
+        {"damage": 12}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_senzoku": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2}
+      ]
+    },
+    "kasumi": {
+      "type": "weapon",
+      "description": "Gatling on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 8},
+        {"damage": 9},
+        {"damage": 10},
+        {"damage": 11},
+        {"damage": 12}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_kasumi": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24, "minecraft:redstone": 24},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4}
+      ]
+    },
+    "kagami": {
+      "type": "weapon",
+      "description": "Large grenade on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_kagami": 1, "pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 48, "minecraft:redstone": 64},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 20, "minecraft:coal": 8, "minecraft:redstone": 20},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 24, "minecraft:coal": 16, "minecraft:redstone": 24},
+        {"pomkotsmechs:p_titanium_ingot": 48, "minecraft:iron_ingot": 28, "minecraft:coal": 32, "minecraft:redstone": 28},
+        {"pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 48, "minecraft:redstone": 64}
+      ]
+    },
+    "uguisu": {
+      "type": "weapon",
+      "description": "x4 multi missile on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 14, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 18, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 22, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 26, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 30, "missile_max_num": 4, "missile_lock_interval": 2}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_uguisu": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2}
+      ]
+    },
+    "mashu": {
+      "type": "weapon",
+      "description": "Beam rifle on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 50},
+        {"damage": 60},
+        {"damage": 70},
+        {"damage": 80},
+        {"damage": 90}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_mashu": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:netherite_ingot": 8, "minecraft:diamond": 32},
+        {"pomkotsmechs:p_titanium_ingot": 20, "minecraft:iron_ingot": 20, "minecraft:netherite_ingot": 2, "minecraft:diamond": 20},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:netherite_ingot": 4, "minecraft:diamond": 24},
+        {"pomkotsmechs:p_titanium_ingot": 28, "minecraft:iron_ingot": 28, "minecraft:netherite_ingot": 6, "minecraft:diamond": 28},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:netherite_ingot": 8, "minecraft:diamond": 32}
+      ]
+    },
+    "tenpou": {
+      "type": "weapon",
+      "description": "Knuckle",
+      "weight": 250,
+      "level_param": [
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60},
+        {"damage": 65}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_tenpou": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 8},
+        {"pomkotsmechs:p_titanium_ingot": 20, "minecraft:iron_ingot": 20, "minecraft:coal": 2},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 4},
+        {"pomkotsmechs:p_titanium_ingot": 28, "minecraft:iron_ingot": 28, "minecraft:coal": 6},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 8}
+      ]
+    },
+    "tsurugi": {
+      "type": "weapon",
+      "description": "Blade on arm",
+      "weight": 250,
+      "level_param": [
+        {"damage": 60},
+        {"damage": 70},
+        {"damage": 80},
+        {"damage": 90},
+        {"damage": 100}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_tsurugi": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 8, "minecraft:redstone": 32},
+        {"pomkotsmechs:p_titanium_ingot": 20, "minecraft:iron_ingot": 20, "minecraft:coal": 2, "minecraft:redstone": 20},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 4, "minecraft:redstone": 24},
+        {"pomkotsmechs:p_titanium_ingot": 28, "minecraft:iron_ingot": 28, "minecraft:coal": 6, "minecraft:redstone": 28},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 8, "minecraft:redstone": 32}
+      ]
+    },
+    "mitake": {
+      "type": "weapon",
+      "description": "Heat Sword on Shoulder",
+      "weight": 250,
+      "level_param": [
+        {"damage": 50},
+        {"damage": 60},
+        {"damage": 70},
+        {"damage": 80},
+        {"damage": 90}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_mitake": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_blade_fragment": 8},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_blade_fragment": 2},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_blade_fragment": 4},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24, "minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_blade_fragment": 6},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_blade_fragment": 8}
+      ]
+    },
+    "kagenobu": {
+      "type": "weapon",
+      "description": "Pile bunker on arm",
+      "weight": 400,
+      "level_param": [
+        {"damage": 80},
+        {"damage": 90},
+        {"damage": 100},
+        {"damage": 110},
+        {"damage": 120}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_kagenobu": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 16},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 4},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 6},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24, "minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 16}
+      ]
+    },
+    "takao": {
+      "type": "weapon",
+      "description": "Hummer on arm",
+      "weight": 400,
+      "level_param": [
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_takao": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 2},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 4},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24, "minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 6},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8}
+      ]
+    },
+    "jinba": {
+      "type": "weapon",
+      "description": "Drill on arm",
+      "weight": 500,
+      "level_param": [
+        {"damage": 11},
+        {"damage": 12},
+        {"damage": 13},
+        {"damage": 14},
+        {"damage": 15}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_jinba": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:diamond": 16, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 8},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:diamond": 4, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:diamond": 8, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 4, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:diamond": 12, "minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 6, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 6},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:diamond": 16, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 8}
+      ]
+    },
+    "amagi": {
+      "type": "weapon",
+      "description": "Road Roller(Block Placer) on arm",
+      "weight": 400,
+      "level_param": [
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_amagi": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_construction_unit_debris": 4, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_construction_unit_debris": 1, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 1},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_construction_unit_debris": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24, "minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_construction_unit_debris": 3, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 3},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_construction_unit_debris": 4, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4}
+      ]
+    },
+    "daigomaru": {
+      "type": "weapon",
+      "description": "Needle Shot to break blocks",
+      "weight": 250,
+      "level_param": [
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_daigomaru": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 2},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 4},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 6},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8}
+      ]
+    },
+    "shoutou": {
+      "type": "weapon",
+      "description": "Single Block Placer",
+      "weight": 250,
+      "level_param": [
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_shoutou": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 2},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 4},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 6},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8}
+      ]
+    },
+    "wada": {
+      "type": "weapon",
+      "description": "Entity Lifter",
+      "weight": 250,
+      "level_param": [
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_wada": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 8},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 2},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 6},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 8}
+      ]
+    },
+    "gassan": {
+      "type": "weapon",
+      "description": "Rance on arm",
+      "weight": 400,
+      "level_param": [
+        {"damage": 50}
+      ]
+    },
+    "biwa": {
+      "type": "weapon",
+      "description": "Large grenade on shoulder",
+      "weight": 500,
+      "level_param": [
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50},
+        {"damage": 55},
+        {"damage": 60}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_biwa": 1, "pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 48, "minecraft:redstone": 64},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 20, "minecraft:coal": 8, "minecraft:redstone": 20},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 24, "minecraft:coal": 16, "minecraft:redstone": 24},
+        {"pomkotsmechs:p_titanium_ingot": 48, "minecraft:iron_ingot": 28, "minecraft:coal": 32, "minecraft:redstone": 28},
+        {"pomkotsmechs:p_titanium_ingot": 64, "minecraft:iron_ingot": 64, "minecraft:coal": 48, "minecraft:redstone": 64}
+      ]
+    },
+    "suwa": {
+      "type": "weapon",
+      "description": "Gatling on shoulder",
+      "weight": 500,
+      "level_param": [
+        {"damage": 8},
+        {"damage": 9},
+        {"damage": 10},
+        {"damage": 11},
+        {"damage": 12}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_suwa": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24, "minecraft:redstone": 24},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_mgun_fragment": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4}
+      ]
+    },
+    "kawasemi": {
+      "type": "weapon",
+      "description": "Missile strait on shoulder",
+      "weight": 250,
+      "level_param": [
+        {"damage": 14, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 18, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 22, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 26, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 30, "missile_max_num": 4, "missile_lock_interval": 2}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_kawasemi": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2}
+      ]
+    },
+    "nosuri": {
+      "type": "weapon",
+      "description": "x6 vertical multi missile on shoulder",
+      "weight": 250,
+      "level_param": [
+        {"damage": 14, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 18, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 22, "missile_max_num": 4, "missile_lock_interval": 2},
+        {"damage": 26, "missile_max_num": 5, "missile_lock_interval": 2},
+        {"damage": 30, "missile_max_num": 6, "missile_lock_interval": 2}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_nosuri": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2}
+      ]
+    },
+    "tsubame": {
+      "type": "weapon",
+      "description": "Missile horizontal on shoulder",
+      "weight": 250,
+      "level_param": [
+        {"damage": 14, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 18, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 22, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 26, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 30, "missile_max_num": 3, "missile_lock_interval": 2}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_tsubame": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_armor_shard": 2, "pomkotsmechs:materials/heavy_mech_circuit_board": 2}
+      ]
+    },
+    "mukudori": {
+      "type": "weapon",
+      "description": "x6 curved multi way missile on shoulder",
+      "weight": 500,
+      "level_param": [
+        {"damage": 14, "missile_max_num": 2, "missile_lock_interval": 2},
+        {"damage": 18, "missile_max_num": 3, "missile_lock_interval": 2},
+        {"damage": 22, "missile_max_num": 4, "missile_lock_interval": 2},
+        {"damage": 26, "missile_max_num": 5, "missile_lock_interval": 2},
+        {"damage": 30, "missile_max_num": 6, "missile_lock_interval": 2}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_mukudori": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 8, "minecraft:emerald": 32},
+        {"pomkotsmechs:p_titanium_ingot": 20, "minecraft:iron_ingot": 20, "minecraft:coal": 2, "minecraft:emerald": 20},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 4, "minecraft:emerald": 24},
+        {"pomkotsmechs:p_titanium_ingot": 28, "minecraft:iron_ingot": 28, "minecraft:coal": 6, "minecraft:emerald": 28},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 8, "minecraft:emerald": 32}
+      ]
+    },
+    "dodo": {
+      "type": "weapon",
+      "description": "Gigantic Missile",
+      "weight": 2000,
+      "level_param": [
+        {"damage": 120, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 140, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 160, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 180, "missile_max_num": 1, "missile_lock_interval": 2},
+        {"damage": 200, "missile_max_num": 1, "missile_lock_interval": 2}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_dodo": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24, "minecraft:redstone": 24},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_armor_shard": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 2, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 4}
+      ]
+    },
+    "chiba": {
+      "type": "generator",
+      "description": "Large generator",
+      "weight": 500,
+      "level_param": [
+        {"max_energy": 300, "energy_charge_per_tick": 2, "work_sec_per_fuel": 5}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_chiba": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:redstone_block": 8, "minecraft:diamond": 32},
+        {"pomkotsmechs:p_titanium_ingot": 20, "minecraft:iron_ingot": 20, "minecraft:redstone_block": 2, "minecraft:diamond": 20},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:redstone_block": 4, "minecraft:diamond": 24},
+        {"pomkotsmechs:p_titanium_ingot": 28, "minecraft:iron_ingot": 28, "minecraft:redstone_block": 6, "minecraft:diamond": 28},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:redstone_block": 8, "minecraft:diamond": 32}
+      ]
+    },
+    "shiga": {
+      "type": "generator",
+      "description": "Middle generator",
+      "weight": 300,
+      "level_param": [
+        {"max_energy": 200, "energy_charge_per_tick": 2, "work_sec_per_fuel": 8}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_shiga": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 8},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_power_cell_debris": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 8}
+      ]
+    },
+    "saga": {
+      "type": "generator",
+      "description": "Small generator",
+      "weight": 100,
+      "level_param": [
+        {"max_energy": 125, "energy_charge_per_tick": 2, "work_sec_per_fuel": 10}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_saga": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:redstone_block": 8, "minecraft:lapis_lazuli": 32},
+        {"pomkotsmechs:p_titanium_ingot": 20, "minecraft:iron_ingot": 20, "minecraft:redstone_block": 2, "minecraft:lapis_lazuli": 20},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:redstone_block": 4, "minecraft:lapis_lazuli": 24},
+        {"pomkotsmechs:p_titanium_ingot": 28, "minecraft:iron_ingot": 28, "minecraft:redstone_block": 6, "minecraft:lapis_lazuli": 28},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:redstone_block": 8, "minecraft:lapis_lazuli": 32}
+      ]
+    },
+    "kansai": {
+      "type": "booster",
+      "description": "Small booster",
+      "weight": 10,
+      "level_param": [
+        {"energy_consume_evasion": 40, "energy_consume_vertical": 5, "speed_modifier_evasion": 1.0, "speed_modifier_vertical": 1.1}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_kansai": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:redstone_block": 8, "minecraft:lapis_lazuli": 32},
+        {"pomkotsmechs:p_titanium_ingot": 20, "minecraft:iron_ingot": 20, "minecraft:redstone_block": 2, "minecraft:lapis_lazuli": 20},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:redstone_block": 4, "minecraft:lapis_lazuli": 24},
+        {"pomkotsmechs:p_titanium_ingot": 28, "minecraft:iron_ingot": 28, "minecraft:redstone_block": 6, "minecraft:lapis_lazuli": 28},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:redstone_block": 8, "minecraft:lapis_lazuli": 32}
+      ]
+    },
+    "narita": {
+      "type": "booster",
+      "description": "Middle booster",
+      "weight": 30,
+      "level_param": [
+        {"energy_consume_evasion": 50, "energy_consume_vertical": 6, "speed_modifier_evasion":1.2, "speed_modifier_vertical": 1.2}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_narita": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_booster_debris": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 4},
+        {"pomkotsmechs:p_titanium_ingot": 4, "minecraft:iron_ingot": 4, "minecraft:coal": 4, "minecraft:redstone": 4},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8},
+        {"pomkotsmechs:p_titanium_ingot": 12, "minecraft:iron_ingot": 12, "minecraft:coal": 12, "minecraft:redstone": 12},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_booster_debris": 4, "pomkotsmechs:materials/heavy_mech_circuit_board": 4}
+      ]
+    },
+    "haneda": {
+      "type": "booster",
+      "description": "Large booster",
+      "weight": 50,
+      "level_param": [
+        {"energy_consume_evasion": 60, "energy_consume_vertical": 7, "speed_modifier_evasion": 1.4, "speed_modifier_vertical": 1.3}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_haneda": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:redstone_block": 8, "minecraft:diamond": 32},
+        {"pomkotsmechs:p_titanium_ingot": 20, "minecraft:iron_ingot": 20, "minecraft:redstone_block": 2, "minecraft:diamond": 20},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:redstone_block": 4, "minecraft:diamond": 24},
+        {"pomkotsmechs:p_titanium_ingot": 28, "minecraft:iron_ingot": 28, "minecraft:redstone_block": 6, "minecraft:diamond": 28},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:redstone_block": 8, "minecraft:diamond": 32}
+      ]
+    },
+    "circuitsoftlock": {
+      "type": "extension",
+      "description": "Enable target lock(soft) on aiming",
+      "weight": 0,
+      "level_param": [
+        {}
+    ]},
+    "circuithardlock": {
+      "type": "extension",
+      "description": "Enable target lock(hard) on aiming",
+      "weight": 0,
+      "level_param": [
+        {}
+    ]},
+    "hoverunit": {
+      "type": "extension",
+      "description": "Hover Unit",
+      "weight": 0,
+      "level_param": [
+        {"energy_consume_per_tick": 6}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_hover_unit": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_hover_debris": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 8}
+      ]
+    },
+    "railslider": {
+      "type": "extension",
+      "description": "Enable Rail Slide",
+      "weight": 0,
+      "level_param": [
+        {"pomkotsmechs:blue_print_rail_slider_unit": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 8}
+      ]},
+    "protosbunit": {
+      "type": "extension",
+      "description": "Proto Type of Super Booster",
+      "weight": 0,
+      "level_param": [
+        {"energy_consume_per_tick": 6},
+        {"energy_consume_per_tick": 4}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_proto_super_boost_unit": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_booster_debris": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 8},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_booster_debris": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 8}
+      ]
+    },
+    "coredrill": {
+      "type": "extension",
+      "description": "Core Drill",
+      "weight": 0,
+      "level_param": [
+        {"energy_consume_per_tick": 6}
+      ],
+      "recipes": [
+      ]
+    },
+    "builderunit": {
+      "type": "extension",
+      "description": "Builder Unit",
+      "weight": 1000,
+      "level_param": [
+        {"energy_consume_per_tick": 4}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_builder_unit": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_construction_unit_debris": 8, "pomkotsmechs:materials/heavy_mech_high_torque_actuator": 8}
+      ]
+    },
+    "gliderunit": {
+      "type": "extension",
+      "description": "Glider Unit",
+      "weight": 0,
+      "level_param": [
+        {"energy_consume_per_tick": 6}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_glider_unit": 1, "pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_booster_debris": 8, "pomkotsmechs:materials/heavy_mech_circuit_board": 8}
+      ]
+    },
+    "magazinerifle": {
+      "type": "magazine",
+      "description": "Magazine for Rifle",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 12}
+      ]},
+    "magazinemissile": {
+      "type": "magazine",
+      "description": "Magazine for Missile",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 12}
+      ]},
+    "magazinemissilelarge": {
+      "type": "magazine",
+      "description": "Magazine for Gigantic Missile",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 2}
+      ]},
+    "magazinemachinegun": {
+      "type": "magazine",
+      "description": "Magazine for Machine Gun",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 60}
+      ]},
+    "magazineshotgun": {
+      "type": "magazine",
+      "description": "Magazine for Shot Gun",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 45}
+      ]},
+    "magazinegrenade": {
+      "type": "magazine",
+      "description": "Magazine for Grenade",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 6}
+      ]},
+    "magazinegatling": {
+      "type": "magazine",
+      "description": "Magazine for Gatling",
+      "weight": 0,
+      "level_param": [
+        {"bullets_per_magazine": 60}
+      ]},
+    "pellet": {
+      "type": "fuel",
+      "description": "Fuel Pellet Medium Size",
+      "weight": 0,
+      "level_param": [
+        {"energy": 10}
+      ]}
+  }
+}

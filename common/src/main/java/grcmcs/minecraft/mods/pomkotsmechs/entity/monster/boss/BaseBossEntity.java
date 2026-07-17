@@ -536,6 +536,10 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
         }
     }
 
+    public boolean isActivated() {
+        return isActivated;
+    }
+
     // クラサバ同期系 ===============================================================================================
 
     private static final EntityDataAccessor<Boolean> MODE = SynchedEntityData.defineId(BaseBossEntity.class, EntityDataSerializers.BOOLEAN);
@@ -656,6 +660,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
 
                 this.goalSelector.getRunningGoals().forEach(WrappedGoal::stop);
                 this.actionController.reset();
+
                 this.onStun();
             }
         }

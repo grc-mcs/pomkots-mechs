@@ -28,5 +28,8 @@ public class BulletMachineEntityRenderer extends GeoEntityRenderer<BulletMachine
         this.scaleWidth = scale;
 
         super.preApplyRenderLayers(poseStack, animatable, model, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+
+        model.getBone("root").get().setRotX((float)Math.toRadians(animatable.getXRot()));
+        model.getBone("root").get().setRotY((float)Math.toRadians(animatable.getYRot()));
     }
 }

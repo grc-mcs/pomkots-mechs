@@ -9,13 +9,13 @@ import dev.architectury.registry.client.particle.ParticleProviderRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechSalvagerScreen;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchScreen;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.PartsWorkbenchScreen;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.RadarTargetSelectScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.*;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.arena.*;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.datapad.DataPadKeyCardScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.datapad.DataPadScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.narration.IntroNarrationScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.pilot.PilotScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.hud.PomkotsHud;
-import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.MechCameraHandler;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.UserInteractionManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientHudShake;
@@ -24,6 +24,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.*;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.misc.BlockPlacementPreviewRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.misc.PlacementPreviewRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.projectile.*;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.scan.ScanPulseEntityRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.turret.Pmt01EntityRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.turret.Pmt02EntityRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.turret.Pmt03EntityRenderer;
@@ -31,17 +32,17 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.turret.Pmt04EntityRend
 import grcmcs.minecraft.mods.pomkotsmechs.client.sound.PomkotsSoundManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.sound.PomkotsBGMManager;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
+import grcmcs.minecraft.mods.pomkotsmechs.items.MechCapsule2Item;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemProperties;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemStackHelper;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.CircuitRarity;
+import grcmcs.minecraft.mods.pomkotsmechs.misc.scan.ClientScanManager;
 import grcmcs.minecraft.mods.pomkotsmechs.sounds.bgm.BGMState;
-import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.nbt.CompoundTag;
 
 import java.io.ByteArrayInputStream;
-import java.util.Map;
 
 public class PomkotsMechsClient {
 	private static final UserInteractionManager keyPressManager = new UserInteractionManager();
@@ -165,6 +166,16 @@ public class PomkotsMechsClient {
 			return new Pmt04EntityRenderer(context);
 		});
 
+		EntityRendererRegistry.register(PomkotsMechs.MECH_TRADER, (context)->{
+			return new MechTraderEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.MECH_PILOT, (context)->{
+			return new MechPilotEntityRenderer(context);
+		});
+		EntityRendererRegistry.register(PomkotsMechs.ARENA_RECEP, (context)->{
+			return new ArenaReceptionistEntityRenderer(context);
+		});
+
 		EntityRendererRegistry.register(PomkotsMechs.EARTHBREAK2, (context)->{
 			return new EarthbreakEntityRenderer(context);
 		});
@@ -262,6 +273,10 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.EXPLOADSLASH, (context)->{
 			return new SlashEntityRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.ARENA_CAMERA, (context)->{
+			return new ArenaCameraRenderer(context);
+		});
+
 		EntityRendererRegistry.register(PomkotsMechs.WAVE_HOR, (context)->{
 			return new WaveHorizontalEntityRenderer(context);
 		});
@@ -277,6 +292,10 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.ALERTRED, (context)->{
 			return new AlertEntityRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.ELEVATOR, (context)->{
+			return new ElevatorEntityRenderer(context);
+		});
+
 		EntityRendererRegistry.register(PomkotsMechs.BOSSBOX, (context)->{
 			return new BossBoxEntityRenderer(context);
 		});
@@ -315,6 +334,11 @@ public class PomkotsMechsClient {
 		});
 
 		EntityRendererRegistry.register(
+				PomkotsMechs.SCAN_PULSE,
+				ScanPulseEntityRenderer::new
+		);
+
+		EntityRendererRegistry.register(
 				PomkotsMechs.MECH_CAPSULE_PROJECTILE,
 				ThrownItemRenderer::new
 		);
@@ -342,6 +366,12 @@ public class PomkotsMechsClient {
 			MenuRegistry.registerScreenFactory(PomkotsMechs.PARTS_WORKBENCH_GUI.get(), PartsWorkbenchScreen::new);
 			MenuRegistry.registerScreenFactory(PomkotsMechs.MECH_SALVAGER_GUI.get(), MechSalvagerScreen::new);
 			MenuRegistry.registerScreenFactory(PomkotsMechs.POMKOTS_RADAR_GUI.get(), RadarTargetSelectScreen::new);
+			MenuRegistry.registerScreenFactory(PomkotsMechs.MECH_TRADER_GUI.get(), MechTraderScreen::new);
+			MenuRegistry.registerScreenFactory(PomkotsMechs.PILOT_CONFIG_GUI.get(), PilotScreen::new);
+			MenuRegistry.registerScreenFactory(PomkotsMechs.ARENA_RECEPTIONIST.get(), ArenaReceptionistScreen::new);
+			MenuRegistry.registerScreenFactory(PomkotsMechs.ARENA_RESULT_MENU.get(), ArenaBattleResultScreen::new);
+			MenuRegistry.registerScreenFactory(PomkotsMechs.POMKOTS_DATAPAD_GUI.get(), DataPadScreen::new);
+			MenuRegistry.registerScreenFactory(PomkotsMechs.POMKOTS_DATAPAD_KEYCARD_GUI.get(), DataPadKeyCardScreen::new);
 
 //			ClientPlayerEvent.CLIENT_PLAYER_JOIN.register((arg)->{
 //				SurvivalInitActions.onClientJoin(arg);
@@ -358,6 +388,42 @@ public class PomkotsMechsClient {
 				},
 				PomkotsMechs.MECH_CAPSULE_ITEM.get()
 			);
+
+			ColorHandlerRegistry.registerItemColors(
+					(stack, tintIndex) -> {
+						if (!(stack.getItem() instanceof MechCapsule2Item)) {
+							return 0xFFFFFFFF;
+						}
+
+						if (tintIndex == 0) {
+							return 0xFFADADAD;
+
+						} else if (tintIndex == 1) {
+							if (MechCapsule2Item.hasStoredMech(stack)) {
+								return 0xFF7DFF70;
+							} else {
+								return 0xFFFFFFFF;
+							}
+						}
+
+						return 0xFFFFFFFF;
+					},
+					PomkotsMechs.MECH_CAPSULE2_ITEM.get()
+			);
+
+			ColorHandlerRegistry.registerItemColors(
+					(stack, tintIndex) -> {
+						if (tintIndex != 0) {
+							return 0xFFFFFF;
+						}
+
+						CircuitRarity rarity = CircuitItemStackHelper.getRarityOrDefault(stack);
+
+						return rarity.tintColor();
+					},
+					PomkotsMechs.CIRCUIT_BASE.get()
+			);
+			CircuitItemProperties.register();
 		}
 
 		keyPressManager.registerClient();
@@ -374,11 +440,31 @@ public class PomkotsMechsClient {
 		ParticleProviderRegistry.register(PomkotsMechs.MAGAZINE_LEFT, MagazineParticle.ProviderL::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MECH_DUST, DustParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MECH_DUST_HEAVY, DustHeavyParticle.Provider::new);
+		ParticleProviderRegistry.register(PomkotsMechs.MUZZLE_FLASH, MuzzleFlashParticle.Provider::new);
 
 		ClientGuiEvent.RENDER_HUD.register(new PomkotsHud());
 		ClientTickEvent.CLIENT_POST.register(PomkotsSoundManager::cleanup);
 		ClientTickEvent.CLIENT_POST.register(MechCameraHandler::tick);
 		ClientTickEvent.CLIENT_POST.register(ClientHudShake::tick);
+		ClientTickEvent.CLIENT_POST.register(
+				minecraft -> ClientScanManager.clientTick()
+		);
+
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_GENERAR_SCREEN_FADE), (buf, context) -> {
+			int in = buf.readInt();
+			int keep = buf.readInt();
+			int out = buf.readInt();
+
+			ScreenFadeManager.start(in, keep, out);
+		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_ARENA_OPENING_START), (buf, context) -> {
+			ArenaCameraClient.startOpeningCamera();
+		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_ARENA_OPENING_END), (buf, context) -> {
+			ArenaCameraClient.endOpeningCamera();
+		});
 
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_UPDATE_DATAPACK), (buf, context) -> {
 			try {
@@ -407,6 +493,24 @@ public class PomkotsMechsClient {
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_BGM_STATE), (buf, context) -> {
 			var newState = buf.readEnum(BGMState.class);
 			PomkotsBGMManager.setState(newState);
+		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_ARENA_REFRESH_RANKING), (buf, context) -> {
+			Minecraft mc = Minecraft.getInstance();
+
+			if (mc.player != null) {
+				if (mc.player.containerMenu instanceof ArenaReceptionistMenu menu) {
+					var data = ArenaMenuData.read(buf);
+
+					if (menu.getArenaId() != null && menu.getArenaId().equals(data.getArenaId())) {
+						menu.setRankings(data.getRankings());
+
+						if (mc.screen instanceof ArenaReceptionistScreen screen) {
+							screen.refleshData();
+						}
+					}
+				}
+			}
 		});
 
 //		ClientTickEvent.CLIENT_POST.register(mc -> {

@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.ShakujiItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletRifleEntity;
@@ -9,6 +10,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.magazine.MagazineRifleItem;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 
@@ -31,11 +33,16 @@ public class ShakujiItem extends BasePartsItem.WeaponArm {
             }
 
             if (!world.isClientSide()) {
-                BulletRifleEntity be = new BulletRifleEntity(PomkotsMechs.BULLET_RIFLE.get(), world, mechInterface.getMechEntity(), this.getDamage(mechInterface.getItemStack()));
+                BulletRifleEntity be = new BulletRifleEntity(
+                        PomkotsMechs.BULLET_RIFLE.get(),
+                        world,
+                        mechInterface.getMechEntity(),
+                        mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory())
+                );
                 var offset = mechInterface.getOffset();
 
                 // オフセット位置から大体の銃口の座標を決める（モデル位置からとるとクラサバ同期がめんどい…）
-                var muzzlPos = new Vec3(1.8 * mechInterface.isRight(), 3.0F, 5F);
+                var muzzlPos = new Vec3(1.8 * mechInterface.isRight(), 3.0F, 6.5F);
                 muzzlPos = muzzlPos.yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
                 be.setPos(offset.add(muzzlPos));
 
@@ -46,6 +53,14 @@ public class ShakujiItem extends BasePartsItem.WeaponArm {
                 world.addFreshEntity(be);
 
             } else {
+                ParticleUtil.spawnAttachedMuzzleFlash(
+                    (ClientLevel) world,
+                    mechInterface.getMechEntity(),
+                    mechInterface.getAttachPoint(),
+                    16.0D,
+                    new Vec3(1.8 * mechInterface.isRight(), 3.0F, 6.5F)
+                );
+
                 mechInterface.playSoundEffect(PomkotsMechs.SE_GUN_2.get());
             }
         }

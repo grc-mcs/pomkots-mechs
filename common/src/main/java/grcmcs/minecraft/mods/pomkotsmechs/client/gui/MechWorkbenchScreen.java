@@ -8,12 +8,16 @@ import dev.architectury.networking.NetworkManager;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.model.parts.BasePartsItemModel;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemStackHelper;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.CircuitPrefix;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.LightTexture;
@@ -36,6 +40,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +58,7 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
     private static final ResourceLocation TEXTURE_PANEL_INV_MECH = new ResourceLocation(PomkotsMechs.MODID, "textures/gui/mechworkbench/inventory_cargo.png");
     private static final ResourceLocation TEXTURE_PANEL_INV_PLAYER = new ResourceLocation(PomkotsMechs.MODID, "textures/gui/mechworkbench/inventory_player.png");
     private static final ResourceLocation TEXTURE_PANEL_SPEC = new ResourceLocation(PomkotsMechs.MODID, "textures/gui/mechworkbench/stats_panel.png");
+    private static final ResourceLocation TEXTURE_PANEL_CIRCUIT = new ResourceLocation(PomkotsMechs.MODID, "textures/gui/mechworkbench/inventory_circuits.png");
 
     private static final ResourceLocation TEXTURE_ICON_AMMO = new ResourceLocation(PomkotsMechs.MODID, "textures/gui/mechworkbench/icon_ammo.png");
     private static final ResourceLocation TEXTURE_ICON_FUEL = new ResourceLocation(PomkotsMechs.MODID, "textures/gui/mechworkbench/icon_fuel.png");
@@ -219,14 +225,21 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
 
     private Pmvc01Entity mech = null;
 
+    private EditBox nameField;
+    private boolean nameFieldInited = false;
+
+    private Button renameButton;
     private Button generateCardButton;
     private Button repairMechButton;
     private Button autoSupply;
     private Button textureColorButton;
+    private Button circuitButton;
 
     private boolean isDropdownOpen = false;
     private List<String> options = BasePartsItemModel.BASE_COLORS;
     private String selectedOption = "Color";
+
+    private boolean circuitInvActive = false;
 
     public MechWorkbenchScreen(MechWorkbenchMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -259,8 +272,63 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
         this.specsY = panelY + panelHeight + slotSize * 2 + 5 - specsHeight;
 
         // =====================================================
+        // INIT TEXT FIELDS
+        // =====================================================
+
+        nameField =
+                new EditBox(
+                        font,
+                        panelX + 120,
+                        this.topPos + DROPDOWN_OFFSET_Y,
+                        80,
+                        BUTTON_HEIGHT,
+                        Component.literal("Name")
+                );
+
+        nameField.setMaxLength(32);
+
+        addRenderableWidget(nameField);
+
+        // =====================================================
         // INIT BUTTONS
         // =====================================================
+
+        circuitButton = addRenderableWidget(
+                new ImageButton(
+                        specsX + specsWidth - BUTTON_WIDTH - 5,
+                        specsY + 2,
+                        BUTTON_WIDTH,
+                        BUTTON_HEIGHT,
+                        TEXTURE_BUTTON,
+                        0,
+                        0,
+                        BUTTON_WIDTH,
+                        BUTTON_HEIGHT * 4,
+                        Utils.string2Component("{text.pomkotsmechs.gui.mechworkbench.circuit}"),
+                        btn -> {
+                            circuitInvActive = !circuitInvActive;
+                            menu.setActivationForCircuitSlots(circuitInvActive);
+                        }
+                )
+        );
+
+        renameButton = addRenderableWidget(
+                new ImageButton(
+                        panelX+ 120 + 80 + 5,
+                        this.topPos + DROPDOWN_OFFSET_Y,
+                        BUTTON_WIDTH,
+                        BUTTON_HEIGHT,
+                        TEXTURE_BUTTON,
+                        0,
+                        0,
+                        BUTTON_WIDTH,
+                        BUTTON_HEIGHT * 4,
+                        Utils.string2Component("{text.pomkotsmechs.gui.mechworkbench.rename}"),
+                        btn -> {
+                            sendMechName(nameField.getValue());
+                        }
+                )
+        );
 
         generateCardButton = addRenderableWidget(
                 new ImageButton(
@@ -338,6 +406,7 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
 
         this.mech = null;
 
+        this.menu.setActivationForCircuitSlots(false);
         rebuildVisibleParts();
     }
 
@@ -352,11 +421,19 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
             int mouseX,
             int mouseY) {
 
+        if (!nameFieldInited && this.mech != null && this.mech.hasCustomName()) {
+            nameField.setValue(
+                    this.mech.getCustomName().getString()
+            );
+            nameFieldInited = true;
+        }
+
         if (menu.getMode() == MechWorkbenchMenu.MODE_VIEW) {
+            renameButton.visible = false;
             generateCardButton.visible = false;
             repairMechButton.visible = false;
             textureColorButton.visible = false;
-
+            nameField.active = false;
             // @TODO ROAD UI
 //            modelAreaX = 10;
 //            modelAreaY = 120;
@@ -426,7 +503,90 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
 //                80
 //        );
 
+        renderCircuitSlotHighlights(guiGraphics);
+
         guiGraphics.pose().popPose();
+    }
+
+    private void renderCircuitSlotHighlights(
+            GuiGraphics guiGraphics
+    ) {
+        ItemStack carried =
+                this.menu.getCarried();
+
+        if (!(carried.getItem() instanceof CircuitItem)) {
+            return;
+        }
+
+        CircuitPrefix carriedPrefix =
+                CircuitItemStackHelper.getPrefixOrDefault(carried);
+
+        for (Slot slot : this.menu.slots) {
+            if (!(slot instanceof MechWorkbenchMenu.MechCircuitSlot circuitSlot)) {
+                continue;
+            }
+
+            if (circuitSlot.isDisablePlace() || !circuitSlot.acceptsCircuitPrefix(carriedPrefix)) {
+                continue;
+            }
+
+            /*
+             * 空スロットだけ光らせたい場合。
+             * 既に埋まっているスロットも「対応スロット」として光らせたいなら、
+             * このifは消してOK。
+             */
+            if (slot.hasItem()) {
+                continue;
+            }
+
+            int x =
+                    this.leftPos + slot.x;
+
+            int y =
+                    this.topPos + slot.y;
+
+            renderSlotHighlight(
+                    guiGraphics,
+                    x,
+                    y
+            );
+        }
+    }
+
+    private static void renderSlotHighlight(
+            GuiGraphics guiGraphics,
+            int x,
+            int y
+    ) {
+        /*
+         * ARGB
+         * 0x80 = 半透明
+         * 0x55FFFF00 = 黄色寄り
+         */
+        int fillColor =
+                0x550000FF;
+
+        int borderColor =
+                0xCC5555FF;
+
+        /*
+         * スロット内側
+         */
+        guiGraphics.fill(
+                x,
+                y,
+                x + 16,
+                y + 16,
+                fillColor
+        );
+
+        /*
+         * 枠線
+         */
+        guiGraphics.fill(x - 1, y - 1, x + 17, y, borderColor);
+        guiGraphics.fill(x - 1, y + 16, x + 17, y + 17, borderColor);
+        guiGraphics.fill(x - 1, y, x, y + 16, borderColor);
+        guiGraphics.fill(x + 16, y, x + 17, y + 16, borderColor);
     }
 
     private void renderBgTexture(
@@ -488,6 +648,21 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
             int mouseY,
             float partialTick) {
 
+        if (this.minecraft != null && this.minecraft.level != null && this.mech == null) {
+            for (Entity entity : this.minecraft.level.entitiesForRendering()) {
+                if (entity instanceof Pmvc01Entity m) {
+                    if ((short)(entity.getUUID().hashCode()) == this.menu.getEntityId()) {
+                        this.mech = m;
+                        this.rebuildVisibleParts();
+                    }
+                }
+            }
+        }
+
+        if (mech == null) {
+            return;
+        }
+
         renderBackground(guiGraphics);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -496,7 +671,9 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
         // Mech 3D Model
         // =====================================================
 
-        renderMech3DModel(guiGraphics);
+        if (!circuitInvActive) {
+            renderMech3DModel(guiGraphics);
+        }
 
         // =====================================================
         // Main Panel
@@ -533,6 +710,8 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
 
         renderPlayerInventoryPanel(guiGraphics);
 
+        renderCircuitInventoryPanel(guiGraphics);
+
         guiGraphics.pose().popPose();
 
         // @TODO ROAD UI
@@ -540,10 +719,20 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate(0, 0, 300);
 
+
             renderSpecsPanel(guiGraphics);
 
             guiGraphics.pose().popPose();
 //        }
+
+        if (menu.getMode() == MechWorkbenchMenu.MODE_ASSEMBLE) {
+            nameField.render(
+                    guiGraphics,
+                    mouseX,
+                    mouseY,
+                    partialTick
+            );
+        }
 
         if (!isDropdownOpen) {
             renderTooltip(guiGraphics, mouseX, mouseY);
@@ -1182,6 +1371,72 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
         );
     }
 
+    private void renderCircuitInventoryPanel(GuiGraphics guiGraphics) {
+        if (circuitInvActive) {
+            renderBgTexture(TEXTURE_PANEL_CIRCUIT, specsX, cargoY, 180, 132, guiGraphics);
+
+            guiGraphics.drawString(
+                    font,
+                    "Additional Circuits",
+                    specsX + 18,
+                    cargoY + 4,
+                    0xFFFFFFFF
+            );
+
+            int offX = specsX + 22;
+            int offY = cargoY + 3;
+            int rowH = 19;
+
+            guiGraphics.drawString(
+                    font,
+                    "- Balance",
+                    offX,
+                    offY + rowH,
+                    0xFFFFFFFF
+            );
+
+            guiGraphics.drawString(
+                    font,
+                    "- Offence",
+                    offX,
+                    offY + rowH * 2,
+                    0xFFFFFFFF
+            );
+
+            guiGraphics.drawString(
+                    font,
+                    "- Defence",
+                    offX,
+                    offY + rowH * 3,
+                    0xFFFFFFFF
+            );
+
+            guiGraphics.drawString(
+                    font,
+                    "- Mobility",
+                    offX,
+                    offY + rowH * 4,
+                    0xFFFFFFFF
+            );
+
+            guiGraphics.drawString(
+                    font,
+                    "- Energy",
+                    offX,
+                    offY + rowH * 5,
+                    0xFFFFFFFF
+            );
+
+            guiGraphics.drawString(
+                    font,
+                    "- Utility",
+                    offX,
+                    offY + rowH * 6,
+                    0xFFFFFFFF
+            );
+        }
+    }
+
     private void renderSpecsPanel(
             GuiGraphics guiGraphics) {
 
@@ -1199,7 +1454,7 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
         int offsetY = specsY + 20;
 
         drawParams(0, offsetX, offsetY, "{text.pomkotsmechs.gui.mechworkbench.hp}",  (int)mech.getHealth() + "/" + mech.getDurability(), false, guiGraphics);
-        drawParams(1, offsetX, offsetY, "{text.pomkotsmechs.gui.mechworkbench.energy}", String.format("%d", mech.getMaxEnergy()) + "/" + String.format("%d", mech.getEnergyChargePerTick()), false, guiGraphics);
+        drawParams(1, offsetX, offsetY, "{text.pomkotsmechs.gui.mechworkbench.energy}", String.format("%d", mech.getMaxEnergy()) + "/" + String.format("%.1f", mech.getEnergyChargePerTick()), false, guiGraphics);
         drawParams(2, offsetX, offsetY, "{text.pomkotsmechs.gui.mechworkbench.weight}", mech.getWeight() + "/" + mech.getMaxWeight(), mech.getWeight() > mech.getMaxWeight(), guiGraphics);
         drawParams(3, offsetX, offsetY, "{text.pomkotsmechs.gui.mechworkbench.speed}", String.format("%.1f", mech.getSpeedModifier()), false, guiGraphics);
         drawParams(4, offsetX, offsetY, "{text.pomkotsmechs.gui.mechworkbench.jump}", String.format("%.1f",mech.getJumpModifier()), false, guiGraphics);
@@ -1238,6 +1493,12 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
             double mouseY,
             int button) {
 
+        if (!nameField.isMouseOver(
+                mouseX,
+                mouseY
+        )) {
+            nameField.setFocused(false);
+        }
         // @TODO ROAD UI
 //        if (menu.getMode() == MechWorkbenchMenu.MODE_VIEW) {
 //            return super.mouseClicked(mouseX, mouseY, button);
@@ -1368,11 +1629,11 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
                             return true;
                         }
 
-                        unequipPart();
+                        sendServerUnequip();
 
                         return true;
                     } else {
-                        equipPart(idx);
+                        sendServerEquip(idx);
                     }
 
                     return true;
@@ -1384,7 +1645,7 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
         // Mech 3D Model
         // =====================================================
 
-        if (button == 0) {
+        if (button == 0 && !circuitInvActive) {
             if (mouseX >= modelAreaLeft()
                     && mouseX <= modelAreaRight()
                     && mouseY >= modelAreaTop()
@@ -1414,33 +1675,6 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
         }
 
         return false;
-    }
-
-    private static final int CMD_EQUIP = 1;
-    private static final int CMD_UNEQUIP = 2;
-
-    private void equipPart(int sourceSlot) {
-        int packed =
-                (CMD_EQUIP << 24)
-                        | (currentTab.mechSlot << 16)
-                        | (sourceSlot & 0xFFFF);
-
-        minecraft.gameMode.handleInventoryButtonClick(
-                menu.containerId,
-                packed
-        );
-    }
-
-    private void unequipPart() {
-
-        int packed =
-                (CMD_UNEQUIP << 24)
-                        | (currentTab.mechSlot << 16);
-
-        minecraft.gameMode.handleInventoryButtonClick(
-                menu.containerId,
-                packed
-        );
     }
 
     @Override
@@ -1512,17 +1746,6 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
     }
 
     private void renderMech3DModel(GuiGraphics guiGraphics) {
-        if (this.minecraft != null && this.minecraft.level != null && this.mech == null) {
-            for (Entity entity : this.minecraft.level.entitiesForRendering()) {
-                if (entity instanceof Pmvc01Entity m) {
-                    if ((short)(entity.getUUID().hashCode()) == this.menu.getEntityId()) {
-                        this.mech = m;
-                        this.rebuildVisibleParts();
-                    }
-                }
-            }
-        }
-
         if (this.mech != null) {
             int centerX =
                     modelAreaLeft()
@@ -1664,6 +1887,30 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
     protected void renderLabels(GuiGraphics guiGraphics, int i, int j) {
     }
 
+    private void sendServerEquip(int sourceSlot) {
+        if (mech != null) {
+            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+            buf.writeInt(menu.containerId);
+            buf.writeInt(currentTab.mechSlot);
+            buf.writeInt(sourceSlot);
+            buf.writeInt(MechWorkbenchMenu.CMD_EQUIP);
+
+            NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_MECH_CHANGE_PARTS), buf);
+        }
+    }
+
+    private void sendServerUnequip() {
+        if (mech != null) {
+            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+            buf.writeInt(menu.containerId);
+            buf.writeInt(currentTab.mechSlot);
+            buf.writeInt(0);
+            buf.writeInt(MechWorkbenchMenu.CMD_UNEQUIP);
+
+            NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_MECH_CHANGE_PARTS), buf);
+        }
+    }
+
     private void sendTextureColor2Server(int color) {
         if (mech != null) {
             FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
@@ -1678,6 +1925,16 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
             FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
             buf.writeUUID(mech.getUUID());
             NetworkManager.sendToServer(PomkotsMechs.id(message), buf);
+        }
+    }
+
+    private void sendMechName(String mechName) {
+        if (mech != null) {
+            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+            buf.writeUUID(mech.getUUID());
+            buf.writeUtf(mechName);
+
+            NetworkManager.sendToServer(PomkotsMechs.id(PomkotsMechs.PACKET_CHANGE_CUSTOM_NAME), buf);
         }
     }
 
@@ -1820,5 +2077,77 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
 
             guiGraphics.pose().popPose();
         }
+    }
+
+//    @Override
+//    public boolean keyPressed(
+//            int keyCode,
+//            int scanCode,
+//            int modifiers
+//    ) {
+//        if (nameField.isFocused()) {
+//            return true;
+//        }
+//
+//        return super.keyPressed(
+//                keyCode,
+//                scanCode,
+//                modifiers
+//        );
+//    }
+
+    @Override
+    public boolean keyPressed(
+            int keyCode,
+            int scanCode,
+            int modifiers
+    ) {
+        if (nameField.isFocused()) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                nameField.setFocused(false);
+                return true;
+            }
+
+            if (nameField.keyPressed(
+                    keyCode,
+                    scanCode,
+                    modifiers
+            )) {
+                return true;
+            }
+
+            if (minecraft.options.keyInventory.matches(
+                    keyCode,
+                    scanCode
+            )) {
+                return true;
+            }
+        }
+
+        return super.keyPressed(
+                keyCode,
+                scanCode,
+                modifiers
+        );
+    }
+
+    @Override
+    public boolean charTyped(
+            char codePoint,
+            int modifiers
+    ) {
+        if (nameField.isFocused()
+                && nameField.charTyped(
+                codePoint,
+                modifiers
+        )) {
+
+            return true;
+        }
+
+        return super.charTyped(
+                codePoint,
+                modifiers
+        );
     }
 }

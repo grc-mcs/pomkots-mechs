@@ -1,0 +1,135 @@
+{
+  "entries": [
+    {
+      "name": "Yuta",
+      "comment": "Hello World!",
+      "ai_level": "novice",
+      "initial_rate": 10,
+      "win": 3,
+      "lose": 13,
+      "model": "pomkotsmechs:geo/mech_pilot_wide.geo.json",
+      "texture": "pomkotsmechs:textures/entity/pilot/mech_pilot_wide_genba.png",
+      "mech": {
+        "name": "Bobrot Mk.2",
+        "texture_color": 8,
+        "parts": [
+          {"slot": 0, "item": "pomkotsmechs:rustyhead"},
+          {"slot": 1, "item": "pomkotsmechs:rustybody"},
+          {"slot": 2, "item": "pomkotsmechs:rustyarm"},
+          {"slot": 3, "item": "pomkotsmechs:rustylegs"},
+          {"slot": 4, "item": "pomkotsmechs:saga"},
+          {"slot": 5, "item": "pomkotsmechs:kansai"},
+          {"slot": 6, "item": "pomkotsmechs:shakuji"},
+          {"slot": 7, "item": "pomkotsmechs:tenpou"},
+          {"slot": 8, "item": "pomkotsmechs:kawasemi"},
+          {"slot": 9, "item": "minecraft:air"}
+        ]
+      }
+    },
+    {
+      "name": "Steve",
+      "comment": "Yes",
+      "ai_level": "intermediate",
+      "initial_rate": 500,
+      "win": 20,
+      "lose": 19,
+      "model": "pomkotsmechs:geo/mech_pilot_wide.geo.json",
+      "texture": "minecraft:textures/entity/player/wide/steve.png",
+      "mech": {
+        "name": "Cobbles",
+        "texture_color": 6,
+        "parts": [
+          {"slot": 0, "item": "pomkotsmechs:rustyhead"},
+          {"slot": 1, "item": "pomkotsmechs:rustybody"},
+          {"slot": 2, "item": "pomkotsmechs:rustyarm"},
+          {"slot": 3, "item": "pomkotsmechs:rustylegs"},
+          {"slot": 4, "item": "pomkotsmechs:saga"},
+          {"slot": 5, "item": "pomkotsmechs:kansai"},
+          {"slot": 6, "item": "pomkotsmechs:shakuji"},
+          {"slot": 7, "item": "pomkotsmechs:tenpou"},
+          {"slot": 8, "item": "pomkotsmechs:kawasemi"},
+          {"slot": 9, "item": "minecraft:air"}
+        ]
+      }
+    },
+    {
+      "name": "Alex",
+      "comment": "Hello",
+      "ai_level": "advanced",
+      "initial_rate": 900,
+      "win": 50,
+      "lose": 13,
+      "model": "pomkotsmechs:geo/mech_pilot_slim.geo.json",
+      "texture": "minecraft:textures/entity/player/slim/alex.png",
+      "mech": {
+        "name": "Mossy",
+        "texture_color": 4,
+        "parts": [
+          {"slot": 0, "item": "pomkotsmechs:rustyhead"},
+          {"slot": 1, "item": "pomkotsmechs:rustybody"},
+          {"slot": 2, "item": "pomkotsmechs:rustyarm"},
+          {"slot": 3, "item": "pomkotsmechs:rustylegs"},
+          {"slot": 4, "item": "pomkotsmechs:saga"},
+          {"slot": 5, "item": "pomkotsmechs:kansai"},
+          {"slot": 6, "item": "pomkotsmechs:shakuji"},
+          {"slot": 7, "item": "pomkotsmechs:tenpou"},
+          {"slot": 8, "item": "pomkotsmechs:kawasemi"},
+          {"slot": 9, "item": "minecraft:air"}
+        ]
+      }
+    },
+    {
+      "name": "John Do",
+      "comment": "Kept you waiting, huh?",
+      "ai_level": "legend",
+      "initial_rate": 1300,
+      "win": 710,
+      "lose": 89,
+      "model": "pomkotsmechs:geo/mech_pilot_wide.geo.json",
+      "texture": "pomkotsmechs:textures/entity/pilot/mech_pilot_wide_john.png",
+      "mech": {
+        "name": "Rex",
+        "texture_color": 1,
+        "parts": [
+          {"slot": 0, "item": "pomkotsmechs:altairhead", "level": 5},
+          {"slot": 1, "item": "pomkotsmechs:rustybody", "level": 5},
+          {"slot": 2, "item": "pomkotsmechs:altairarm", "level": 5},
+          {"slot": 3, "item": "pomkotsmechs:altairlegs", "level": 5},
+          {"slot": 4, "item": "pomkotsmechs:saga"},
+          {"slot": 5, "item": "pomkotsmechs:kansai"},
+          {"slot": 6, "item": "pomkotsmechs:shinobazu", "level": 5},
+          {"slot": 7, "item": "pomkotsmechs:tenpou", "level": 5},
+          {"slot": 8, "item": "pomkotsmechs:nosuri", "level": 5},
+          {"slot": 9, "item": "pomkotsmechs:kawasemi", "level": 5}
+        ]
+      }
+    },
+
+    {
+      "name": "Elder",
+      "comment": ".....",
+      "ai_level": "legend",
+      "initial_rate": 1500,
+      "win": 894,
+      "lose": 10,
+      "model": "pomkotsmechs:geo/mech_pilot_slim.geo.json",
+      "texture": "minecraft:textures/entity/player/slim/alex.png",
+      "mech": {
+        "name": "White Requiem",
+        "texture_color": 2,
+        "parts": [
+          {"slot": 0, "item": "pomkotsmechs:muknvalihead", "level": 5},
+          {"slot": 1, "item": "pomkotsmechs:muknvalibody", "level": 5},
+          {"slot": 2, "item": "pomkotsmechs:muknvaliarm", "level": 5},
+          {"slot": 3, "item": "pomkotsmechs:muknvalilegs", "level": 5},
+          {"slot": 4, "item": "pomkotsmechs:chiba"},
+          {"slot": 5, "item": "pomkotsmechs:kansai"},
+          {"slot": 6, "item": "pomkotsmechs:kagenobu", "level": 5},
+          {"slot": 7, "item": "pomkotsmechs:kagami", "level": 5},
+          {"slot": 8, "item": "pomkotsmechs:mukudori", "level": 5},
+          {"slot": 9, "item": "pomkotsmechs:mukudori", "level": 5}
+        ]
+      }
+    }
+  ]
+}

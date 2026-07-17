@@ -8,12 +8,12 @@ import grcmcs.minecraft.mods.pomkotsmechs.block.CoreStoneBlockEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidControllerEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.items.datapad.PomkotsDatapadItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.radar.PomkotsRadarItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.radar.RadarTarget;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.UuidArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
@@ -107,11 +107,11 @@ public class PomkotsCommands {
             ItemStack radarStack = findRadarItem(player);
             if (radarStack == null) {
                 ctx.getSource().sendFailure(Component.literal(
-                        player.getName().getString() + " does not have a PomkotsRadar"));
+                        player.getName().getString() + " does not have a Pomkots Data Pad"));
                 return 0;
             }
 
-            PomkotsRadarItem.addTarget(radarStack, new RadarTarget.CoordTarget(pos, label, dim));
+            PomkotsDatapadItem.addTarget(radarStack, new RadarTarget.CoordTarget(pos, label, dim));
 
             ctx.getSource().sendSuccess(() -> Component.literal(
                     "Registered radar target: " + label + " at " + pos), true);
@@ -125,7 +125,7 @@ public class PomkotsCommands {
 
     private static ItemStack findRadarItem(ServerPlayer player) {
         for (ItemStack stack : player.getInventory().items) {
-            if (stack.getItem() instanceof PomkotsRadarItem) return stack;
+            if (stack.getItem() instanceof PomkotsDatapadItem) return stack;
         }
         return null;
     }

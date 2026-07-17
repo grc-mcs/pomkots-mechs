@@ -4,12 +4,18 @@ import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechSalvagerScreen;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchScreen;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.PartsWorkbenchScreen;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.RadarTargetSelectScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.*;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.arena.ArenaBattleResultScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.arena.ArenaReceptionistScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.datapad.DataPadKeyCardScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.datapad.DataPadScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.pilot.PilotScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.items.MechCapsule2Item;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemProperties;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemStackHelper;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.CircuitRarity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
@@ -36,6 +42,25 @@ public class ClientModEvents {
             MenuRegistry.registerScreenFactory(
                     PomkotsMechs.POMKOTS_RADAR_GUI.get(), RadarTargetSelectScreen::new
             );
+            MenuRegistry.registerScreenFactory(
+                    PomkotsMechs.MECH_TRADER_GUI.get(), MechTraderScreen::new
+            );
+            MenuRegistry.registerScreenFactory(
+                    PomkotsMechs.PILOT_CONFIG_GUI.get(), PilotScreen::new
+            );
+            MenuRegistry.registerScreenFactory(
+                    PomkotsMechs.ARENA_RECEPTIONIST.get(), ArenaReceptionistScreen::new
+            );
+            MenuRegistry.registerScreenFactory(
+                    PomkotsMechs.ARENA_RESULT_MENU.get(), ArenaBattleResultScreen::new
+            );
+            MenuRegistry.registerScreenFactory(
+                    PomkotsMechs.POMKOTS_DATAPAD_GUI.get(), DataPadScreen::new
+            );
+            MenuRegistry.registerScreenFactory(
+                    PomkotsMechs.POMKOTS_DATAPAD_KEYCARD_GUI.get(), DataPadKeyCardScreen::new
+            );
+
 
             BlockEntityRendererRegistry.register(PomkotsMechs.POMKOTS_CUBE_BLOCK_ENTITY.get(), (context)->{
                 return new PomkotsCubeRenderer(context);
@@ -66,6 +91,42 @@ public class ClientModEvents {
                     },
                     PomkotsMechs.MECH_CAPSULE_ITEM.get()
             );
+
+            ColorHandlerRegistry.registerItemColors(
+                    (stack, tintIndex) -> {
+                        if (!(stack.getItem() instanceof MechCapsule2Item)) {
+                            return 0xFFFFFFFF;
+                        }
+
+                        if (tintIndex == 0) {
+                            return 0xFFADADAD;
+
+                        } else if (tintIndex == 1) {
+                            if (MechCapsule2Item.hasStoredMech(stack)) {
+                                return 0xFF7DFF70;
+                            } else {
+                                return 0xFFFFFFFF;
+                            }
+                        }
+
+                        return 0xFFFFFFFF;
+                    },
+                    PomkotsMechs.MECH_CAPSULE2_ITEM.get()
+            );
+
+            ColorHandlerRegistry.registerItemColors(
+                    (stack, tintIndex) -> {
+                        if (tintIndex != 0) {
+                            return 0xFFFFFF;
+                        }
+
+                        CircuitRarity rarity = CircuitItemStackHelper.getRarityOrDefault(stack);
+
+                        return rarity.tintColor();
+                    },
+                    PomkotsMechs.CIRCUIT_BASE.get()
+            );
+            CircuitItemProperties.register();
         });
     }
 

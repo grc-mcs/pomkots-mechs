@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
+import grcmcs.minecraft.mods.pomkotsmechs.items.datapad.PomkotsDatapadItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.radar.PomkotsRadarItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.radar.RadarTarget;
 import net.minecraft.client.Camera;
@@ -74,14 +75,19 @@ public class RadarArrowRenderer {
         if (player == null) return;
 
         ItemStack stack = player.getMainHandItem();
-        if (!(stack.getItem() instanceof PomkotsRadarItem)) return;
 
-        RadarTarget target = PomkotsRadarItem.getActiveTarget(stack).orElse(null);
+        RadarTarget target = null;
+
+        if (stack.getItem() instanceof PomkotsRadarItem) {
+            target = PomkotsRadarItem.getActiveTarget(stack).orElse(null);
+        } else if (stack.getItem() instanceof PomkotsDatapadItem) {
+            target = PomkotsDatapadItem.getActiveTarget(stack).orElse(null);
+        }
+
         if (target == null) return;
 
         Vec3 camPos    = camera.getPosition();
         Vec3 centerPos = player.getPosition(partialTick);
-//        Vec3 centerPos = camPos;
         Vec3 targetPos = resolveTargetPos(target, mc.level, partialTick);
 
         if (targetPos == null) {

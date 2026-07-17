@@ -1,0 +1,16 @@
+{
+  "parent": "minecraft:block/cube",
+
+  "textures": {
+    "up":    "pomkotsmechs:block/arena_block_common_top",
+    "down":  "pomkotsmechs:block/arena_block_common",
+
+    "north": "pomkotsmechs:block/arena_block_battlefield",
+    "south": "pomkotsmechs:block/arena_block_common",
+
+    "east":  "pomkotsmechs:block/arena_block_common",
+    "west":  "pomkotsmechs:block/arena_block_common",
+
+    "particle": "pomkotsmechs:block/arena_block_common"
+  }
+}

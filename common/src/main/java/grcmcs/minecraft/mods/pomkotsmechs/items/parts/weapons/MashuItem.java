@@ -31,7 +31,12 @@ public class MashuItem extends BasePartsItem.WeaponArm {
             }
 
             if (!world.isClientSide()) {
-                BulletBeamEntity be = new BulletBeamEntity(PomkotsMechs.BULLET_BEAM.get(), world, mechInterface.getMechEntity(), this.getDamage(mechInterface.getItemStack()));
+                BulletBeamEntity be = new BulletBeamEntity(
+                        PomkotsMechs.BULLET_BEAM.get(),
+                        world,
+                        mechInterface.getMechEntity(),
+                        mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory())
+                );
 
                 var offset = mechInterface.getOffset();
 

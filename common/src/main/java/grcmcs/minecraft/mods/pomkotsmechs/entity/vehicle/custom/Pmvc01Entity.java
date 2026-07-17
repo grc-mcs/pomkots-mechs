@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.block.MechWorkbenchBlockEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchMenu;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.datapad.DataPadMenu;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
 import grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientHudShake;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
@@ -10,7 +11,9 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.sound.PomkotsSoundManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.sound.SoundConfig;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.misc.BlockPlacementPreviewEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.misc.ElevatorEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb99Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.npc.pilot.ai.MechAutoController;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.rail.*;
@@ -19,11 +22,18 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.Action
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.RepairKitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemStackHelper;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.SkillEffectApplicator;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.mechstats.MechFeatureType;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.mechstats.MechStatus;
+import grcmcs.minecraft.mods.pomkotsmechs.items.datapad.PomkotsDatapadItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.CachedBoneFinder;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.*;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons.AmagiItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons.ShoutouItem;
+import grcmcs.minecraft.mods.pomkotsmechs.misc.scan.ScanUtils;
 import grcmcs.minecraft.mods.pomkotsmechs.save.PomkotsMechsSaveData;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -86,8 +96,11 @@ import java.util.function.Supplier;
 
 public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInventoryScreen, Container, MenuProvider {
     public static final float DEFAULT_SCALE = 1f;
-    public static final int CONTAINER_SIZE = 64;
-    public static final int CONTAINER_GENERAL_ITEM_START_INDEX = CONTAINER_SIZE - 36 - 1;
+    public static final int CONTAINER_SIZE = 82;
+    public static final int CONTAINER_GENERAL_ITEM_START_INDEX = 27;
+    public static final int CONTAINER_ADDITIONAL_CIRCUIT_START_INDEX = 63;
+
+    public static final double BASE_KNOCKBACK_RESISTANCE = 0.8D;
 
     @Override
     protected String getMechName() {
@@ -100,12 +113,15 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     private int inAirTicks = 0;
     private float prevHealth = 0;
     private int damageSoundCooldown = 0;
+    private MechAutoController mechAutoController = null;
+    private MechStatus modifiedMechStatus = new MechStatus();
 
     private BlockPlacementPreviewEntity blockPreviewEntity = null;
 
     public static AttributeSupplier.Builder createMobAttributes() {
         return LivingEntity.createLivingAttributes()
                 .add(Attributes.ATTACK_KNOCKBACK)
+                .add(Attributes.KNOCKBACK_RESISTANCE, BASE_KNOCKBACK_RESISTANCE)
                 .add(Attributes.MAX_HEALTH, BattleBalance.MECH_HEALTH)
                 .add(Attributes.ARMOR, 18);
     }
@@ -127,6 +143,10 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         boneFinder.setModel(model);
     }
 
+    public MechStatus getModifiedMechStatus() {
+        return this.modifiedMechStatus;
+    }
+
     /******************************************************************************************
      * エンティティ基本関係の処理
      ******************************************************************************************/
@@ -136,6 +156,27 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     public void tick() {
         if (this.firstTick) {
             firstTickEvent();
+        }
+
+        if (this.getVehicle() instanceof ElevatorEntity elv) {
+
+        }
+
+        // オートパイロット関連
+        if (isServerSide()) {
+            var driver = this.getDrivingPassenger();
+            if (driver instanceof Mob mob && mechAutoController == null) {
+                mechAutoController = Utils.createMechAutoController(driver, this);
+                mob.setNoAi(true);
+            }
+            if (mechAutoController != null) {
+                if (driver == null || driver instanceof Player) {
+                    mechAutoController = null;
+                    lockTargets.clearLockTargets();
+                } else {
+                    mechAutoController.tick();
+                }
+            }
         }
 
         if (this.isClientSide()) {
@@ -225,6 +266,12 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         }
     }
 
+    public void startArena(LivingEntity target) {
+        if (getDrivingPassenger() instanceof Mob && mechAutoController != null) {
+            mechAutoController.startArenaBattle(target);
+        }
+    }
+
     private float clientDamageThisTick = 0;
 
     public float getClientDamageThisTick () {
@@ -234,13 +281,13 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     private void onClientDamage(float damage) {
         if (damage > 50f) {
             this.playDamageSound(PomkotsMechs.SE_HIT_HEAVY_EVENT.get());
-            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 50, PomkotsMechs.SPARK.get());
+            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 15, PomkotsMechs.SPARK.get());
         } else if (damage > 15f) {
             this.playDamageSound(PomkotsMechs.SE_HIT_MIDDLE_EVENT.get());
-            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 25, PomkotsMechs.SPARK.get());
+            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 10, PomkotsMechs.SPARK.get());
         } else {
             this.playDamageSound(PomkotsMechs.SE_HIT_EVENT.get());
-            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 10, PomkotsMechs.SPARK.get());
+            ParticleUtil.addSparkParticles(this.getBoundingBox().getCenter(), this.level(), 5, PomkotsMechs.SPARK.get());
         }
 
         if (this.getDrivingPassenger() instanceof LocalPlayer) {
@@ -295,7 +342,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                 }
 
                 var ents = level().getEntitiesOfClass(Pmb99Entity.class, this.getBoundingBox());
-                if (!ents.isEmpty() || this.getVehicle() != null) {
+                if (!ents.isEmpty() || this.getVehicle() instanceof Pmb99Entity) {
                     this.playSoundEffect(PomkotsMechs.SE_GASHAN.get());
 
                     var p1 = new Vec3(-1, 7, -1).yRot((float) Math.toRadians((-1.0) * this.getYRot())).add(this.position());
@@ -526,6 +573,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     public boolean isCustomNameVisible() {
         return false;
     }
+
     /******************************************************************************************
      * アクション/武器関係の処理
      ******************************************************************************************/
@@ -568,6 +616,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected static final int ACT_RELOAD_RIGHT_SHOULDER = 14;
     protected static final int ACT_RELOAD_LEFT_SHOULDER = 15;
 
+    protected static final int ACT_SCAN = 16;
+
     // @JOKE
     protected static final int ACT_GATTAI = 99;
 
@@ -596,6 +646,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.actionController.registerAction(ACT_RELOAD_LEFT_HAND, new Action(21, 10, 5), ActionController.ActionType.BASE);
         this.actionController.registerAction(ACT_RELOAD_RIGHT_SHOULDER, new Action(21, 10, 5), ActionController.ActionType.BASE);
         this.actionController.registerAction(ACT_RELOAD_LEFT_SHOULDER, new Action(21, 10, 5), ActionController.ActionType.BASE);
+
+        this.actionController.registerAction(ACT_SCAN, new Action(100, 2, 20), ActionController.ActionType.BASE);
 
         // @JOKE
         this.actionController.registerAction(ACT_GATTAI, new Action(60, 5, 60), ActionController.ActionType.BASE);
@@ -629,6 +681,16 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
             this.applyPlayerInputWeapons(driverInput);
             this.applyPlayerInputBoost(driverInput);
+
+            if (driverInput.isLockPressed() && !hasHardLockCircuit()
+                    && !this.actionController.getAction(ACT_SCAN).isInAction()
+                    && !this.actionController.getAction(ACT_SCAN).isInCooltime()) {
+                this.actionController.getAction(ACT_SCAN).startAction();
+
+                if (this.isServerSide() && getDrivingPassenger() instanceof ServerPlayer serverPlayer) {
+                    ScanUtils.spawnPersonalScan((ServerLevel)level(), serverPlayer, this.position());
+                }
+            }
 
             if (!this.isSuperBoost()) {
                 this.applyPlayerInputEvasion(driverInput);
@@ -797,12 +859,12 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                         this.setSuperBoost(false);
                         this.actionController.setBoost(true);
                     }
-                } else if (!this.actionController.isInActionAll() && !this.isGliding()){
+                } else if (!this.actionController.getAction(ACT_SUPER_BOOST).isInAction() && !this.isGliding()){
                     this.isHovering = false;
-                    this.unbindFromRail();
                     this.actionController.getAction(ACT_SUPER_BOOST).startAction();
 
                     if (this.isServerSide()) {
+                        this.unbindFromRail();
                         this.actionController.setBoost(false);
                     }
                 }
@@ -1297,13 +1359,13 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      * エネルギー関係の処理
      **************************************************************************************/
 
-    private int energy = 0;
+    private float energy = 0;
     private int overHeatCooltime = 0;
     private int OVER_HEAT_COOL_TIME_MAX = 60;
 
     @Override
     public int getEnergy() {
-        return this.energy;
+        return (int)this.energy;
     }
 
     public int getOverHeatCooltime() {
@@ -1463,7 +1525,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         boolean hasWeaponInput =
                 driverInput.isWeaponRightHandPressed()
                         || driverInput.isWeaponLeftHandPressed();
-        return hasWeaponInput && hasSoftLockCircuit();
+        return hasWeaponInput && hasLockSoftCircuit();
     }
 
     private boolean hasSoftLockCircuit() {
@@ -1476,7 +1538,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     @Override
     public boolean shouldLockStrong(DriverInput driverInput) {
         return driverInput.isLockPressed()
-            && hasHardLockCircuit();
+            && hasLockHardCircuit();
     }
 
     private boolean hasHardLockCircuit() {
@@ -1502,7 +1564,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
                         RawAnimation.begin().thenPlay("animation." + getMechName() + ".z_gattai_01")
                                 .thenLoop("animation." + getMechName() + ".z_gattai_02")
                 );
-            } else if (this.getVehicle() != null) {
+            } else if (this.getVehicle() instanceof Pmb99Entity) {
                 event.getController().forceAnimationReset();
                 return event.setAndContinue(
                         RawAnimation.begin().thenPlayAndHold("animation." + getMechName() + ".z_gattai_03")
@@ -2111,6 +2173,21 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
      * インベントリ関係/NBT周りの処理
      **************************************************************************************/
 
+    private boolean shouldSave = true;
+
+    public boolean isShouldSave() {
+        return shouldSave;
+    }
+
+    public void setShouldSave(boolean shouldSave) {
+        this.shouldSave = shouldSave;
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        return shouldSave;
+    }
+
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
@@ -2192,7 +2269,9 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     @Override
     public void remove(Entity.RemovalReason removalReason) {
         if (!this.level().isClientSide && removalReason.shouldDestroy()) {
-            Containers.dropContents(this.level(), this, this);
+            if (removalReason != RemovalReason.DISCARDED) {
+                Containers.dropContents(this.level(), this, this);
+            }
         }
 
         if (this.blockPreviewEntity != null) {
@@ -2229,7 +2308,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         ItemStack stack = player.getItemInHand(interactionHand);
         Level level = this.level();
 
-        if ((stack.is(PomkotsMechs.REPAIRKIT_ITEM.get()) && this.canRepair(this) ) || stack.is(PomkotsMechs.KEYCARD_ITEM.get()) || stack.is(PomkotsMechs.MECH_CLONER_ITEM.get())) {
+        if ((stack.is(PomkotsMechs.REPAIRKIT_ITEM.get()) && this.canRepair(this) ) || stack.is(PomkotsMechs.KEYCARD_ITEM.get()) || stack.is(PomkotsMechs.MECH_CAPSULE2_ITEM.get())) {
             return InteractionResult.PASS;
 
         } else if (this.canAddPassenger(player) && !player.isSecondaryUseActive()) {
@@ -2364,6 +2443,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
         if (this.lootTable != null && player.isSpectator()) {
             return null;
+
         } else {
             if (isLocked(player)) {
                 return null;
@@ -2371,22 +2451,46 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
             this.unpackLootTable(inventory.player);
 
-            short mode = MechWorkbenchMenu.MODE_VIEW;
-            if (this.getPassengers().isEmpty()) {
-                mode = MechWorkbenchMenu.MODE_ASSEMBLE;
+            AbstractContainerMenu menu = null;
+
+            var dataPad = getDatapadOfDriver(player);
+
+            if (dataPad != null) {
+                menu = new DataPadMenu(i, inventory, player, dataPad);
+
+            } else {
+                short mode = MechWorkbenchMenu.MODE_VIEW;
+                if (this.getPassengers().isEmpty()) {
+                    mode = MechWorkbenchMenu.MODE_ASSEMBLE;
+                }
+
+                var mechMenu = new MechWorkbenchMenu(i, inventory, this, this, mode, consoleAccessor);
+
+                mechMenu.setEntityId(this.getUUID().hashCode());
+                mechMenu.setTextureColor(this.getTextureColor());
+                mechMenu.setMode(mode);
+                mechMenu.sendAllDataToRemote();
+
+                menu = mechMenu;
             }
 
-            var menu = new MechWorkbenchMenu(i, inventory, this, this, mode, consoleAccessor);
-
-            menu.setEntityId(this.getUUID().hashCode());
-            menu.setTextureColor(this.getTextureColor());
-            menu.setMode(mode);
-            menu.sendAllDataToRemote();
 
             consoleAccessor = null;
 
             return menu;
         }
+    }
+
+    private ItemStack getDatapadOfDriver(Player player) {
+        if (player instanceof ServerPlayer serverPlayer && player.equals(this.getDrivingPassenger())) {
+            for (var stack: serverPlayer.getInventory().items) {
+                if (stack.getItem() instanceof PomkotsDatapadItem) {
+                    return stack;
+                }
+            }
+        }
+
+        return null;
     }
 
     @Override
@@ -2833,13 +2937,16 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     protected static final EntityDataAccessor<Float> JUMP = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.FLOAT);
 
     protected static final EntityDataAccessor<Integer> MAX_ENERGY = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
-    protected static final EntityDataAccessor<Integer> ENERGY_CHARGE_PER_TICK = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
+    protected static final EntityDataAccessor<Float> ENERGY_CHARGE_PER_TICK = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.FLOAT);
     protected static final EntityDataAccessor<Integer> WORK_SEC_PER_FUEL = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
 
     protected static final EntityDataAccessor<Float> SPEED_MODIFIER_EVASION = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.FLOAT);
     protected static final EntityDataAccessor<Float> SPEED_MODIFIER_VERTICAL = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.FLOAT);
     protected static final EntityDataAccessor<Integer> ENERGY_CONSUME_EVASION = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> ENERGY_CONSUME_VERTICAL = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
+
+    protected static final EntityDataAccessor<Boolean> HAS_LOCK_SOFT = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
+    protected static final EntityDataAccessor<Boolean> HAS_LOCK_HARD = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.BOOLEAN);
 
     protected static final EntityDataAccessor<Integer> RELOAD_RA = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
     protected static final EntityDataAccessor<Integer> RELOAD_LA = SynchedEntityData.defineId(Pmvc01Entity.class, EntityDataSerializers.INT);
@@ -2897,12 +3004,15 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.entityData.define(SPEED, 0F);
         this.entityData.define(JUMP, 0F);
         this.entityData.define(MAX_ENERGY, 0);
-        this.entityData.define(ENERGY_CHARGE_PER_TICK, 0);
+        this.entityData.define(ENERGY_CHARGE_PER_TICK, 0F);
         this.entityData.define(WORK_SEC_PER_FUEL, 0);
         this.entityData.define(SPEED_MODIFIER_EVASION, 0F);
         this.entityData.define(SPEED_MODIFIER_VERTICAL, 0F);
         this.entityData.define(ENERGY_CONSUME_EVASION, 0);
         this.entityData.define(ENERGY_CONSUME_VERTICAL, 0);
+
+        this.entityData.define(HAS_LOCK_SOFT, false);
+        this.entityData.define(HAS_LOCK_HARD, false);
 
         this.entityData.define(RELOAD_RA, 0);
         this.entityData.define(RELOAD_LA, 0);
@@ -2991,26 +3101,77 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         sumPartsParameter(this.getExtension1FromInventory(), param);
         sumPartsParameter(this.getExtension2FromInventory(), param);
 
-        int newHealth = param.durability + (int) BattleBalance.MECH_HEALTH/2;
-        this.entityData.set(DURABILITY, newHealth);
+        param.durability = param.durability + (int) BattleBalance.MECH_HEALTH/2;
+        param.speed = calculateSpeedModifier(param.maxWeight, param.weight) * param.speed;
+        param.jump = calculateSpeedModifier(param.maxWeight, param.weight) * param.jump;
+
+        var mechStatus = applySkillEffects(param);
+        var mechStats = mechStatus.stats();
+
+        this.entityData.set(DURABILITY, (int) mechStats.health());
         this.entityData.set(WEIGHT, param.weight);
         this.entityData.set(MAX_WEIGHT, param.maxWeight);
-        this.entityData.set(SPEED, calculateSpeedModifier(param.maxWeight, param.weight) * param.speed);
-        this.entityData.set(JUMP, calculateSpeedModifier(param.maxWeight, param.weight) * param.jump);
-        this.entityData.set(MAX_ENERGY, param.maxEnergy);
-        this.entityData.set(ENERGY_CHARGE_PER_TICK, param.energyChargePerTick);
+        this.entityData.set(SPEED, (float) mechStats.moveSpeed());
+        this.entityData.set(JUMP, (float) mechStats.jumpPower());
+        this.entityData.set(MAX_ENERGY, (int) mechStats.energyCapacity());
+        this.entityData.set(ENERGY_CHARGE_PER_TICK, (float) mechStats.energyRecovery());
         this.entityData.set(WORK_SEC_PER_FUEL, param.workSecPerFuel);
-        this.entityData.set(SPEED_MODIFIER_EVASION, param.speedModifierEvasion);
-        this.entityData.set(SPEED_MODIFIER_VERTICAL, param.speedModifierVertical);
-        this.entityData.set(ENERGY_CONSUME_EVASION, param.energyConsumeEvasion);
-        this.entityData.set(ENERGY_CONSUME_VERTICAL, param.energyConsumeVertical);
+        this.entityData.set(SPEED_MODIFIER_EVASION, (float) mechStats.dashSpeed());
+        this.entityData.set(SPEED_MODIFIER_VERTICAL, (float) mechStats.verticalSpeed());
+        this.entityData.set(ENERGY_CONSUME_EVASION, (int)(mechStats.energyCost() * param.energyConsumeEvasion));
+        this.entityData.set(ENERGY_CONSUME_VERTICAL, (int)(mechStats.energyCost() * param.energyConsumeVertical));
+
+        this.entityData.set(HAS_LOCK_SOFT, hasSoftLockCircuit() || mechStatus.features().isEnabled(MechFeatureType.TARGET_ASSIST_SOFT));
+        this.entityData.set(HAS_LOCK_HARD, hasHardLockCircuit() || mechStatus.features().isEnabled(MechFeatureType.TARGET_ASSIST_HARD));
+
+//        this.entityData.set(DURABILITY, param.durability);
+//        this.entityData.set(WEIGHT, param.weight);
+//        this.entityData.set(MAX_WEIGHT, param.maxWeight);
+//        this.entityData.set(SPEED, calculateSpeedModifier(param.maxWeight, param.weight) * param.speed);
+//        this.entityData.set(JUMP, calculateSpeedModifier(param.maxWeight, param.weight) * param.jump);
+//        this.entityData.set(MAX_ENERGY, param.maxEnergy);
+//        this.entityData.set(ENERGY_CHARGE_PER_TICK, param.energyChargePerTick);
+//        this.entityData.set(WORK_SEC_PER_FUEL, param.workSecPerFuel);
+//        this.entityData.set(SPEED_MODIFIER_EVASION, param.speedModifierEvasion);
+//        this.entityData.set(SPEED_MODIFIER_VERTICAL, param.speedModifierVertical);
+//        this.entityData.set(ENERGY_CONSUME_EVASION, param.energyConsumeEvasion);
+//        this.entityData.set(ENERGY_CONSUME_VERTICAL, param.energyConsumeVertical);
 
         this.syncFuels();
 
         if (updateHealth) {
-            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(newHealth);
-            this.setHealth(Math.min(this.getHealth(), newHealth));
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(mechStats.health());
+            this.setHealth(Math.min(this.getHealth(), (float)mechStats.health()));
         }
+
+        this.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(mechStats.knockBackResistance());
+    }
+
+    private MechStatus applySkillEffects(MechParam param) {
+        this.modifiedMechStatus = new MechStatus();
+        this.modifiedMechStatus.setupBaseMechParams(param);
+
+        SkillEffectApplicator.Accumulator accumulator =
+                SkillEffectApplicator.createAccumulator();
+
+        for (int i = CONTAINER_ADDITIONAL_CIRCUIT_START_INDEX;
+             i < CONTAINER_ADDITIONAL_CIRCUIT_START_INDEX + 18;
+             i++) {
+
+            var item = getItem(i);
+
+            if (item.getItem() instanceof CircuitItem) {
+                var circuit = CircuitItemStackHelper.getCircuit(item);
+
+                if (circuit != null) {
+                    accumulator.add(circuit);
+                }
+            }
+        }
+
+        accumulator.applyTo(this.modifiedMechStatus);
+
+        return this.modifiedMechStatus;
     }
 
 //    public static void updateMaxHealth(MechEntity mech) {
@@ -3084,7 +3245,7 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         return this.entityData.get(JUMP);
     }
 
-    public int getEnergyChargePerTick() {
+    public float getEnergyChargePerTick() {
         return this.entityData.get(ENERGY_CHARGE_PER_TICK);
     }
 
@@ -3106,6 +3267,14 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
     public int getEnergyConsumeVertical() {
         return this.entityData.get(ENERGY_CONSUME_VERTICAL);
+    }
+
+    public boolean hasLockSoftCircuit() {
+        return this.entityData.get(HAS_LOCK_SOFT);
+    }
+
+    public boolean hasLockHardCircuit() {
+        return this.entityData.get(HAS_LOCK_HARD);
     }
 
     public ItemStack getHeadParts() {
@@ -3256,14 +3425,14 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
         this.entityData.set(IS_GLIDING, b);
     }
 
-    private static class MechParam {
-        int durability;
-        int weight;
-        int maxWeight;
-        float speed;
-        float jump;
+    public static class MechParam {
+        public int durability;
+        public int weight;
+        public int maxWeight;
+        public float speed;
+        public float jump;
         public int maxEnergy;
-        public int energyChargePerTick;
+        public float energyChargePerTick;
         public int workSecPerFuel;
         public int energyConsumeEvasion;
         public int energyConsumeVertical;
@@ -3274,6 +3443,44 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     /**************************************************************************************
      * そのほか
      **************************************************************************************/
+
+    // クライアントのみ、銃口位置
+    private Vec3 muzzlePosRA = Vec3.ZERO;
+    private Vec3 muzzlePosLA = Vec3.ZERO;
+    private Vec3 muzzlePosRS = Vec3.ZERO;
+    private Vec3 muzzlePosLS = Vec3.ZERO;
+
+    public Vec3 getMuzzlePosLA() {
+        return muzzlePosLA;
+    }
+
+    public void setMuzzlePosLA(Vec3 muzzlePosLA) {
+        this.muzzlePosLA = muzzlePosLA;
+    }
+
+    public Vec3 getMuzzlePosLS() {
+        return muzzlePosLS;
+    }
+
+    public void setMuzzlePosLS(Vec3 muzzlePosLS) {
+        this.muzzlePosLS = muzzlePosLS;
+    }
+
+    public Vec3 getMuzzlePosRA() {
+        return muzzlePosRA;
+    }
+
+    public void setMuzzlePosRA(Vec3 muzzlePosRA) {
+        this.muzzlePosRA = muzzlePosRA;
+    }
+
+    public Vec3 getMuzzlePosRS() {
+        return muzzlePosRS;
+    }
+
+    public void setMuzzlePosRS(Vec3 muzzlePosRS) {
+        this.muzzlePosRS = muzzlePosRS;
+    }
 
     public boolean isUsingWeapon(BasePartsItem.Weapon w) {
         BasePartsItem.WeaponInterface.WeaponAttachPoint attchPoint = w.getWeaponAttachPoint();
@@ -3368,11 +3575,20 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
             LivingEntity pilot = this.getDrivingPassenger();
 
             if (pilot != null) {
-                this.setYRot(pilot.getYRot());
-                this.setXRot(pilot.getXRot() * 0.5F);
+                if (!(this.getVehicle() instanceof ElevatorEntity elv)) {
+                    this.setYRot(pilot.getYRot());
+                    this.setXRot(pilot.getXRot() * 0.5F);
 
-                this.setYBodyRot(this.getYRot());
-                this.setYHeadRot(this.getYRot());
+                    this.setYBodyRot(this.getYRot());
+                    this.setYHeadRot(this.getYRot());
+
+                } else {
+                    this.setYRot(elv.getFixedYaw());
+                    this.yRotO = elv.getFixedYaw();
+                    this.setYBodyRot(elv.getFixedYaw());
+                    this.yBodyRotO = elv.getFixedYaw();
+                    this.setYHeadRot(elv.getFixedYaw());
+                }
 
                 float strafe = pilot.xxa * 0.5F;
                 float forward = pilot.zza * 0.5F;
@@ -3419,6 +3635,8 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
     public boolean hurt(DamageSource source, float amount) {
         if (this.isClientSide()) {
             wasHurtClient = true;
+        } else if (isServerSide() && mechAutoController != null) {
+            mechAutoController.handleHurt(source, amount);
         }
 
         if (this.isBroken()) {
@@ -3456,6 +3674,9 @@ public class Pmvc01Entity extends PomkotsVehicleBase implements HasCustomInvento
 
                 for (Entity passenger : this.getPassengers()) {
                     passenger.stopRiding();
+                    if (passenger instanceof Mob mob) {
+                        mob.setNoAi(false);
+                    }
                 }
             } else {
                 super.actuallyHurt(damageSource, f);

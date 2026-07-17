@@ -146,6 +146,7 @@ public abstract class BasePartsItem extends Item implements GeoItem {
     public enum WeaponCategory {
         RIFLE("rifle"),
         MACHINE_GUN("machine_gun"),
+        SHOT_GUN("shot_gun"),
         GRENADE("grenade"),
         MELEE("melee"),
         MISSILE("missile"),
@@ -278,7 +279,7 @@ public abstract class BasePartsItem extends Item implements GeoItem {
         return data.maxEnergy;
     }
 
-    public int getEnergyChargePerTick(ItemStack stack) {
+    public float getEnergyChargePerTick(ItemStack stack) {
         var data = getLevelData(stack, getPartsData());
         return data.energyChargePerTick;
     }
@@ -336,7 +337,7 @@ public abstract class BasePartsItem extends Item implements GeoItem {
             }
         } else if (this instanceof Generator) {
             tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.maxenergy}") + ": " + String.format("%d", getMaxEnergy(stack))).withStyle(ChatFormatting.WHITE));
-            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.enchargepertick}") + ": " + String.format("%d", getEnergyChargePerTick(stack))).withStyle(ChatFormatting.WHITE));
+            tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.enchargepertick}") + ": " + String.format("%.1f", getEnergyChargePerTick(stack))).withStyle(ChatFormatting.WHITE));
             tooltip.add(Component.literal(getLocalizedString("{text.pomkotsmechs.gui.partsintro.worksecperfuel}") + ": " + String.format("%d", getWorkSecPerFuel(stack))).withStyle(ChatFormatting.WHITE));
 
         } else if (this instanceof Booster) {

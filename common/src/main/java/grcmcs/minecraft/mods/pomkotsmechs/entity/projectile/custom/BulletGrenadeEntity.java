@@ -23,7 +23,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class BulletGrenadeEntity extends PomkotsCustomThrowableProjectile implements GeoEntity, GeoAnimatable {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private int explosionScale = 10;
+    private int explosionScale = 2;
 
     public BulletGrenadeEntity(EntityType<? extends ThrowableProjectile> entityType, Level level) {
         this(entityType, level, null, 80, BattleBalance.MECH_BULLET_GRENADE_DAMAGE, 15);

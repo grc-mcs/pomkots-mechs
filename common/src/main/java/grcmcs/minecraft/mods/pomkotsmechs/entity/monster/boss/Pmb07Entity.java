@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.*;
@@ -338,6 +339,13 @@ public class Pmb07Entity extends BaseBossEntity {
             be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
 
             this.level().addFreshEntity(be);
+
+            ParticleUtil.spawnAttachedMuzzleFlash(
+                    (ServerLevel) level(),
+                    this,
+                    50D,
+                    new Vec3(-6, 8, 17)
+            );
         }
     }
 

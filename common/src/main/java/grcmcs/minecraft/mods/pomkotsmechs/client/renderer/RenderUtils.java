@@ -246,6 +246,47 @@ public class RenderUtils {
         poseStack.popPose();
     }
 
+
+    public static void renderMarking(
+            LivingEntity entity,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            EntityRenderDispatcher erd,
+            float heightOffset
+    ) {
+        Minecraft mc = Minecraft.getInstance();
+
+        if (mc.options.hideGui || entity.tickCount < 5) {
+            return;
+        }
+
+        poseStack.pushPose();
+
+        poseStack.translate(0.0, entity.getBbHeight() + heightOffset, 0.0);
+        poseStack.mulPose(erd.cameraOrientation());
+
+        Vec3 camPos = erd.camera.getPosition();
+        double dist = camPos.distanceTo(entity.position());
+        float baseScale = 0.002f;
+        float scale = (float) (baseScale * dist);
+
+        poseStack.scale(-scale, -scale, scale);
+        PoseStack.Pose pose = poseStack.last();
+        poseStack.translate(0.0, -15, 0.0);
+
+        VertexConsumer vc2 =
+                bufferSource.getBuffer(NO_DEPTH_TRIANGLES);
+        triangle(
+                vc2,
+                pose,
+                7F,
+                0F,
+                255, 0, 0, 255
+        );
+
+        poseStack.popPose();
+    }
+
     private static void triangle(
             VertexConsumer vc,
             PoseStack.Pose pose,

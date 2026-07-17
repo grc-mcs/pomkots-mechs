@@ -1,0 +1,724 @@
+{
+  "skills": [
+    {
+      "id": "pomkotsmechs:target_assist_soft",
+      "display_name": "Target Assist",
+      "category": "utility",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "feature": "target_assist_soft",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:rifle_attack_up_1",
+      "display_name": "Rifle Attack Up I",
+      "category": "offence",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_rifle",
+          "operation": "multiply",
+          "value": 0.01
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:rifle_attack_up_2",
+      "display_name": "Rifle Attack Up II",
+      "category": "offence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_rifle",
+          "operation": "multiply",
+          "value": 0.03
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:rifle_attack_up_3",
+      "display_name": "Rifle Attack Up III",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_rifle",
+          "operation": "multiply",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:machine_gun_attack_up_1",
+      "display_name": "Machine Gun Attack Up I",
+      "category": "offence",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_machine_gun",
+          "operation": "multiply",
+          "value": 0.01
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:machine_gun_attack_up_2",
+      "display_name": "Machine Gun Attack Up II",
+      "category": "offence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_machine_gun",
+          "operation": "multiply",
+          "value": 0.03
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:machine_gun_attack_up_3",
+      "display_name": "Machine Gun Attack Up III",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_machine_gun",
+          "operation": "multiply",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:shotgun_attack_up_1",
+      "display_name": "Shotgun Attack Up I",
+      "category": "offence",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_shotgun",
+          "operation": "multiply",
+          "value": 0.01
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:shotgun_attack_up_2",
+      "display_name": "Shotgun Attack Up II",
+      "category": "offence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_shotgun",
+          "operation": "multiply",
+          "value": 0.03
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:shotgun_attack_up_3",
+      "display_name": "Shotgun Attack Up III",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_shotgun",
+          "operation": "multiply",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:missile_attack_up_1",
+      "display_name": "Missile Attack Up I",
+      "category": "offence",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_missile",
+          "operation": "multiply",
+          "value": 0.01
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:missile_attack_up_2",
+      "display_name": "Missile Attack Up II",
+      "category": "offence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_missile",
+          "operation": "multiply",
+          "value": 0.03
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:missile_attack_up_3",
+      "display_name": "Missile Attack Up III",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_missile",
+          "operation": "multiply",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:grenade_attack_up_1",
+      "display_name": "Grenade Attack Up I",
+      "category": "offence",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_grenade",
+          "operation": "multiply",
+          "value": 0.01
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:grenade_attack_up_2",
+      "display_name": "Grenade Attack Up II",
+      "category": "offence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_grenade",
+          "operation": "multiply",
+          "value": 0.03
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:grenade_attack_up_3",
+      "display_name": "Grenade Attack Up III",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_grenade",
+          "operation": "multiply",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:melee_attack_up_1",
+      "display_name": "Melee Attack Up I",
+      "category": "offence",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_melee",
+          "operation": "multiply",
+          "value": 0.02
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:melee_attack_up_2",
+      "display_name": "Melee Attack Up II",
+      "category": "offence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_melee",
+          "operation": "multiply",
+          "value": 0.03
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:melee_attack_up_3",
+      "display_name": "Melee Attack Up III",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_melee",
+          "operation": "multiply",
+          "value": 0.07
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:all_attack_up_1",
+      "display_name": "All Attack Up I",
+      "category": "offence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_all",
+          "operation": "multiply",
+          "value": 0.01
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:all_attack_up_2",
+      "display_name": "All Attack Up II",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_all",
+          "operation": "multiply",
+          "value": 0.03
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:all_in",
+      "display_name": "All In!",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_all",
+          "operation": "multiply",
+          "value": 0.07
+        },
+        {
+          "stat": "health",
+          "operation": "add",
+          "value": -200
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:battleship_doctrine",
+      "display_name": "Battleship Doctrine",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_all",
+          "operation": "multiply",
+          "value": 0.05
+        },
+        {
+          "stat": "move_speed",
+          "operation": "multiply",
+          "value": -0.2
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:energy_glutton",
+      "display_name": "Energy Glutton",
+      "category": "offence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "damage_all",
+          "operation": "multiply",
+          "value": 0.05
+        },
+        {
+          "stat": "energy_cost",
+          "operation": "multiply",
+          "value": 0.2
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:armor_up_1",
+      "display_name": "Armor Up I",
+      "category": "defence",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "health",
+          "operation": "add",
+          "value": 10.0
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:armor_up_2",
+      "display_name": "Armor Up II",
+      "category": "defence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "health",
+          "operation": "add",
+          "value": 20.0
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:armor_up_3",
+      "display_name": "Armor Up III",
+      "category": "defence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "health",
+          "operation": "add",
+          "value": 30.0
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:stability_1",
+      "display_name": "Stability Up I",
+      "category": "defence",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "knockback_resistance",
+          "operation": "add",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:stability_2",
+      "display_name": "Stability Up II",
+      "category": "defence",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "knockback_resistance",
+          "operation": "add",
+          "value": 0.1
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:invincible",
+      "display_name": "Invincible",
+      "category": "defence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "health",
+          "operation": "add",
+          "value": 60.0
+        },
+        {
+          "stat": "damage_all",
+          "operation": "multiply",
+          "value": -0.2
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:slow_and_steady",
+      "display_name": "Slow and Steady",
+      "category": "defence",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "health",
+          "operation": "add",
+          "value": 60.0
+        },
+        {
+          "stat": "move_speed",
+          "operation": "multiply",
+          "value": -0.2
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:energy_capacity_up_1",
+      "display_name": "Energy Capacity Up I",
+      "category": "energy",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "energy_capacity",
+          "operation": "add",
+          "value": 10.0
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:energy_capacity_up_2",
+      "display_name": "Energy Capacity Up II",
+      "category": "energy",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "energy_capacity",
+          "operation": "add",
+          "value": 20.0
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:energy_recovery_up_1",
+      "display_name": "Energy Recovery Up I",
+      "category": "energy",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "energy_recovery",
+          "operation": "multiply",
+          "value": 0.01
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:energy_recovery_up_2",
+      "display_name": "Energy Recovery Up II",
+      "category": "energy",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "energy_recovery",
+          "operation": "multiply",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:energy_saver_1",
+      "display_name": "Energy Saver I",
+      "category": "energy",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 45,
+      "effects": [
+        {
+          "stat": "energy_cost",
+          "operation": "multiply",
+          "value": -0.08
+        }
+      ]
+    },
+
+    {
+      "id": "pomkotsmechs:move_speed_up_1",
+      "display_name": "Move Speed Up I",
+      "category": "mobility",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "move_speed",
+          "operation": "multiply",
+          "value": 0.01
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:move_speed_up_2",
+      "display_name": "Move Speed Up II",
+      "category": "mobility",
+      "tier": 2,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "move_speed",
+          "operation": "multiply",
+          "value": 0.03
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:move_speed_up_3",
+      "display_name": "Move Speed Up III",
+      "category": "mobility",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "move_speed",
+          "operation": "multiply",
+          "value": 0.05
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:dash_speed_up_1",
+      "display_name": "Dash Speed Up I",
+      "category": "mobility",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "dash_speed",
+          "operation": "multiply",
+          "value": 0.1
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:jump_power_up_1",
+      "display_name": "Jump Power Up I",
+      "category": "mobility",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "jump_power",
+          "operation": "multiply",
+          "value": 0.1
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:vertical_speed_up_1",
+      "display_name": "Vertical Speed Up I",
+      "category": "mobility",
+      "tier": 1,
+      "minimum_rarity": "common",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "vertical_speed",
+          "operation": "multiply",
+          "value": 0.1
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:untouchable",
+      "display_name": "Untouchable",
+      "category": "mobility",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "move_speed",
+          "operation": "multiply",
+          "value": 0.1
+        },
+        {
+          "stat": "health",
+          "operation": "add",
+          "value": -200
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:mosquito",
+      "display_name": "Mosquito",
+      "category": "mobility",
+      "tier": 3,
+      "minimum_rarity": "epic",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "move_speed",
+          "operation": "multiply",
+          "value": 0.1
+        },
+        {
+          "stat": "damage_all",
+          "operation": "multiply",
+          "value": -0.2
+        }
+      ]
+    },
+    {
+      "id": "pomkotsmechs:booster_control_1",
+      "display_name": "Booster Control I",
+      "category": "mobility",
+      "tier": 1,
+      "minimum_rarity": "rare",
+      "weight": 50,
+      "effects": [
+        {
+          "stat": "vertical_speed",
+          "operation": "multiply",
+          "value": 0.05
+        },
+        {
+          "stat": "jump_power",
+          "operation": "multiply",
+          "value": 0.05
+        },
+        {
+          "stat": "damage_all",
+          "operation": "multiply",
+          "value": -0.2
+        }
+      ]
+    }
+  ]
+}

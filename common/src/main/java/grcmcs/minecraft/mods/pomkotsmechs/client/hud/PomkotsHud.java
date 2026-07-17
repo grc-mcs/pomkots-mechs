@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.ScreenFadeManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.TargetLocker;
 import grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientHudShake;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.BasePartsItemRenderer;
@@ -42,6 +43,12 @@ import java.util.Map;
 public class PomkotsHud implements ClientGuiEvent.RenderHud {
     private static final int FG_COLOR = 0x990086C9;
     private static final int BG_COLOR = 0x55555555;
+
+    private static boolean isActive = true;
+
+    public static void setActive(boolean f) {
+        isActive = f;
+    }
 
     private static final ResourceLocation CROSSHAIR_TEXTURE = PomkotsMechs.id("textures/crosshair/crosshair0.png");
     private static final ResourceLocation TARGET_LOCK_TEXTURE = PomkotsMechs.id("textures/crosshair/crosshair2.png");
@@ -85,6 +92,13 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         LocalPlayer pl = mc.player;
 
         if (pl != null) {
+            if (ScreenFadeManager.isActive()) {
+                screenFade(guiGraphics);
+                return;
+            } else if (!isActive) {
+                return;
+            }
+
             if (pl.getVehicle() instanceof PomkotsVehicleBase mech) {
                 if (prevTick != pl.tickCount) {
                     updateValues(mech);
@@ -107,6 +121,38 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
                 prevTick = pl.tickCount;
             }
         }
+    }
+
+    public static void screenFade(GuiGraphics gui) {
+        float alpha = ScreenFadeManager.getAlpha();
+
+        if (alpha <= 0) {
+            return;
+        }
+
+        int width =
+                Minecraft.getInstance()
+                        .getWindow()
+                        .getGuiScaledWidth();
+
+        int height =
+                Minecraft.getInstance()
+                        .getWindow()
+                        .getGuiScaledHeight();
+
+        int a =
+                (int)(alpha * 255F);
+
+        int color =
+                (a << 24);
+
+        gui.fill(
+                0,
+                0,
+                width,
+                height,
+                color
+        );
     }
 
     public void renderLockOnMarks(PomkotsVehicleBase mech, GuiGraphics guiGraphics, float tickDelta) {
@@ -153,7 +199,7 @@ public class PomkotsHud implements ClientGuiEvent.RenderHud {
         int sizeSub = 10;
 
         guiGraphics.blit(texture, screenX - size / 2, screenY - size / 2, 0, 0, size, size, size, size);
-        guiGraphics.blit(TARGET_LOCK_SOFT_TEXTURE2, screenX - sizeSub / 2, screenY - sizeSub * 2, sizeSub, sizeSub, 0, 0, 15, 16, 15, 16);
+//        guiGraphics.blit(TARGET_LOCK_SOFT_TEXTURE2, screenX - sizeSub / 2, screenY - sizeSub * 2, sizeSub, sizeSub, 0, 0, 15, 16, 15, 16);
     }
 
     private Vector3f projectEntityToScreen(Entity entity, float tickDelta) {

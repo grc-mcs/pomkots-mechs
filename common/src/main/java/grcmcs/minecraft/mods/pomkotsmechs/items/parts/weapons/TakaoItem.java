@@ -30,6 +30,8 @@ public class TakaoItem extends BasePartsItem.WeaponArm {
             var pilePos2 = new Vec3(-6.5 * mechInterface.isRight(), -4F, -4F).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot())).add(mechInterface.position());
 
             var kbVel = new Vec3(0, 0, -1F).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
+            var baseDamage = mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory());
+
             for (var ent : world.getEntities(null, new AABB(pilePos1, pilePos2))) {
                 if (mechInterface.isSelf(ent)) {
                     continue;
@@ -45,7 +47,6 @@ public class TakaoItem extends BasePartsItem.WeaponArm {
                         } else {
                             ds = mechInterface.damageSources().generic();
                         }
-                        float damage = this.getDamage(mechInterface.getItemStack());
 
                         var chargeModifier = 1;
                         if (tick > 60) {
@@ -57,7 +58,7 @@ public class TakaoItem extends BasePartsItem.WeaponArm {
                         if (le instanceof BossHitBoxEntity hit) {
                             hit.addStunPoint(10 * chargeModifier);
                         }
-                        le.hurt(ds, damage * chargeModifier);
+                        le.hurt(ds, baseDamage * chargeModifier);
                     } else {
                         mechInterface.addHitParticles(le);
                     }

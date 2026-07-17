@@ -39,6 +39,8 @@ public class JinbaItem extends BasePartsItem.WeaponArm {
             var pilePos2 = new Vec3(-4 * mechInterface.isRight(), -4F, -4F).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot())).add(mechInterface.position());
 
             var kbVel = new Vec3(0, 0, -1F).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
+            var damage = mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory());
+
             for (var ent : world.getEntities(null, new AABB(pilePos1, pilePos2))) {
                 if (mechInterface.isSelf(ent)) {
                     continue;
@@ -60,7 +62,7 @@ public class JinbaItem extends BasePartsItem.WeaponArm {
                         }
 
                         le.invulnerableTime = 0;
-                        le.hurt(ds, this.getDamage(mechInterface.getItemStack()));
+                        le.hurt(ds, damage);
                     } else {
                         mechInterface.addHitParticles(le);
                     }

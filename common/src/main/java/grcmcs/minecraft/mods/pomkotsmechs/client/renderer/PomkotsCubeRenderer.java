@@ -9,4 +9,24 @@ public class PomkotsCubeRenderer extends GeoBlockRenderer<PomkotsCubeBlockEntity
     public PomkotsCubeRenderer(BlockEntityRendererProvider.Context ctx) {
         super(new PomkotsCubeModel());
     }
+
+//    /**
+//     * 視錐台の外でもレンダー対象にする。
+//     */
+//    @Override
+//    public boolean shouldRenderOffScreen(
+//            PomkotsCubeBlockEntity blockEntity
+//    ) {
+//        return true;
+//    }
+
+    /**
+     * BlockEntityRendererの描画距離。
+     *
+     * 128を返す場合、おおむね128ブロック以内が対象。
+     */
+    @Override
+    public int getViewDistance() {
+        return 128;
+    }
 }

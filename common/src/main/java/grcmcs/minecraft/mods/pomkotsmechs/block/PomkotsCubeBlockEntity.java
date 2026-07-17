@@ -32,7 +32,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
-public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlockEntity {
+public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlockEntity, ScanTargetBlockEntity  {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private static final long REFILL_INTERVAL = 24000L;

@@ -4,6 +4,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.KagenobuItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.MitakeItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
@@ -42,6 +43,8 @@ public class MitakeItem extends BasePartsItem.WeaponShoulder {
                     aabbPos1,
                     aabbPos2
             );
+            var damage = mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory());
+
             for (var ent : world.getEntities(null, box)) {
                 if (mechInterface.isSelf(ent)) {
                     continue;
@@ -58,11 +61,14 @@ public class MitakeItem extends BasePartsItem.WeaponShoulder {
                         } else {
                             ds = mechInterface.damageSources().generic();
                         }
-                        var baseDamage = this.getDamage(mechInterface.getItemStack());
+                        var baseDamage = damage;
 
                         if (le instanceof BossHitBoxEntity hit) {
                             hit.addStunPoint(30);
+                        } else if (le instanceof Pmvc01Entity) {
+                            baseDamage *= 1.5F;
                         }
+
                         le.hurt(ds, mechInterface.isSuperBoost()? baseDamage * 2F: baseDamage);
                     } else {
                         mechInterface.addHitParticles(le);

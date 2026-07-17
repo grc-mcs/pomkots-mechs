@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.SuwaItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletMachineEntity;
@@ -9,6 +10,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.magazine.MagazineGatlingItem;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -44,7 +46,8 @@ public class SuwaItem extends BasePartsItem.WeaponShoulder {
                 BulletMachineEntity be = new BulletMachineEntity(
                         PomkotsMechs.BULLET_MACHINE_LARGE.get(), world,
                         mechInterface.getMechEntity(),
-                        this.getDamage(mechInterface.getItemStack()));
+                        mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory())
+                );
 
                 var offset = mechInterface.getOffset();
 
@@ -55,10 +58,18 @@ public class SuwaItem extends BasePartsItem.WeaponShoulder {
 
                 float[] angle = mechInterface.getShootingAngle(be, true);
 
-                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 7, 2F);
+                be.shootFromRotation(be, angle[0], angle[1], mechInterface.getFallFlyingTicks(), 6, 2F);
 
                 world.addFreshEntity(be);
             } else {
+
+                ParticleUtil.spawnAttachedMuzzleFlash(
+                        (ClientLevel) world,
+                        mechInterface.getMechEntity(),
+                        mechInterface.getAttachPoint(),
+                        12.0D,
+                        new Vec3(1.6 * mechInterface.isRight(), 5.7, 4F)
+                );
                 if (tick % 5 == 1) {
                     mechInterface.playSoundEffect(PomkotsMechs.SE_GATLING_EVENT.get());
                 }

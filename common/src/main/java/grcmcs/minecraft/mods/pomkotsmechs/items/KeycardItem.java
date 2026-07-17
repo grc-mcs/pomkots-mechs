@@ -20,16 +20,23 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.UUID;
 
 public class KeycardItem extends Item {
 
     public static final String NBT_MECH_UUID = PomkotsMechs.nbtName("MechUUID");
+    public static final String NBT_MECH_NAME = PomkotsMechs.nbtName("MechNAME");
 
     public KeycardItem(Properties properties) {
         super(properties);
@@ -67,6 +74,45 @@ public class KeycardItem extends Item {
     public void setMech(ItemStack stack, Pmvc01Entity mech, Level level) {
         var tag = stack.getOrCreateTag();
         tag.putUUID(NBT_MECH_UUID, mech.getUUID());
+
+        if (mech.hasCustomName()) {
+            tag.putString(NBT_MECH_NAME, mech.getCustomName().getString());
+        }
+
         stack.setTag(tag);
+    }
+
+    public static UUID getMechUuid(ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains(NBT_MECH_UUID)) {
+            return stack.getTag().getUUID(NBT_MECH_UUID);
+        }
+
+        return null;
+    }
+
+    public static String getMechName(ItemStack stack) {
+        if (stack.hasTag() && stack.getTag().contains(NBT_MECH_NAME)) {
+            String name = stack.getTag().getString(NBT_MECH_NAME);
+            if (!name.isEmpty()) {
+                return name;
+            }
+        }
+
+        return "NO_NAME";
+    }
+
+    @Override
+    public void appendHoverText(
+            @NotNull ItemStack stack,
+            @Nullable Level level,
+            List<Component> tooltip,
+            @NotNull TooltipFlag flag
+    ) {
+        super.appendHoverText(stack, level, tooltip, flag);
+        tooltip.add(
+                Component.literal(
+                        "Mech Name : " + getMechName(stack)
+                )
+        );
     }
 }

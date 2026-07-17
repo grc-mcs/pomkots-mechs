@@ -2,6 +2,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.items.radar;
 
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.RadarTargetSelectMenu;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.RadarTargetSelectScreen;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.pilot.PilotMenuProvider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -12,6 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -32,12 +34,19 @@ public class PomkotsRadarItem extends Item {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        if (level.isClientSide()) {
-            Minecraft.getInstance().setScreen(
-                    new RadarTargetSelectScreen(
-                            new RadarTargetSelectMenu(0, player.getInventory()),
-                            player.getInventory(),
-                            Component.literal("Radar Target")
+        if (!level.isClientSide()) {
+//            Minecraft.getInstance().setScreen(
+//                    new RadarTargetSelectScreen(
+//                            new RadarTargetSelectMenu(0, player.getInventory()),
+//                            player.getInventory(),
+//                            Component.literal("Radar Target")
+//                    )
+//            );
+
+            player.openMenu(
+                    new SimpleMenuProvider(
+                            RadarTargetSelectMenu::new,
+                            Component.literal("Pomkots Radar")
                     )
             );
         }

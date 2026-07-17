@@ -47,7 +47,8 @@ public class KawasemiItem extends BasePartsItem.WeaponShoulder {
 
                         MissileGenericEntity be = new MissileGenericEntity(
                                 PomkotsMechs.MISSILE_GENERIC.get(), world, mechInterface.getMechEntity(),
-                                (LivingEntity) target, this.getDamage(mechInterface.getItemStack()),
+                                (LivingEntity) target,
+                                mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory()),
                                 BattleBalance.MECH_MISSILE_GENERIC_SPEED2);
 
                         be.setPos(offset.add(worldMuzzlPos));

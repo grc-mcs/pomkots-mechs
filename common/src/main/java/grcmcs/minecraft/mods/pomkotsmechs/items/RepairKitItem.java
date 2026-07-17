@@ -20,7 +20,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
 public class RepairKitItem extends Item {
-    public static final int HEAL_AMOUNT = 50;
+    public static final int HEAL_AMOUNT = 100;
 
     public RepairKitItem(Properties properties) {
         super(properties);

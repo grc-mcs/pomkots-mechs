@@ -149,6 +149,119 @@ public class DriverInput {
         }
     }
 
+    private void setKey(int keyId, boolean pressed) {
+        if (pressed) {
+            keyPressStatus |= keyId;
+        } else {
+            keyPressStatus &= ~keyId;
+        }
+    }
+
+    public void setWeaponRightHandPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.WEAPON_ARM_R.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setWeaponLeftHandPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.WEAPON_ARM_L.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setWeaponRightShoulderPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.WEAPON_SHOULDER_R.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setWeaponLeftShoulderPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.WEAPON_SHOULDER_L.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setForwardPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.FORWARD.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setBackPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.BACK.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setRightPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.RIGHT.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setLeftPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.LEFT.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setJumpPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.JUMP.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setEvasionPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.EVASION.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setLockPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.LOCK.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setModeChangePressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.MODE.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setReloadPressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.RELOAD.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setExtension1Pressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.EXT1.getKeyID(),
+                pressed
+        );
+    }
+
+    public void setExtension2Pressed(boolean pressed) {
+        setKey(
+                UserInteractionManager.Keys.EXT2.getKeyID(),
+                pressed
+        );
+    }
+
     @Override
     public String toString() {
         return "key status:" + keyPressStatus;

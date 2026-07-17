@@ -7,6 +7,9 @@ import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.CachedBoneFinder;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
@@ -149,6 +152,45 @@ public class BasePartsItemRenderer<T extends BasePartsItem> extends GeoItemRende
     public static class Weapon<T extends BasePartsItem.Weapon> extends BasePartsItemRenderer<T> {
         public Weapon(BasePartsItemModel model) {
             super(model);
+        }
+
+        @Override
+        public void actuallyRender(PoseStack poseStack, T animatable, BakedGeoModel model, RenderType renderType,
+                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
+                                   int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+            super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+
+            // マズルフラッシュの位置をモデル位置と同期したいんだけど、なんか上手く動かないので無効化。getWorldPositionが常に0ってどういうことだ…。
+//            var mech = animatable.getParentEntity();
+//            if (mech != null) {
+//                var bone = model.getBone("muzzle");
+//                if (bone.isPresent()) {
+//                    var side = animatable.getSide();
+//                    var point = animatable.getWeaponAttachPoint();
+//                    var bonePos = bone.get().getWorldPosition();
+//                    Vec3 posA = new Vec3(bonePos.x, bonePos.y, bonePos.z);
+//
+//                    if (side != null && point != null) {
+//                        if (side == BasePartsItem.AttachSide.RIGHT) {
+//                            if (point == BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_ARM
+//                                || point == BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_HAND
+//                            ) {
+//                                mech.setMuzzlePosRA(posA);
+//                            } else {
+//                                mech.setMuzzlePosRS(posA);
+//                            }
+//                        } else {
+//                            if (point == BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_ARM
+//                                    || point == BasePartsItem.WeaponInterface.WeaponAttachPoint.ATTACH_POINT_HAND
+//                            ) {
+//                                mech.setMuzzlePosLA(posA);
+//                            } else {
+//                                mech.setMuzzlePosLS(posA);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 

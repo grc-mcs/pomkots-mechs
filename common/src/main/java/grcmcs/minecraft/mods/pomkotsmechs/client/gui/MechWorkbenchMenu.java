@@ -4,9 +4,11 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.block.MechWorkbenchBlockEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.RepairKitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemStackHelper;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.CircuitPrefix;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
 import net.minecraft.core.NonNullList;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,12 +26,22 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
     public static short MODE_VIEW = 0;
     public static short MODE_ASSEMBLE = 1;
 
+    private static final int MECH_START = 18;
+    private static final int  MECH_END = 54;
+
+    private static final int  PLAYER_START = 54;
+    private static final int  PLAYER_END = 90;
+
+    private static final int CIRCUIT_START = 90;
+    private static final int  CIRCUIT_END = 108;
+
     private ShortDataSlot entityId = new ShortDataSlot();
     private ShortDataSlot textureColor = new ShortDataSlot();
     private ShortDataSlot menuMode = new ShortDataSlot();
     private final DataSlot inventoryRevision = DataSlot.standalone();
 
     private MechWorkbenchBlockEntity accessor = null;
+    private boolean openedFromDatapad = false;
 
     private Pmvc01Entity mech;
 
@@ -38,11 +50,17 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
     }
 
     public MechWorkbenchMenu(int id, Inventory playerInventory, Container mechInventory, Pmvc01Entity mech, int mode, MechWorkbenchBlockEntity consoleAccessor) {
+        this(id, playerInventory, mechInventory, mech, mode, consoleAccessor, false);
+    }
+
+    public MechWorkbenchMenu(int id, Inventory playerInventory, Container mechInventory, Pmvc01Entity mech, int mode, MechWorkbenchBlockEntity consoleAccessor, boolean openedFromDataPad) {
         super(PomkotsMechs.MECH_WORKBENCH_GUI.get(), id);
 
-        entityId = (ShortDataSlot)this.addDataSlot(entityId);
-        textureColor = (ShortDataSlot)this.addDataSlot(textureColor);
-        menuMode = (ShortDataSlot)this.addDataSlot(menuMode);
+        this.entityId = (ShortDataSlot)this.addDataSlot(entityId);
+        this.textureColor = (ShortDataSlot)this.addDataSlot(textureColor);
+        this.menuMode = (ShortDataSlot)this.addDataSlot(menuMode);
+        this.openedFromDatapad = openedFromDataPad;
+
         this.addDataSlot(inventoryRevision);
 
         int offsetX = 136; // 左寄せ調整（通常44→8）
@@ -101,6 +119,37 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
             this.addSlot(new Slot(playerInventory, i, offsetX + i * 18, offsetY + 3 * 18 + 4));
         }
 
+        offsetX = 123 + 2 + 103;
+        offsetY = 35 + 18;
+
+        for (int row = 0; row < 6; row++) {
+            final CircuitPrefix pref = switch (row) {
+                case 1 -> CircuitPrefix.OFFENCE;
+                case 2 -> CircuitPrefix.DEFENCE;
+                case 3 -> CircuitPrefix.MOBILITY;
+                case 4 -> CircuitPrefix.ENERGY;
+                case 5 -> CircuitPrefix.UTILITY;
+                default -> CircuitPrefix.BALANCED;
+            };
+
+            for (int col = 0; col < 3; col++) {
+                this.addSlot(
+                        new MechCircuitSlot(
+                                mechInventory,
+                                col + row * 3 + Pmvc01Entity.CONTAINER_ADDITIONAL_CIRCUIT_START_INDEX,
+                                offsetX + col * 18,
+                                offsetY + row * 19,
+                                mode,
+                                false,
+                                true,
+                                col == 2,
+                                pref,
+                                item-> true
+                        )
+                );
+            }
+        }
+
         for (Slot slot : slots) {
             lastSlots.add(slot.getItem().copy());
         }
@@ -146,17 +195,11 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         ItemStack stack = slot.getItem();
         result = stack.copy();
 
-        int MECH_START = 18;
-        int MECH_END = 54;
-
-        int PLAYER_START = 54;
-        int PLAYER_END = 90;
-
         // =========================
         // Mech → Player
         // =========================
         if (index >= MECH_START && index < MECH_END) {
-            if (!this.moveItemStackTo(stack, PLAYER_START, PLAYER_END, false)) {
+            if (!this.quickMoveCircuitToMatchingSlot(stack) && !this.moveItemStackTo(stack, PLAYER_START, PLAYER_END, false)) {
                 return ItemStack.EMPTY;
             }
         }
@@ -165,7 +208,7 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         // Player → Mech
         // =========================
         else if (index >= PLAYER_START && index < PLAYER_END) {
-            if (!this.moveItemStackTo(stack, MECH_START, MECH_END, false)) {
+            if (!this.quickMoveCircuitToMatchingSlot(stack) && !this.moveItemStackTo(stack, MECH_START, MECH_END, false)) {
                 return ItemStack.EMPTY;
             }
         }
@@ -187,6 +230,43 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         }
 
         return result;
+    }
+
+    private boolean quickMoveCircuitToMatchingSlot(ItemStack stack) {
+        if (!(stack.getItem() instanceof CircuitItem)) {
+            return false;
+        }
+
+        CircuitPrefix prefix =
+                CircuitItemStackHelper.getPrefixOrDefault(stack);
+
+        for (Slot slot : this.slots) {
+            if (!(slot instanceof CircuitPrefixSlot circuitSlot)) {
+                continue;
+            }
+
+            if (!circuitSlot.acceptsCircuitPrefix(prefix)) {
+                continue;
+            }
+
+            if (slot.hasItem()) {
+                continue;
+            }
+
+            if (!slot.mayPlace(stack)) {
+                continue;
+            }
+
+            ItemStack moving =
+                    stack.split(1);
+
+            slot.set(moving);
+            slot.setChanged();
+
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -251,6 +331,14 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         }
     }
 
+    public void setActivationForCircuitSlots(boolean flag) {
+        for (int i = CIRCUIT_START; i < CIRCUIT_END; i++) {
+            if (getSlot(i) instanceof MechPartsCustomSlot t) {
+                t.setActive(flag);
+            }
+        }
+    }
+
     private static class SimpleDataSlot extends DataSlot {
         private int val = 0;
 
@@ -286,7 +374,7 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
     public static class MechPartsCustomSlot extends MechCustomSlot {
         private final Predicate<Item> p;
         private final boolean isModifiableOnViewMode;
-        private final boolean isActive;
+        private boolean isActive;
 
         public MechPartsCustomSlot(Container container, int index, int x, int y, int mode, boolean isModifiableOnViewMode, boolean isActive, Predicate<Item> p) {
             super(container, index, x, y, mode);
@@ -298,6 +386,10 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         @Override
         public boolean isActive() {
             return isActive;
+        }
+
+        public void setActive(boolean flag) {
+            this.isActive = flag;
         }
 
         @Override
@@ -313,6 +405,23 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         @Override
         public boolean mayPickup(Player player) {
             return isModifiableOnViewMode || mode == MODE_ASSEMBLE;
+        }
+    };
+
+
+    public static class MechPartsCustomSlotSingle extends MechPartsCustomSlot {
+        public MechPartsCustomSlotSingle(Container container, int index, int x, int y, int mode, boolean isModifiableOnViewMode, boolean isActive, Predicate<Item> p) {
+            super(container, index, x, y, mode, isModifiableOnViewMode, isActive, p);
+        }
+
+        @Override
+        public int getMaxStackSize() {
+            return 1;
+        }
+
+        @Override
+        public int getMaxStackSize(ItemStack stack) {
+            return 1;
         }
     };
 
@@ -340,7 +449,62 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
         public boolean mayPickup(Player player) {
             return false;
         }
-    };
+    }
+
+    public class MechCircuitSlot extends MechPartsCustomSlotSingle implements CircuitPrefixSlot {
+        private final CircuitPrefix acceptedPrefix;
+        private final boolean disablePlace;
+
+        public MechCircuitSlot(
+                Container container,
+                int index,
+                int x,
+                int y,
+                int mode,
+                boolean isModifiableOnViewMode,
+                boolean isActive,
+                boolean disablePlace,
+                CircuitPrefix acceptedPrefix,
+                Predicate<Item> p) {
+            super(container, index, x, y, mode, isModifiableOnViewMode, isActive, p);
+            this.acceptedPrefix = acceptedPrefix;
+            this.disablePlace = disablePlace;
+        }
+
+        @Override
+        public CircuitPrefix acceptedPrefix() {
+            return acceptedPrefix;
+        }
+
+        public boolean isDisablePlace() {
+            return disablePlace;
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            if (!super.mayPlace(stack) || this.isDisablePlace()) {
+                return false;
+            }
+
+            if (!(stack.getItem() instanceof CircuitItem)) {
+                return false;
+            }
+
+            CircuitPrefix stackPrefix =
+                    CircuitItemStackHelper.getPrefixOrDefault(stack);
+
+            return acceptedPrefix.id().equals(stackPrefix.id());
+        }
+    }
+
+    public interface CircuitPrefixSlot {
+
+        CircuitPrefix acceptedPrefix();
+
+        default boolean acceptsCircuitPrefix(CircuitPrefix prefix) {
+            return acceptedPrefix().id().equals(prefix.id());
+        }
+    }
 
     private Runnable inventoryChangedListener;
 
@@ -376,43 +540,15 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
 
     }
 
-    private static final int CMD_EQUIP = 1;
-    private static final int CMD_UNEQUIP = 2;
+    public static final int CMD_EQUIP = 1;
+    public static final int CMD_UNEQUIP = 0;
 
-    @Override
-    public boolean clickMenuButton(
-            Player player,
-            int packed
-    ) {
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return false;
+    public void handlePartsChange(int command, int mechSlotIdx, int sourceSlotIdx) {
+        if (command == CMD_EQUIP) {
+            equipParts(mechSlotIdx, sourceSlotIdx);
+        } else {
+            unequipPart(mechSlotIdx);
         }
-
-        int command =
-                (packed >> 24) & 0xFF;
-
-        int mechSlot =
-                (packed >> 16) & 0xFF;
-
-        int value =
-                packed & 0xFFFF;
-
-        switch (command) {
-            case CMD_EQUIP -> {
-                return equipParts(
-                        mechSlot,
-                        value
-                );
-            }
-
-            case CMD_UNEQUIP -> {
-                return unequipPart(
-                        mechSlot
-                );
-            }
-        }
-
-        return false;
     }
 
     public boolean equipParts(int mechSlotIdx, int sourceSlotIdx) {
@@ -872,7 +1008,6 @@ public class MechWorkbenchMenu extends AbstractContainerMenu {
     @Override
     public void slotsChanged(Container container) {
         super.slotsChanged(container);
-        System.out.println(container);
         updateInventoryRevision();
     }
 

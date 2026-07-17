@@ -45,7 +45,7 @@ public class DodoItem extends BasePartsItem.WeaponShoulder{
                     MissileGenericLargeEntity be = new MissileGenericLargeEntity(
                             PomkotsMechs.MISSILE_GENERIC_LARGE.get(), world,
                             mechInterface.getMechEntity(), (LivingEntity) target,
-                            this.getDamage(mechInterface.getItemStack()),
+                            mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory()),
                             BattleBalance.MECH_MISSILE_GENERIC_SPEED2);
 
                     be.setPos(offset.add(worldMuzzlPos));

@@ -1,6 +1,6 @@
 package grcmcs.minecraft.mods.pomkotsmechs;
 
-import dev.architectury.core.item.ArchitecturyRecordItem;
+import com.mojang.serialization.Codec;
 import dev.architectury.core.item.ArchitecturySpawnEggItem;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
@@ -9,21 +9,28 @@ import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.platform.Platform;
 import dev.architectury.registry.level.entity.SpawnPlacementsRegistry;
+import dev.architectury.registry.menu.MenuRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.level.entity.EntityAttributeRegistry;
 
 import dev.architectury.registry.registries.RegistrySupplier;
 import grcmcs.minecraft.mods.pomkotsmechs.block.*;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechSalvagerMenu;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechWorkbenchMenu;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.PartsWorkbenchMenu;
-import grcmcs.minecraft.mods.pomkotsmechs.client.gui.RadarTargetSelectMenu;
+import grcmcs.minecraft.mods.pomkotsmechs.block.arena.*;
+import grcmcs.minecraft.mods.pomkotsmechs.block.migration.AssetAnchorBlock;
+import grcmcs.minecraft.mods.pomkotsmechs.block.migration.AssetAnchorBlockEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.*;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.arena.ArenaBattleResultMenu;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.arena.ArenaReceptionistMenu;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.datapad.DataPadKeyCardMenu;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.datapad.DataPadMenu;
+import grcmcs.minecraft.mods.pomkotsmechs.client.gui.pilot.PilotMenu;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
-import grcmcs.minecraft.mods.pomkotsmechs.client.particles.DustParticle;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.AttachedMuzzleFlashOptions;
 import grcmcs.minecraft.mods.pomkotsmechs.command.PomkotsCommands;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidControllerEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.misc.BlockPlacementPreviewEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.misc.ElevatorEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.misc.PlacementPreviewEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.legacy.HitBoxEntity;
@@ -38,16 +45,24 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret.Pmt01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret.Pmt02Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret.Pmt03Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.turret.Pmt04Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.npc.ArenaReceptionistEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.npc.pilot.MechPilotEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.*;
 import grcmcs.minecraft.mods.pomkotsmechs.config.PomkotsConfig;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.*;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.*;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PlayerDummyEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.turret.Pmvt01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.npc.trader.MechTraderEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.*;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitStackFactory;
+import grcmcs.minecraft.mods.pomkotsmechs.items.coin.PomCoinGoldItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.coin.PomCoinItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.coin.PomCoinSilverItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.datapad.PomkotsDatapadItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.*;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.extension.*;
@@ -60,16 +75,21 @@ import grcmcs.minecraft.mods.pomkotsmechs.items.parts.generators.SagaItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.generators.ShigaItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.magazine.*;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons.*;
-import grcmcs.minecraft.mods.pomkotsmechs.items.FlavorTextItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.pilot.PilotConfiguratorItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.pilot.PilotLicenseItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.pilot.PilotRoleItem;
 import grcmcs.minecraft.mods.pomkotsmechs.items.radar.PomkotsRadarItem;
 import grcmcs.minecraft.mods.pomkotsmechs.misc.EncryptedPackResources;
+import grcmcs.minecraft.mods.pomkotsmechs.misc.arena.core.ArenaCameraEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.misc.arena.core.ArenaManager;
+import grcmcs.minecraft.mods.pomkotsmechs.misc.migration.AssetMigrationManager;
+import grcmcs.minecraft.mods.pomkotsmechs.misc.scan.ScanPulseEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.sounds.bgm.ServerBGMTracker;
 import grcmcs.minecraft.mods.pomkotsmechs.survival.SurvivalInitActions;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import io.netty.buffer.Unpooled;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.GsonConfigSerializer;
-import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -86,7 +106,6 @@ import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -100,7 +119,6 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,7 +152,7 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<EntityType<Pmv03pEntity>> PMV03P = registerEntityType("pmv03p", Pmv03pEntity::new, MobCategory.CREATURE, 3F, 4F);
 	public static final RegistrySupplier<EntityType<Pmv03Entity>> PMV03 = registerEntityType("pmv03", Pmv03Entity::new, MobCategory.CREATURE, 4F, 10F);
 
-	public static final RegistrySupplier<EntityType<Pmvc01Entity>> PMVC01 = registerEntityType("pmvc01", Pmvc01Entity::new, MobCategory.CREATURE, 4F, 5.5F);
+	public static final RegistrySupplier<EntityType<Pmvc01Entity>> PMVC01 = registerEntityTypeLongTracking("pmvc01", Pmvc01Entity::new, MobCategory.CREATURE, 4F, 5.5F);
 
 	public static final RegistrySupplier<EntityType<Pmvt01Entity>> PMVT01 = registerEntityType("pmvt01", Pmvt01Entity::new, MobCategory.CREATURE, 3F, 2F);
 
@@ -180,6 +198,11 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<EntityType<Pmt03Entity>> PMT03 = registerEntityType("pmt03", Pmt03Entity::new, MobCategory.MONSTER, 3F, 3F);
 	public static final RegistrySupplier<EntityType<Pmt04Entity>> PMT04 = registerEntityType("pmt04", Pmt04Entity::new, MobCategory.MONSTER, 6F, 1F);
 
+	// Misc
+	public static final RegistrySupplier<EntityType<MechTraderEntity>> MECH_TRADER = registerEntityType("mech_trader", MechTraderEntity::new, MobCategory.CREATURE, 6F, 3F);
+	public static final RegistrySupplier<EntityType<MechPilotEntity>> MECH_PILOT = registerEntityTypeLongTracking("mech_pilot", MechPilotEntity::new, MobCategory.CREATURE, 0.5F, 2F);
+	public static final RegistrySupplier<EntityType<ArenaReceptionistEntity>> ARENA_RECEP = registerEntityType("arena_receptionist", ArenaReceptionistEntity::new, MobCategory.CREATURE, 0.5F, 2F);
+
 	// Projectile
 	public static final RegistrySupplier<EntityType<BulletEntity>> BULLET = registerEntityType("bullet", BulletEntity::new, MobCategory.MISC, 2F, 2F);
 	public static final RegistrySupplier<EntityType<BulletMiddleEntity>> BULLETMIDDLE = registerEntityType("bulletmiddle", BulletMiddleEntity::new, MobCategory.MISC, 2F, 2F);
@@ -224,6 +247,9 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<EntityType<SlashEntity>> EXPLOADSLASH = registerEntityType("exploadslash", SlashEntity::new, MobCategory.MISC, 4F, 5F);
 	public static final RegistrySupplier<EntityType<WaveHorizontalEntity>> WAVE_HOR = registerEntityType("wave_h", WaveHorizontalEntity::new, MobCategory.MISC, 24F, 3F);
 
+	public static final RegistrySupplier<EntityType<ElevatorEntity>> ELEVATOR = registerEntityTypeLongTracking("elevator", ElevatorEntity::new, MobCategory.MISC, 6.5F, 0.5F);
+	public static final RegistrySupplier<EntityType<ArenaCameraEntity>> ARENA_CAMERA = registerEntityTypeLongTracking("arena_camera", ArenaCameraEntity::new, MobCategory.MISC, 0.1F, 0.1F);
+
 	public static final RegistrySupplier<EntityType<HitBoxEntity>> HITBOX1 = registerEntityType("hitbox1", HitBoxEntity::new, MobCategory.MISC, 10F, 8F);
 	public static final RegistrySupplier<EntityType<HitBoxLegsEntity>> HITBOX2 = registerEntityType("hitbox2", HitBoxLegsEntity::new, MobCategory.MISC, 10F, 9F);
 
@@ -256,6 +282,19 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<EntityType<AlertEntity>> ALERT = registerEntityType("alert", AlertEntity::new, MobCategory.MISC, 1F, 1F);
 	public static final RegistrySupplier<EntityType<AlertRedEntity>> ALERTRED = registerEntityType("alertred", AlertRedEntity::new, MobCategory.MISC, 1F, 1F);
 	public static final RegistrySupplier<EntityType<BossBoxEntity>> BOSSBOX = registerEntityType("bossbox", BossBoxEntity::new, MobCategory.MISC, 1F, 1F);
+
+	public static final RegistrySupplier<EntityType<ScanPulseEntity>> SCAN_PULSE = ENTITIES.register(
+			"scan_pulse",
+			() -> EntityType.Builder
+					.<ScanPulseEntity>of(
+							ScanPulseEntity::new,
+							MobCategory.MISC
+					)
+					.sized(0.1F, 0.1F)
+					.clientTrackingRange(20)
+					.updateInterval(1)
+					.build("pomkotsmechs:scan_pulse")
+	);
 
 	public static final RegistrySupplier<EntityType<BlockPlacementPreviewEntity>> BLOCK_PLACEMENT_PREVIEW =
 			ENTITIES.register("block_placement_preview", () ->
@@ -297,6 +336,14 @@ public class PomkotsMechs {
 						.build(id(name).toString()));
 	}
 
+	private static <T extends Entity> RegistrySupplier<EntityType<T>> registerEntityTypeLongTracking(String name, EntityType.EntityFactory<T> factory, MobCategory category, float width, float height) {
+		return ENTITIES.register(name, () ->
+				EntityType.Builder.of(factory, category)
+						.sized(width, height)
+						.clientTrackingRange(30)
+						.build(id(name).toString()));
+	}
+
 	private static <T extends Entity> RegistrySupplier<EntityType<T>> registerEntityTypeTurret(String name, EntityType.EntityFactory<T> factory, MobCategory category, float width, float height) {
 		return ENTITIES.register(name, () ->
 				EntityType.Builder.of(factory, category)
@@ -332,6 +379,12 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Block> PLACE_HOLDER_BLOCK = BLOCKS.register("place_holder", ()-> new PlaceHolderBlock());
 	public static final RegistrySupplier<Block> CUSTOM_SPAWNER_BLOCK = BLOCKS.register("custom_spawner", ()-> new CustomSpawnerBlock());
 
+	public static final RegistrySupplier<Block> ARENA_CONTROLLER_BLOCK = BLOCKS.register("arena_controller", ()-> new ArenaControllerBlock());
+	public static final RegistrySupplier<Block> ARENA_GATE_BLOCK = BLOCKS.register("arena_gate", ()-> new ArenaGateBlock());
+	public static final RegistrySupplier<Block> ARENA_BATTLEFIELD_ANCHOR_BLOCK = BLOCKS.register("arena_battlefield_anchor", ()-> new ArenaBattleFieldAnchorBlock());
+	public static final RegistrySupplier<Block> ARENA_TELEPORT_BLOCK = BLOCKS.register("arena_teleport_block", ()-> new ArenaTeleportBlock());
+
+	public static final RegistrySupplier<Block> ASSET_ANCHOR = BLOCKS.register("asset_anchor", ()-> new AssetAnchorBlock());
 
 	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =  DeferredRegister.create(MODID, Registries.BLOCK_ENTITY_TYPE);
 	public static final RegistrySupplier<BlockEntityType<MechWorkbenchBlockEntity>> MECH_WORKBENCH_BLOCK_ENTITY = BLOCK_ENTITIES.register("mechworkbenchentity", () -> BlockEntityType.Builder.of(MechWorkbenchBlockEntity::new, MECH_WORKBENCH_BLOCK.get()).build(null));
@@ -353,6 +406,14 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<BlockEntityType<CommandExecutorBlockEntity>> ENTITY_COMMAND_EXECUTOR_BLOCK = BLOCK_ENTITIES.register("command_executor_entity", () -> BlockEntityType.Builder.of(CommandExecutorBlockEntity::new, COMMAND_EXECUTOR_BLOCK.get()).build(null));
 	public static final RegistrySupplier<BlockEntityType<PlaceHolderBlockEntity>> PLACE_HOLDER_BLOCK_ENTITY = BLOCK_ENTITIES.register("place_holder_block_entity", () -> BlockEntityType.Builder.of(PlaceHolderBlockEntity::new, PLACE_HOLDER_BLOCK.get()).build(null));
 
+	public static final RegistrySupplier<BlockEntityType<ArenaControllerBlockEntity>> ARENA_CONTROLLER_BLOCK_ENTITY = BLOCK_ENTITIES.register("arena_controller_entity", () -> BlockEntityType.Builder.of(ArenaControllerBlockEntity::new, ARENA_CONTROLLER_BLOCK.get()).build(null));
+	public static final RegistrySupplier<BlockEntityType<ArenaGateBlockEntity>> ARENA_GATE_BLOCK_ENTITY = BLOCK_ENTITIES.register("arena_gate_entity", () -> BlockEntityType.Builder.of(ArenaGateBlockEntity::new, ARENA_GATE_BLOCK.get()).build(null));
+	public static final RegistrySupplier<BlockEntityType<ArenaBattleFieldAnchorBlockEntity>> ARENA_BATTLEFIELD_ANCHOR_BLOCK_ENTITY = BLOCK_ENTITIES.register("arena_battlefield_anchor_entity", () -> BlockEntityType.Builder.of(ArenaBattleFieldAnchorBlockEntity::new, ARENA_BATTLEFIELD_ANCHOR_BLOCK.get()).build(null));
+	public static final RegistrySupplier<BlockEntityType<ArenaTeleportBlockEntity>> ARENA_TELEPORT_BLOCK_ENTITY = BLOCK_ENTITIES.register("arena_teleport_block_entity", () -> BlockEntityType.Builder.of(ArenaTeleportBlockEntity::new, ARENA_TELEPORT_BLOCK.get()).build(null));
+
+	public static final RegistrySupplier<BlockEntityType<AssetAnchorBlockEntity>> ASSET_ANCHOR_BE = BLOCK_ENTITIES.register("asset_anchor_block_entity", () -> BlockEntityType.Builder.of(AssetAnchorBlockEntity::new, ASSET_ANCHOR.get()).build(null));
+
+
 	// PARTICLES -------------------------------------------------------------------------------------------
 
 	public static final DeferredRegister<ParticleType<?>> PARTICLES = DeferredRegister.create(MODID, Registries.PARTICLE_TYPE);
@@ -369,6 +430,15 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<SimpleParticleType> MAGAZINE_LEFT = PARTICLES.register("magazine_left", () -> new PomkotsSimpleParticleType(false));
 	public static final RegistrySupplier<SimpleParticleType> MECH_DUST = PARTICLES.register("dust", () -> new PomkotsSimpleParticleType(false));
 	public static final RegistrySupplier<SimpleParticleType> MECH_DUST_HEAVY = PARTICLES.register("dust_heavy", () -> new PomkotsSimpleParticleType(false));
+	public static final RegistrySupplier<ParticleType<AttachedMuzzleFlashOptions>> MUZZLE_FLASH = PARTICLES.register("muzzle_flash",
+			() -> new ParticleType<AttachedMuzzleFlashOptions>(true,
+			AttachedMuzzleFlashOptions.DESERIALIZER) {
+				@Override
+				public Codec<AttachedMuzzleFlashOptions> codec() {
+					return AttachedMuzzleFlashOptions.CODEC;
+				}
+			}
+	);
 
 	public static class PomkotsSimpleParticleType extends SimpleParticleType {
 		protected PomkotsSimpleParticleType(boolean bl) {
@@ -404,13 +474,21 @@ public class PomkotsMechs {
 
 	public static final RegistrySupplier<Item> PLACE_HOLDER_BLOCK_ITEM = ITEMS.register("place_holder", () -> new BlockItem(PLACE_HOLDER_BLOCK.get(), new Item.Properties().stacksTo(64)));
 
+	public static final RegistrySupplier<Item> ARENA_CONTROLLER_BLOCK_ITEM = ITEMS.register("arena_controller", () -> new BlockItem(ARENA_CONTROLLER_BLOCK.get(), new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> ARENA_GATE_BLOCK_ITEM = ITEMS.register("arena_gate", () -> new BlockItem(ARENA_GATE_BLOCK.get(), new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> ARENA_BATTLEFIELD_ANCHOR_BLOCK_ITEM = ITEMS.register("arena_battlefield_anchor", () -> new BlockItem(ARENA_BATTLEFIELD_ANCHOR_BLOCK.get(), new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> ARENA_TELEPORT_BLOCK_ITEM = ITEMS.register("arena_teleport", () -> new BlockItem(ARENA_TELEPORT_BLOCK.get(), new Item.Properties().stacksTo(64)));
+
+	public static final RegistrySupplier<Item> ASSET_ANCHOR_ITEM = ITEMS.register("asset_anchor", () -> new BlockItem(ASSET_ANCHOR.get(), new Item.Properties().stacksTo(64)));
+
 	public static final RegistrySupplier<Item> WRENCH_ITEM = ITEMS.register("pomkots_wrench", () -> new PomkotsWrenchItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> SPANNER_ITEM = ITEMS.register("pomkots_spanner", () -> new PomkotsSpannerItem(new Item.Properties().stacksTo(1)));
 
-	public static final RegistrySupplier<Item> MECH_CLONER_ITEM = ITEMS.register("mech_cloner", () -> new MechClonerItem(new Item.Properties().stacksTo(1)));
+	public static final RegistrySupplier<Item> MECH_CAPSULE2_ITEM = ITEMS.register("mech_capsule2", () -> new MechCapsule2Item(new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> MECH_CAPSULE_ITEM = ITEMS.register("mech_capsule", () -> new MechCapsuleItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistrySupplier<Item> POMKOTS_RADAR_ITEM = ITEMS.register("pomkots_radar", () -> new PomkotsRadarItem(new Item.Properties().stacksTo(1)));
+	public static final RegistrySupplier<Item> POMKOTS_DATAPAD_ITEM = ITEMS.register("pomkots_datapad", () -> new PomkotsDatapadItem(new Item.Properties().stacksTo(1)));
 
 	public static final RegistrySupplier<Item> KEYCARD_ITEM = ITEMS.register("keycard", () -> new KeycardItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> CUBEKEY_ITEM = ITEMS.register("cubekey", () -> new Item(new Item.Properties().stacksTo(64)));
@@ -428,7 +506,20 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Item> P_TITANIUM_INGOT = ITEMS.register("p_titanium_ingot", () -> new PTitaniumItem(new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> P_TITANIUM_NUGGET = ITEMS.register("p_titanium_nugget", () -> new PTitaniumItem(new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> LARGE_STEEL_PLATE = ITEMS.register("large_steel_plate", () -> new PTitaniumItem(new Item.Properties().stacksTo(64)));
-	public static final RegistrySupplier<Item> POM_COIN = ITEMS.register("pom_coin", () -> new PTitaniumItem(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> POM_COIN = ITEMS.register("pom_coin", () -> new PomCoinItem(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> POM_COIN_SILVER = ITEMS.register("pom_coin_silver", () -> new PomCoinSilverItem(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> POM_COIN_GOLD = ITEMS.register("pom_coin_gold", () -> new PomCoinGoldItem(new Item.Properties().stacksTo(64)));
+
+	public static final RegistrySupplier<Item> PILOT_CONRFIGURATOR_ITEM = ITEMS.register("pilot_configurator_item", () -> new PilotConfiguratorItem(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> PILOT_LICENSE_NOVICE_ITEM = ITEMS.register("pilot_license_novice", () -> new PilotLicenseItem.PilotLicenseNovice(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> PILOT_LICENSE_INTERMEDIATE_ITEM = ITEMS.register("pilot_license_intermediate", () -> new PilotLicenseItem.PilotLicenseIntermediate(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> PILOT_LICENSE_ADVANCED_ITEM = ITEMS.register("pilot_license_advanced", () -> new PilotLicenseItem.PilotLicenseAdvanced(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> PILOT_LICENSE_LEGEND_ITEM = ITEMS.register("pilot_license_legend", () -> new PilotLicenseItem.PilotLicenseLegend(new Item.Properties().stacksTo(64)));
+
+	public static final RegistrySupplier<Item> PILOT_ROLE_GUARDIAN_ITEM = ITEMS.register("pilot_role_guardian", () -> new PilotRoleItem.PlotRoleGuardian(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> PILOT_ROLE_RAIDER_ITEM = ITEMS.register("pilot_role_raider", () -> new PilotRoleItem.PlotRoleRaider(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> PILOT_ROLE_WINGMAN_ITEM = ITEMS.register("pilot_role_wingman", () -> new PilotRoleItem.PlotRoleWingman(new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> PILOT_ROLE_GLADIATOR_ITEM = ITEMS.register("pilot_role_gladiator", () -> new PilotRoleItem.PlotRoleGladiator(new Item.Properties().stacksTo(64)));
 
 	// PARTS
 	public static final RegistrySupplier<Item> RUSTY_HEAD = ITEMS.register("rustyhead", () -> new RustyItem.Head(new Item.Properties().stacksTo(1)));
@@ -485,6 +576,9 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Item> BUILDER_UNIT = ITEMS.register("builderunit", () -> new BuilderUnitItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> CORE_DRILL = ITEMS.register("coredrill", () -> new CoreDrillItem(new Item.Properties().stacksTo(1)));
 	public static final RegistrySupplier<Item> GLIDER_UNIT = ITEMS.register("gliderunit", () -> new GliderUnitItem(new Item.Properties().stacksTo(1)));
+
+	// CIRCUITS
+	public static final RegistrySupplier<Item> CIRCUIT_BASE = ITEMS.register("circuits/circuit", () -> new CircuitItem(new Item.Properties().stacksTo(64)));
 
 	// WEAPONS
 
@@ -577,6 +671,9 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Item> PMS09_SPAWN_EGG = ITEMS.register("pms09_spawn_egg", () -> new ArchitecturySpawnEggItem(PomkotsMechs.PMS09, 0x111111, 0x555555, new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> PMS10_SPAWN_EGG = ITEMS.register("pms10_spawn_egg", () -> new ArchitecturySpawnEggItem(PomkotsMechs.PMS10, 0x111111, 0x555555, new Item.Properties().stacksTo(64)));
 
+	public static final RegistrySupplier<Item> MECH_PILOT_SPAWN_EGG = ITEMS.register("mech_pilot_spawn_egg", () -> new ArchitecturySpawnEggItem(PomkotsMechs.MECH_PILOT, 0xAAAAFF, 0x888888, new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> ARENA_RECEP_SPAWN_EGG = ITEMS.register("arena_receptionist_spawn_egg", () -> new ArchitecturySpawnEggItem(PomkotsMechs.ARENA_RECEP, 0xFFAAFF, 0x888888, new Item.Properties().stacksTo(64)));
+
 	public static ItemStack createMechTemplate(String mechName, int pColor, int sColor) {
 		ItemStack stack = new ItemStack(PomkotsMechs.MECH_CAPSULE_ITEM.get());
 		MechCapsuleItem.buildPreset(mechName, stack);
@@ -613,12 +710,20 @@ public class PomkotsMechs {
 				output.accept(new ItemStack(COMMAND_EXECUTOR_BLOCK_ITEM.get()));
 				output.accept(new ItemStack(PLACE_HOLDER_BLOCK_ITEM.get()));
 
+				output.accept(new ItemStack(ARENA_CONTROLLER_BLOCK_ITEM.get()));
+				output.accept(new ItemStack(ARENA_GATE_BLOCK_ITEM.get()));
+				output.accept(new ItemStack(ARENA_BATTLEFIELD_ANCHOR_BLOCK_ITEM.get()));
+				output.accept(new ItemStack(ARENA_TELEPORT_BLOCK_ITEM.get()));
+
+				output.accept(new ItemStack(ASSET_ANCHOR_ITEM.get()));
+
 				output.accept(new ItemStack(WRENCH_ITEM.get()));
 				output.accept(new ItemStack(SPANNER_ITEM.get()));
-				output.accept(new ItemStack(MECH_CLONER_ITEM.get()));
-				output.accept(new ItemStack(MECH_CAPSULE_ITEM.get()));
+				output.accept(new ItemStack(MECH_CAPSULE2_ITEM.get()));
+//				output.accept(new ItemStack(MECH_CAPSULE_ITEM.get()));
 
 				output.accept(new ItemStack(POMKOTS_RADAR_ITEM.get()));
+				output.accept(new ItemStack(POMKOTS_DATAPAD_ITEM.get()));
 
 				output.accept(new ItemStack(KEYCARD_ITEM.get()));
 				output.accept(new ItemStack(CUBEKEY_ITEM.get()));
@@ -632,6 +737,18 @@ public class PomkotsMechs {
 				output.accept(new ItemStack(REPAIRKIT_ITEM.get()));
 
 				output.accept(new ItemStack(POM_COIN.get()));
+				output.accept(new ItemStack(POM_COIN_SILVER.get()));
+				output.accept(new ItemStack(POM_COIN_GOLD.get()));
+
+				output.accept(new ItemStack(PILOT_CONRFIGURATOR_ITEM.get()));
+				output.accept(new ItemStack(PILOT_LICENSE_NOVICE_ITEM.get()));
+				output.accept(new ItemStack(PILOT_LICENSE_INTERMEDIATE_ITEM.get()));
+				output.accept(new ItemStack(PILOT_LICENSE_ADVANCED_ITEM.get()));
+				output.accept(new ItemStack(PILOT_LICENSE_LEGEND_ITEM.get()));
+				output.accept(new ItemStack(PILOT_ROLE_WINGMAN_ITEM.get()));
+				output.accept(new ItemStack(PILOT_ROLE_GUARDIAN_ITEM.get()));
+				output.accept(new ItemStack(PILOT_ROLE_GLADIATOR_ITEM.get()));
+				output.accept(new ItemStack(PILOT_ROLE_RAIDER_ITEM.get()));
 
 				output.accept(new ItemStack(WANDERER_ARMOR_HELMET.get()));
 				output.accept(new ItemStack(WANDERER_ARMOR_CHESTPLATE.get()));
@@ -708,6 +825,9 @@ public class PomkotsMechs {
 				output.accept(new ItemStack(PMS09_SPAWN_EGG.get()));
 				output.accept(new ItemStack(PMS10_SPAWN_EGG.get()));
 
+				output.accept(new ItemStack(MECH_PILOT_SPAWN_EGG.get()));
+//				output.accept(new ItemStack(ARENA_RECEP_SPAWN_EGG.get()));
+
 				output.accept(new ItemStack(TURRET_01_ITEM.get()));
 			})
 			.build()
@@ -766,6 +886,8 @@ public class PomkotsMechs {
 				output.accept(new ItemStack(CORE_DRILL.get()));
 
 				output.accept(new ItemStack(PELLET.get()));
+
+				CircuitStackFactory.addAll(output);
 			})
 			.build()
 	);
@@ -904,6 +1026,8 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Item> HM_PMB01_CORE_STONE_FRAGMENT = ITEMS.register("materials/pmb01_core_stone_fragment", () -> new MaterialItem(new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> HM_PMB04_CORE_STONE_FRAGMENT = ITEMS.register("materials/pmb04_core_stone_fragment", () -> new MaterialItem(new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> HM_PMB07_CORE_STONE_FRAGMENT = ITEMS.register("materials/pmb07_core_stone_fragment", () -> new MaterialItem(new Item.Properties().stacksTo(64)));
+
+	public static final RegistrySupplier<Item> SOLD_ITEM = ITEMS.register("sold", () -> new MaterialItem(new Item.Properties().stacksTo(64)));
 
 	public static final RegistrySupplier<CreativeModeTab> SHEET_TAB =
 			ITEM_GROUPS.register(PomkotsMechs.id("item_group_zmaterials"),
@@ -1057,6 +1181,17 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<SoundEvent> SE_BOOST_CHARGE = SOUNDS.register(id("se_boost_charge"), () -> SoundEvent.createVariableRangeEvent(id("se_boost_charge")));
 	public static final RegistrySupplier<SoundEvent> SE_HERI = SOUNDS.register(id("se_heri"), () -> SoundEvent.createVariableRangeEvent(id("se_heri")));
 	public static final RegistrySupplier<SoundEvent> SE_RELOAD = SOUNDS.register(id("se_reload"), () -> SoundEvent.createVariableRangeEvent(id("se_reload")));
+	public static final RegistrySupplier<SoundEvent> SE_CLOSE_DOOR = SOUNDS.register(id("se_close_door"), () -> SoundEvent.createVariableRangeEvent(id("se_close_door")));
+	public static final RegistrySupplier<SoundEvent> SE_START_CAR = SOUNDS.register(id("se_start_car"), () -> SoundEvent.createVariableRangeEvent(id("se_start_car")));
+	public static final RegistrySupplier<SoundEvent> SE_REGISTER = SOUNDS.register(id("se_register"), () -> SoundEvent.createVariableRangeEvent(id("se_register")));
+	public static final RegistrySupplier<SoundEvent> SE_BEEP = SOUNDS.register(id("se_beep"), () -> SoundEvent.createVariableRangeEvent(id("se_beep")));
+	public static final RegistrySupplier<SoundEvent> SE_COIN = SOUNDS.register(id("se_coin"), () -> SoundEvent.createVariableRangeEvent(id("se_coin")));
+	public static final RegistrySupplier<SoundEvent> SE_ELEVATOR = SOUNDS.register(id("se_elevator"), () -> SoundEvent.createVariableRangeEvent(id("se_elevator")));
+	public static final RegistrySupplier<SoundEvent> SE_CHEERS = SOUNDS.register(id("se_cheers"), () -> SoundEvent.createVariableRangeEvent(id("se_cheers")));
+	public static final RegistrySupplier<SoundEvent> SE_ARENA_END = SOUNDS.register(id("se_arena_end"), () -> SoundEvent.createVariableRangeEvent(id("se_arena_end")));
+	public static final RegistrySupplier<SoundEvent> SE_ARENA_START = SOUNDS.register(id("se_arena_start"), () -> SoundEvent.createVariableRangeEvent(id("se_arena_start")));
+	public static final RegistrySupplier<SoundEvent> SE_SCAN1 = SOUNDS.register(id("se_scan1"), () -> SoundEvent.createVariableRangeEvent(id("se_scan1")));
+	public static final RegistrySupplier<SoundEvent> SE_SCAN2 = SOUNDS.register(id("se_scan2"), () -> SoundEvent.createVariableRangeEvent(id("se_scan2")));
 
 	public static final RegistrySupplier<SoundEvent> BGM_TITLE = SOUNDS.register(id("title"), () -> SoundEvent.createVariableRangeEvent(id("title")));
 	public static final RegistrySupplier<SoundEvent> BGM_OPENING = SOUNDS.register(id("opening"), () -> SoundEvent.createVariableRangeEvent(id("opening")));
@@ -1070,6 +1205,7 @@ public class PomkotsMechs {
 	public static PomkotsConfig CONFIG;
 
 	public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(PomkotsMechs.MODID, Registries.MENU);
+
 	public static final RegistrySupplier<MenuType<MechWorkbenchMenu>> MECH_WORKBENCH_GUI = MENUS.register(
 			"mechworkbench_gui",
 			() -> new MenuType<>(MechWorkbenchMenu::new, FeatureFlagSet.of())
@@ -1086,6 +1222,42 @@ public class PomkotsMechs {
 			"pomkots_radar_gui",
 			() -> new MenuType<>(RadarTargetSelectMenu::new, FeatureFlagSet.of())
 	);
+	public static final RegistrySupplier<MenuType<MechTraderMenu>> MECH_TRADER_GUI = MENUS.register(
+			"mech_trader_gui",
+			() -> new MenuType<>(MechTraderMenu::new, FeatureFlagSet.of())
+	);
+	public static final RegistrySupplier<MenuType<PilotMenu>> PILOT_CONFIG_GUI = MENUS.register(
+			"pilot_config_gui",
+			() -> new MenuType<>(PilotMenu::new, FeatureFlagSet.of())
+	);
+
+	public static final RegistrySupplier<MenuType<DataPadMenu>> POMKOTS_DATAPAD_GUI = MENUS.register(
+			"pomkots_datapad_gui",
+			() -> new MenuType<>(DataPadMenu::new, FeatureFlagSet.of())
+	);
+
+	public static final RegistrySupplier<MenuType<DataPadKeyCardMenu>> POMKOTS_DATAPAD_KEYCARD_GUI = MENUS.register(
+			"pomkots_datapad_keycard_gui",
+			() -> new MenuType<>(DataPadKeyCardMenu::new, FeatureFlagSet.of())
+	);
+
+	public static final RegistrySupplier<MenuType<ArenaReceptionistMenu>>
+			ARENA_RECEPTIONIST =
+			MENUS.register(
+					"arena_receptionist",
+					() -> MenuRegistry.ofExtended(
+							ArenaReceptionistMenu::new
+					)
+			);
+
+	public static final RegistrySupplier<MenuType<ArenaBattleResultMenu>>
+			ARENA_RESULT_MENU =
+			MENUS.register(
+					"arena_result_menu",
+					() -> MenuRegistry.ofExtended(
+							ArenaBattleResultMenu::new
+					)
+			);
 
 	public static final GameRules.Key<GameRules.BooleanValue> RULE_MAP_EDIT = GameRules.register("pomkotsmechsMapEditMode", GameRules.Category.MISC, GameRules.BooleanValue.create(false));
 
@@ -1153,6 +1325,10 @@ public class PomkotsMechs {
 		EntityAttributeRegistry.register(PMT03::get, Pmt03Entity::createMobAttributes);
 		EntityAttributeRegistry.register(PMT04::get, Pmt04Entity::createMobAttributes);
 
+		EntityAttributeRegistry.register(MECH_TRADER::get, MechTraderEntity::createMobAttributes);
+		EntityAttributeRegistry.register(MECH_PILOT::get, MechPilotEntity::createMobAttributes);
+		EntityAttributeRegistry.register(ARENA_RECEP::get, ArenaReceptionistEntity::createMobAttributes);
+
 		EntityAttributeRegistry.register(PLAYERDUMMY::get, PlayerDummyEntity::createMobAttributes);
 		EntityAttributeRegistry.register(HITBOX1::get, HitBoxEntity::createMobAttributes);
 		EntityAttributeRegistry.register(HITBOX2::get, HitBoxEntity::createMobAttributes);
@@ -1168,6 +1344,8 @@ public class PomkotsMechs {
 		EntityAttributeRegistry.register(PRESENT_BOX::get, PresentBoxEntity::createMobAttributes);
 		EntityAttributeRegistry.register(KUJIRA::get, KujiraEntity::createMobAttributes);
 		EntityAttributeRegistry.register(PLATE::get, PlateEntity::createMobAttributes);
+		EntityAttributeRegistry.register(ELEVATOR::get, ElevatorEntity::createMobAttributes);
+		EntityAttributeRegistry.register(ARENA_CAMERA::get, ArenaCameraEntity::createMobAttributes);
 
 		BLOCKS.register();
 		BLOCK_ENTITIES.register();
@@ -1192,11 +1370,16 @@ public class PomkotsMechs {
 		registerServerTargetLock();
 		registerServerMechSalvagerReceiver();
 		registerServerPartsWorkbenchReceiver();
+		registerServerArenaRecipientisReceiver();
 
 		if (Platform.isFabric()) {
 			LifecycleEvent.SERVER_STARTED.register(SurvivalInitActions::onServerStarted);
 			PlayerEvent.PLAYER_JOIN.register(SurvivalInitActions::onPlayerJoin);
 		}
+
+		LifecycleEvent.SERVER_STARTED.register(
+                ArenaManager::onServerStarted
+		);
 
 		PlayerEvent.PLAYER_JOIN.register(PomkotsMechs::sendDataPack2Player);
 		PlayerEvent.PLAYER_CLONE.register((oldPlayer, newPlayer, wonGame) -> {
@@ -1216,6 +1399,14 @@ public class PomkotsMechs {
 				ServerBGMTracker.tick(sp);
 			}
 		});
+
+		TickEvent.SERVER_PRE.register(
+			ArenaManager::tick
+		);
+
+		TickEvent.SERVER_POST.register(
+			AssetMigrationManager::tick
+		);
 	}
 
 	public static void sendDataPack2Player(ServerPlayer player) {
@@ -1235,6 +1426,8 @@ public class PomkotsMechs {
 		}
 	}
 
+	public static final String PACKET_UPDATE_DATAPACK = "udp";
+
 	public static final String PACKET_DRIVER_INPUT = "kpm";
 	public static final String PACKET_LOCK_SOFT = "ls";
 	public static final String PACKET_UNLOCK_SOFT = "uls";
@@ -1243,18 +1436,80 @@ public class PomkotsMechs {
 	public static final String PACKET_LOCK_MULTI = "lm";
 	public static final String PACKET_LOCK_MULTI_CUSTOM = "lmc";
 	public static final String PACKET_UNLOCK_MULTI = "ulm";
+
+	public static final String PACKET_CHANGE_CUSTOM_NAME = "ccn";
 	public static final String PACKET_CHANGE_TEXTURE = "ctx";
-	public static final String PACKET_UPDATE_DATAPACK = "udp";
 	public static final String PACKET_SECURITY_GENCARD = "sgc";
 	public static final String PACKET_REPAIR_MECH = "rpm";
 	public static final String PACKET_AUTO_SUPPLY = "asp";
+	public static final String PACKET_MECH_CHANGE_PARTS = "mwbcp";
+
 	public static final String PACKET_SUMMON_MECH = "smm";
 	public static final String PACKET_PARTS_WKBNCH_TAB_CHANGE = "pwt";
 	public static final String PACKET_PARTS_WKBNCH_CRAFT = "pwc";
 	public static final String PACKET_PARTS_WKBNCH_UPGRADE = "pwu";
+
 	public static final String PACKET_START_OPENING = "so";
 	public static final String PACKET_BGM_STATE = "bs";
+
 	public static final String PACKET_RADAR_SELECT_TARGET = "radar_select_target";
+
+	public static final String PACKET_ARENA_SAVE_PROFILE = "aspp";
+	public static final String PACKET_ARENA_REMOVE_PROFILE = "arpp";
+	public static final String PACKET_ARENA_OPENING_START = "aros";
+	public static final String PACKET_ARENA_OPENING_END = "aroe";
+
+	public static final String PACKET_ARENA_REFRESH_RANKING = "arr";
+	public static final String PACKET_ARENA_START_MATCH = "asm";
+
+	public static final String PACKET_GENERAR_SCREEN_FADE = "gsf";
+
+	public static void registerServerArenaRecipientisReceiver() {
+		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_ARENA_START_MATCH), (buf, context) -> {
+			Player player = context.getPlayer();
+
+			boolean isRankMatch = buf.readBoolean();
+			String arenaId = buf.readUtf();
+			UUID targetUUID = buf.readUUID();
+
+			System.out.println(player);
+
+			context.queue(() -> {
+				ArenaManager.startRankMatch(
+						(ServerPlayer)player,
+						!isRankMatch,
+						arenaId,
+						targetUUID
+				);
+			});
+		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_ARENA_SAVE_PROFILE), (buf, context) -> {
+			Player player = context.getPlayer();
+			String name = buf.readUtf();
+			String comment = buf.readUtf();
+			String arenaId = buf.readUtf();
+
+			context.queue(() -> {
+				if (!(player.containerMenu instanceof ArenaReceptionistMenu menu)) {
+					return;
+				}
+				menu.savePlayerProfile(player, name, comment, arenaId);
+			});
+		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_ARENA_REMOVE_PROFILE), (buf, context) -> {
+			Player player = context.getPlayer();
+			String arenaId = buf.readUtf();
+
+			context.queue(() -> {
+				if (!(player.containerMenu instanceof ArenaReceptionistMenu menu)) {
+					return;
+				}
+				menu.removePlayerProfile(player, arenaId);
+			});
+		});
+	}
 
 	public static void registerServerPartsWorkbenchReceiver() {
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_PARTS_WKBNCH_TAB_CHANGE), (buf, context) -> {
@@ -1288,77 +1543,119 @@ public class PomkotsMechs {
 	public static void registerServerUserInteraction() {
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_DRIVER_INPUT), (buf, context) -> {
 			Player player = context.getPlayer();
-
 			short keyPressStatus = buf.readShort();
 
-			if (Utils.isRidingPomkotsControllable(player)) {
-				Entity vehicle = player.getVehicle();
-				((PomkotsControllable)vehicle).setDriverInput(new DriverInput(keyPressStatus));
-			}
+			context.queue(() -> {
+				if (Utils.isRidingPomkotsControllable(player)) {
+					Entity vehicle = player.getVehicle();
+					((PomkotsControllable) vehicle).setDriverInput(new DriverInput(keyPressStatus));
+				}
+			});
 		});
 	}
 
 	public static void registerServerMechSalvagerReceiver() {
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_SUMMON_MECH), (buf, context) -> {
 			Player p = context.getPlayer();
+			var mechUuid = buf.readUUID();
 
-			if (p instanceof ServerPlayer player && player.containerMenu instanceof MechSalvagerMenu menu) {
-				menu.summon(player);
-			}
+			context.queue(() -> {
+				if (p instanceof ServerPlayer player && player.containerMenu instanceof MechSalvagerMenu menu) {
+					menu.summon(player, mechUuid);
+				}
+			});
 		});
 	}
 
 	public static void registerServerMechWorkbenchReceiver() {
+		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_MECH_CHANGE_PARTS), (buf, context) -> {
+			int containerId = buf.readInt();
+			int mechSlot = buf.readInt();
+			int sourceSlot = buf.readInt();
+			int command = buf.readInt();
+
+			context.queue(() -> {
+				var menu = context.getPlayer().containerMenu;
+				if (menu instanceof MechWorkbenchMenu wmenu && wmenu.containerId == containerId) {
+					wmenu.handlePartsChange(command, mechSlot, sourceSlot);
+				}
+			});
+		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_CHANGE_CUSTOM_NAME), (buf, context) -> {
+			UUID targetEntityId = buf.readUUID();
+			String customName = buf.readUtf();
+
+			context.queue(() -> {
+				var entity = ((ServerLevel) context.getPlayer().level()).getEntity(targetEntityId);
+
+				if (entity instanceof Pmvc01Entity mech) {
+					if (customName.isEmpty()) {
+						mech.setCustomName(null);
+					} else {
+						mech.setCustomName(Component.literal(customName));
+					}
+				}
+			});
+		});
+
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_CHANGE_TEXTURE), (buf, context) -> {
 			UUID targetEntityId = buf.readUUID();
 			int textureColor = buf.readInt();
 
-			var entity = ((ServerLevel)context.getPlayer().level()).getEntity(targetEntityId);
+			context.queue(() -> {
+				var entity = ((ServerLevel) context.getPlayer().level()).getEntity(targetEntityId);
 
-			if (entity instanceof Pmvc01Entity mech) {
-				mech.setTextureColor(textureColor);
-			}
+				if (entity instanceof Pmvc01Entity mech) {
+					mech.setTextureColor(textureColor);
+				}
+			});
 		});
-
 
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_SECURITY_GENCARD), (buf, context) -> {
 			UUID targetEntityId = buf.readUUID();
 
-			var entity = ((ServerLevel)context.getPlayer().level()).getEntity(targetEntityId);
+			context.queue(() -> {
+				var entity = ((ServerLevel) context.getPlayer().level()).getEntity(targetEntityId);
 
-			if (entity instanceof Pmvc01Entity mech) {
-				ItemStack stack = new ItemStack(PomkotsMechs.KEYCARD_ITEM.get());
-				if (stack.getItem() instanceof KeycardItem keycard && context.getPlayer() instanceof ServerPlayer sp) {
-					keycard.setMech(stack, mech, entity.level());
-					giveItemToPlayer(sp, stack);
+				if (entity instanceof Pmvc01Entity mech) {
+					ItemStack stack = new ItemStack(PomkotsMechs.KEYCARD_ITEM.get());
+					if (stack.getItem() instanceof KeycardItem keycard && context.getPlayer() instanceof ServerPlayer sp) {
+						keycard.setMech(stack, mech, entity.level());
+						giveItemToPlayer(sp, stack);
+					}
 				}
-			}
+			});
 		});
 
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_REPAIR_MECH), (buf, context) -> {
 			UUID targetEntityId = buf.readUUID();
 			ServerPlayer player = (ServerPlayer) context.getPlayer();
 
-			var entity = ((ServerLevel)player.level()).getEntity(targetEntityId);
-			if (entity instanceof Pmvc01Entity mech) {
-				if (player.containerMenu instanceof MechWorkbenchMenu menu) {
-					menu.startMechRepair(mech);
-					player.sendSystemMessage(Utils.string2Component("{text.pomkotsmechs.messages.pmvc01.repair}"));
+			context.queue(() -> {
+				var entity = ((ServerLevel) player.level()).getEntity(targetEntityId);
+				if (entity instanceof Pmvc01Entity mech) {
+					if (player.containerMenu instanceof MechWorkbenchMenu menu) {
+						menu.startMechRepair(mech);
+						player.sendSystemMessage(Utils.string2Component("{text.pomkotsmechs.messages.pmvc01.repair}"));
+					}
 				}
-			}
+			});
 		});
 
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S, PomkotsMechs.id(PACKET_AUTO_SUPPLY), (buf, context) -> {
 			UUID targetEntityId = buf.readUUID();
 			ServerPlayer player = (ServerPlayer) context.getPlayer();
 
-			var entity = ((ServerLevel)player.level()).getEntity(targetEntityId);
-			if (entity instanceof Pmvc01Entity mech) {
-				if (player.containerMenu instanceof MechWorkbenchMenu menu) {
-					menu.autoSupplyAll();
-					player.sendSystemMessage(Utils.string2Component("{text.pomkotsmechs.messages.pmvc01.autosupply}"));
+			context.queue(() -> {
+				var entity = ((ServerLevel) player.level()).getEntity(targetEntityId);
+				if (entity instanceof Pmvc01Entity mech) {
+					if (player.containerMenu instanceof MechWorkbenchMenu menu) {
+						menu.autoSupplyAll();
+						player.sendSystemMessage(Utils.string2Component("{text.pomkotsmechs.messages.pmvc01.autosupply}"));
+					}
 				}
-			}
+			});
 		});
 	}
 
@@ -1461,20 +1758,16 @@ public class PomkotsMechs {
 		});
 
 		NetworkManager.registerReceiver(NetworkManager.Side.C2S,
-				PomkotsMechs.id(PACKET_RADAR_SELECT_TARGET),
-				(buf, context) -> {
-					int idx = buf.readInt();
-					context.queue(() -> {
-						ServerPlayer player = (ServerPlayer) context.getPlayer();
-						for (InteractionHand hand : InteractionHand.values()) {
-							ItemStack stack = player.getItemInHand(hand);
-							if (stack.getItem() instanceof PomkotsRadarItem) {
-								PomkotsRadarItem.setSelectedIndex(stack, idx);
-								break;
-							}
-						}
-					});
+			PomkotsMechs.id(PACKET_RADAR_SELECT_TARGET),
+			(buf, context) -> {
+				int idx = buf.readInt();
+				context.queue(() -> {
+					ServerPlayer player = (ServerPlayer) context.getPlayer();
+					if (player.containerMenu instanceof RadarTargetSelectMenu menu) {
+						menu.setSelectedTarget(idx);
+					}
 				});
+			});
 	}
 
 	public static void loadDataPack(ResourceManager manager) {

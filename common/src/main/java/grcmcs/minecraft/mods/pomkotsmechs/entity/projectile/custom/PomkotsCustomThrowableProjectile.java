@@ -169,6 +169,7 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
 
         return closestEntity != null
                 ? new EntityHitResult(closestEntity, closestHitPos)
+//                ? new EntityHitResult(closestEntity, closestEntity.position())
                 : null;
     }
 
@@ -256,70 +257,4 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
     protected float getGravity() {
         return 0.0F;
     }
-
-//    protected int maxLifeTicks = 20;
-//    protected int lifeTicks = 0;
-//    protected float damage;
-//    protected int stun;
-//
-//    public PomkotsCustomThrowableProjectile(
-//            EntityType<? extends ThrowableProjectile> entityType, Level world,
-//            LivingEntity shooter,
-//            int maxLifeTicks, float damage, int stun) {
-//        super(entityType, shooter, world);
-//        this.maxLifeTicks = maxLifeTicks;
-//        this.damage = damage;
-//        this.stun = stun;
-//    }
-//
-//    @Override
-//    public void tick() {
-//        var hitResult = ProjectileUtil.raycastBoundingCheck(this);
-//        if (hitResult.getType() != HitResult.Type.MISS) {
-//            this.onHit(hitResult);
-//        }
-//
-//        if (this.level().isClientSide) {
-//            return;
-//        }
-//
-//        super.tick();
-//
-//        if(this.lifeTicks++ >= this.maxLifeTicks) {
-//            this.discard();
-//        }
-//    }
-//
-//    @Override
-//    protected void onHitEntity(EntityHitResult entityHitResult) {
-//        var entity = entityHitResult.getEntity();
-//        if (entity.equals(shooter)) {
-//            return;
-//        }
-//
-//        if (lifeTicks < 10) {
-//            damage += (10 - (float)lifeTicks) * damage / 20;
-//        }
-//
-//        if (entity instanceof BaseBossEntity boss) {
-//            boss.addStunPoint(stun);
-//        } else if (entity instanceof BossHitBoxEntity hitbox) {
-//            hitbox.addStunPoint(stun);
-//        }
-//
-//        ProjectileUtil.hurt(entity, this, this.shooter, damage);
-//        entity.invulnerableTime = 0;
-//    }
-//
-//    @Override
-//    protected void onHitBlock(BlockHitResult blockHitResult) {
-//        this.discard();
-//    }
-//
-//    @Override
-//    public void onClientRemoval() {
-//        if (this.level().isClientSide) {
-//            ParticleUtil.addSparkParticles(this.position(), this.level());
-//        }
-//    }
 }

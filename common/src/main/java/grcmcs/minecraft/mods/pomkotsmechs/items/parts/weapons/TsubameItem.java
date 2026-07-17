@@ -47,7 +47,8 @@ public class TsubameItem extends BasePartsItem.WeaponShoulder {
                         var worldMuzzlPos = muzzlPos.add(mechInterface.isRight() * 1.4,1 - 0.5 * (i % 3),0).yRot((float) Math.toRadians((-1.0) * mechInterface.getYRot()));
 
                         MissileGenericEntity be = new MissileGenericEntity(PomkotsMechs.MISSILE_GENERIC.get(), world, mechInterface.getMechEntity(),
-                                (LivingEntity) target, this.getDamage(mechInterface.getItemStack()),
+                                (LivingEntity) target,
+                                mechInterface.applySkillDamageModifier(this.getDamage(mechInterface.getItemStack()), this.getWeaponCategory()),
                                 BattleBalance.MECH_MISSILE_GENERIC_SPEED2);
 
                         be.setPos(offset.add(worldMuzzlPos));

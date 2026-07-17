@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BossAerialDiveGoal2;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossAttackGoal;
@@ -8,6 +9,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossWal
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.*;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -169,6 +171,13 @@ public class Pmb03Entity extends BaseBossEntity {
                         getMechData().grenadeSpeed, 0F);
 
                 this.level().addFreshEntity(be);
+
+                ParticleUtil.spawnAttachedMuzzleFlash(
+                        (ServerLevel) level(),
+                        this,
+                        80D,
+                        new Vec3(5.5 * side, 11, 13)
+                );
             }
         }
     }
@@ -202,6 +211,13 @@ public class Pmb03Entity extends BaseBossEntity {
                 be.shootFromRotation(be, angle[0], angle[1], this.getFallFlyingTicks(), getMechData().bulletSpeed, 0F);
 
                 this.level().addFreshEntity(be);
+
+                ParticleUtil.spawnAttachedMuzzleFlash(
+                        (ServerLevel) level(),
+                        this,
+                        50D,
+                        new Vec3(5.5 * side, 14, 13)
+                );
             }
         }
     }

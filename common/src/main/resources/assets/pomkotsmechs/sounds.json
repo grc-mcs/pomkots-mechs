@@ -301,5 +301,60 @@
     "sounds": [
       "pomkotsmechs:se_reload"
     ]
+  },
+  "se_start_car": {
+    "sounds": [
+      "pomkotsmechs:se_start_car"
+    ]
+  },
+  "se_close_door": {
+    "sounds": [
+      "pomkotsmechs:se_close_door"
+    ]
+  },
+  "se_beep": {
+    "sounds": [
+      "pomkotsmechs:se_beep"
+    ]
+  },
+  "se_register": {
+    "sounds": [
+      "pomkotsmechs:se_register"
+    ]
+  },
+  "se_coin": {
+    "sounds": [
+      "pomkotsmechs:se_coin"
+    ]
+  },
+  "se_elevator": {
+    "sounds": [
+      "pomkotsmechs:se_elevator"
+    ]
+  },
+  "se_cheers": {
+    "sounds": [
+      "pomkotsmechs:se_cheers"
+    ]
+  },
+  "se_arena_start": {
+    "sounds": [
+      "pomkotsmechs:se_arena_start"
+    ]
+  },
+  "se_arena_end": {
+    "sounds": [
+      "pomkotsmechs:se_arena_end"
+    ]
+  },
+  "se_scan1": {
+    "sounds": [
+      "pomkotsmechs:se_scan1"
+    ]
+  },
+  "se_scan2": {
+    "sounds": [
+      "pomkotsmechs:se_scan2"
+    ]
   }
 }

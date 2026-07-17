@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "pomkotsmechs:pmvc01",
+    "#pomkotsmechs:pmt_series",
+    "#pomkotsmechs:pms_series",
+    "#pomkotsmechs:pmss_series",
+    "#pomkotsmechs:pmb_series"
+  ]
+}

@@ -4,6 +4,8 @@ import com.mojang.datafixers.util.Either;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.block.MechSalvagerBlockEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.KeycardItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.datapad.PomkotsDatapadItem;
+import grcmcs.minecraft.mods.pomkotsmechs.misc.arena.core.ArenaManager;
 import grcmcs.minecraft.mods.pomkotsmechs.save.PomkotsMechsSaveData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -46,6 +48,8 @@ public class MechSalvagerMenu extends AbstractContainerMenu {
     private final Container inventory;
     private final ContainerLevelAccess access; // これを保持する！
 
+    private final SimpleContainer dataPadContainer = new SimpleContainer(1);
+
     public MechSalvagerMenu(int id, Inventory playerInv) {
         this(id, playerInv, new SimpleContainer(2), null);
     }
@@ -55,27 +59,74 @@ public class MechSalvagerMenu extends AbstractContainerMenu {
         this.inventory = inventory;
         this.access = access;
 
-        // 仕様アイテムスロット
-        this.addSlot(new Slot(inventory, 0, 8, 37));
-        this.addSlot(new Slot(inventory, 1, 26, 37));
+        this.addSlot(new Slot(dataPadContainer, 0, 0, 0) {
+            public boolean isActive() {
+                return false;
+            }
+        });
 
-        int offsetX = 8; // 左寄せ調整（通常44→8）
-        int offsetY = 106; // ⚠️ GUIを下にずらす (4行分)
+        if (playerInv.player instanceof ServerPlayer sp) {
+            var dataPads = PomkotsDatapadItem.getPlayersDataPads(sp);
+
+            ItemStack pad;
+            if (dataPads.isEmpty()) {
+                pad = ItemStack.EMPTY;
+            } else {
+                pad = dataPads.get(0);
+            }
+
+            this.getSlot(0).set(pad);
+        }
+
+        addPlayerInventory(playerInv);
+    }
+
+    public ItemStack getDataPad() {
+        return this.getSlot(0).getItem();
+    }
+
+    private void addPlayerInventory(
+            Inventory inventory
+    ) {
+        int offsetX = 20 + 28 + 164 + 28 + 28 + 2;
+        int offsetY = 40 + 26;
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(playerInv, col + row * 9 + 9, offsetX + col * 18, 79 + row * 18));
+                if (inventory.getItem(col + row * 9 + 9).is(PomkotsMechs.POMKOTS_DATAPAD_ITEM.get())) {
+                    this.addSlot(new Slot(inventory, col + row * 9 + 9, offsetX + col * 18, offsetY + row * 18){
+                        @Override
+                        public boolean mayPickup(
+                                Player player
+                        ) {
+                            return false;
+                        }
+                    });
+                } else {
+                    this.addSlot(new Slot(inventory, col + row * 9 + 9, offsetX + col * 18, offsetY + row * 18));
+                }
             }
         }
 
         for (int i = 0; i < 9; i++) {
-            this.addSlot(new Slot(playerInv, i, offsetX + i * 18, 137));
+            if (inventory.getItem(i).is(PomkotsMechs.POMKOTS_DATAPAD_ITEM.get())) {
+                this.addSlot(new Slot(inventory, i, offsetX + i * 18, offsetY + 3 * 18 + 4){
+                    @Override
+                    public boolean mayPickup(
+                            Player player
+                    ) {
+                        return false;
+                    }
+                });
+            } else {
+                this.addSlot(new Slot(inventory, i, offsetX + i * 18, offsetY + 3 * 18 + 4));
+            }
         }
     }
 
-    public void summon(ServerPlayer player) {
+    public void summon(ServerPlayer player, UUID mechUuid) {
         if (inventory instanceof MechSalvagerBlockEntity msbe) {
-            msbe.summon(player);
+            msbe.summon(player, mechUuid);
         }
     }
 

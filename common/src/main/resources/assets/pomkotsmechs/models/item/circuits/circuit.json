@@ -1,0 +1,41 @@
+{
+  "parent": "pomkotsmechs:item/circuits/circuit_base",
+  "overrides": [
+    {
+      "predicate": {
+        "pomkotsmechs:circuit_offence": 1.0
+      },
+      "model": "pomkotsmechs:item/circuits/circuit_offence"
+    },
+    {
+      "predicate": {
+        "pomkotsmechs:circuit_defence": 1.0
+      },
+      "model": "pomkotsmechs:item/circuits/circuit_defence"
+    },
+    {
+      "predicate": {
+        "pomkotsmechs:circuit_energy": 1.0
+      },
+      "model": "pomkotsmechs:item/circuits/circuit_energy"
+    },
+    {
+      "predicate": {
+        "pomkotsmechs:circuit_mobility": 1.0
+      },
+      "model": "pomkotsmechs:item/circuits/circuit_mobility"
+    },
+    {
+      "predicate": {
+        "pomkotsmechs:circuit_utility": 1.0
+      },
+      "model": "pomkotsmechs:item/circuits/circuit_utility"
+    },
+    {
+      "predicate": {
+        "pomkotsmechs:circuit_balanced": 1.0
+      },
+      "model": "pomkotsmechs:item/circuits/circuit_balanced"
+    }
+  ]
+}

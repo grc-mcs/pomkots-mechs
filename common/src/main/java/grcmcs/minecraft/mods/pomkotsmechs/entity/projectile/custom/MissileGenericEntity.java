@@ -335,7 +335,7 @@ public class MissileGenericEntity extends PomkotsCustomThrowableProjectile imple
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "rotation", 0, event -> {
-            return event.setAndContinue(RawAnimation.begin().thenPlayAndHold("animation.missile.idle"));
+            return event.setAndContinue(RawAnimation.begin().thenPlay("animation.missile.start").thenPlayAndHold("animation.missile.idle"));
         }));
     }
 

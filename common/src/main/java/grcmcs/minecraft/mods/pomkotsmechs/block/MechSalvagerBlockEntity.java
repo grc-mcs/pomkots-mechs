@@ -3,7 +3,6 @@ package grcmcs.minecraft.mods.pomkotsmechs.block;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.MechSalvagerMenu;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
-import grcmcs.minecraft.mods.pomkotsmechs.items.KeycardItem;
 import grcmcs.minecraft.mods.pomkotsmechs.save.PomkotsMechsSaveData;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
@@ -34,7 +33,6 @@ import net.minecraft.world.phys.Vec3;
 import java.util.UUID;
 
 public class MechSalvagerBlockEntity extends BlockEntity implements MenuProvider, Container {
-    private static final int PAYMENT_AMOUNT = 10;
     private static final int MAX_SUMMON_TICK = 60;
     private int summonTick = 0;
 
@@ -106,19 +104,11 @@ public class MechSalvagerBlockEntity extends BlockEntity implements MenuProvider
     private UUID targetUUID = null;
 
     public void checkSummonMech() {
-        ItemStack payment = this.getItem(1);
         var e = sourceLevel.getEntity(targetUUID);
 
         if (e != null) {
-            if (payment.getCount() > PAYMENT_AMOUNT && payment.is(PomkotsMechs.POM_COIN.get())) {
-                sendMessage(targetPlayer, "{text.pomkotsmechs.messages.mechsalvager.01}");
-                if (teleportMech(targetPlayer, e, (ServerLevel)this.level, targetPosition)) {
-                    payment.shrink(PAYMENT_AMOUNT);
-                }
-
-            } else {
-                sendMessage(targetPlayer, "{text.pomkotsmechs.messages.mechsalvager.02}");
-            }
+            sendMessage(targetPlayer, "{text.pomkotsmechs.messages.mechsalvager.01}");
+            teleportMech(targetPlayer, e, (ServerLevel)this.level, targetPosition);
 
             summonTick = 1;
         }
@@ -139,43 +129,26 @@ public class MechSalvagerBlockEntity extends BlockEntity implements MenuProvider
         targetPlayer = null;
     }
 
-    public void summon(ServerPlayer player) {
+    public void summon(ServerPlayer player, UUID mechUuid) {
         if (this.summonTick > 0) {
             return;
         }
 
-        ItemStack keyCard = this.getItem(0);
-        ItemStack payment = this.getItem(1);
-
-        if (!keyCard.hasTag() || !keyCard.getTag().contains(KeycardItem.NBT_MECH_UUID)) {
-            sendMessage(player, "{text.pomkotsmechs.messages.mechsalvager.03}");
-            return;
-        }
-
-        // 代金チェック
-        if (payment.getCount() < PAYMENT_AMOUNT || !payment.is(PomkotsMechs.POM_COIN.get())) {
-            sendMessage(player, "{text.pomkotsmechs.messages.mechsalvager.02}");
-            return;
-        }
-
         // 引数展開
-        UUID uuid = keyCard.getTag().getUUID(KeycardItem.NBT_MECH_UUID);
         ServerLevel level = player.serverLevel();
         MinecraftServer server = level.getServer();
         Vec3 targetPos = getTargetPos();
 
         // Mech召喚
-        summonMech(player, server, uuid, level, targetPos, payment);
+        summonMech(player, server, mechUuid, level, targetPos);
     }
 
-    public void summonMech(ServerPlayer player, MinecraftServer server, UUID mechId, ServerLevel targetLevel, Vec3 summonPos, ItemStack payment) {
+    public void summonMech(ServerPlayer player, MinecraftServer server, UUID mechId, ServerLevel targetLevel, Vec3 summonPos) {
         // --- チャンクにロードされてる場合は即召喚 ---
         for (ServerLevel lvl : server.getAllLevels()) {
             Entity e = lvl.getEntity(mechId);
             if (e != null) {
-                if (teleportMech(player, e, targetLevel, summonPos)) {
-                    payment.shrink(PAYMENT_AMOUNT);
-                }
+                teleportMech(player, e, targetLevel, summonPos);
                 return;
             }
         }

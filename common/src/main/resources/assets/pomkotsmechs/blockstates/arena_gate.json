@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "pomkotsmechs:block/arena_gate"
+    },
+    "facing=south": {
+      "model": "pomkotsmechs:block/arena_gate",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "pomkotsmechs:block/arena_gate",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "pomkotsmechs:block/arena_gate",
+      "y": 90
+    }
+  }
+}

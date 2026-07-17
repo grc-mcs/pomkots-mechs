@@ -18,17 +18,51 @@
 					},
 					"scale": {
 						"0.0": {
-							"vector": [1, 1, 0.7],
-							"easing": "linear"
+							"vector": [2.3, 2.3, 3.4],
+							"easing": "easeInElastic",
+							"easingArgs": []
 						},
 						"0.25": {
-							"vector": [1, 1, 1],
+							"vector": [2.3, 2.3, 4.2],
 							"easing": "easeInElastic",
 							"easingArgs": []
 						},
 						"0.5": {
+							"vector": [2.3, 2.3, 3.4],
+							"easing": "easeInElastic",
+							"easingArgs": []
+						}
+					}
+				}
+			}
+		},
+		"animation.missile.start": {
+			"animation_length": 0.75,
+			"bones": {
+				"fire_lsb": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0],
+							"easing": "linear"
+						},
+						"0.75": {
+							"vector": [0, 0, 360],
+							"easing": "linear"
+						}
+					},
+					"scale": {
+						"0.0": {
 							"vector": [1, 1, 0.7],
-							"easing": "easeOutElastic",
+							"easing": "linear"
+						},
+						"0.2083": {
+							"vector": [2.3, 2.3, 5.1],
+							"easing": "easeInElastic",
+							"easingArgs": []
+						},
+						"0.75": {
+							"vector": [2.3, 2.3, 3.4],
+							"easing": "easeInElastic",
 							"easingArgs": []
 						}
 					}

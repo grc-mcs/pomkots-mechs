@@ -6,12 +6,14 @@ import grcmcs.minecraft.mods.pomkotsmechs.block.PomkotsUnbreakableBlock;
 import grcmcs.minecraft.mods.pomkotsmechs.config.PomkotsConfig;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.npc.pilot.ai.MechAutoController;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PomkotsThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.Pmv03Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicle;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
+import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BluePrintItem;
 import grcmcs.minecraft.mods.pomkotsmechs.misc.ExplosionNoDrop;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
@@ -19,6 +21,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -35,6 +38,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
@@ -856,5 +860,81 @@ public class Utils {
         }
 
         return Component.literal(input);
+    }
+
+    public static Item getPartsClassFromBluePrint(ItemStack bluePrint) {
+        var bluePrintItem = bluePrint.getItem();
+
+        if (!(bluePrintItem instanceof BluePrintItem)) {
+            return null;
+        }
+
+        ResourceLocation id =
+                BuiltInRegistries.ITEM.getKey(
+                        bluePrintItem
+                );
+
+        String partsName = id.getPath().replaceAll("blue_print_", "");
+
+        if (partsName.equals("hover_unit")) {
+            return PomkotsMechs.HOVER_UNIT.get();
+        } else if (partsName.equals("rail_slider_unit")) {
+            return PomkotsMechs.RAIL_SLIDER.get();
+        } else if (partsName.equals("proto_super_boost_unit")) {
+            return PomkotsMechs.SB_PROTO.get();
+        } else if (partsName.equals("builder_unit")) {
+            return PomkotsMechs.BUILDER_UNIT.get();
+        } else if (partsName.equals("glider_unit")) {
+            return PomkotsMechs.GLIDER_UNIT.get();
+        } else if (partsName.equals("deneb")) {
+            return PomkotsMechs.DENEB_BODY.get();
+        } else if (partsName.equals("altair")) {
+            return PomkotsMechs.ALTAIR_BODY.get();
+        } else if (partsName.equals("vega")) {
+            return PomkotsMechs.VEGA_BODY.get();
+        } else if (partsName.equals("sirius")) {
+            return PomkotsMechs.SIRIUS_BODY.get();
+        } else if (partsName.equals("aldebaran")) {
+            return PomkotsMechs.ALDEBARAN_BODY.get();
+        } else if (partsName.equals("muknvali")) {
+            return PomkotsMechs.MUKNVALI_BODY.get();
+        }
+
+        Item item = BuiltInRegistries.ITEM.get(PomkotsMechs.id(partsName));
+
+        if (item.equals(Items.AIR)) {
+            return null;
+        }
+
+        return item;
+    }
+
+    public static MechAutoController createMechAutoController(LivingEntity pilot, Pmvc01Entity mech) {
+        return new MechAutoController(pilot, mech);
+    }
+
+    public static void saveBlockPos(CompoundTag tag, String namePrefix, BlockPos blockPos) {
+        tag.putInt(
+                PomkotsMechs.nbtName(namePrefix + "X"),
+                blockPos.getX()
+        );
+
+        tag.putInt(
+                PomkotsMechs.nbtName(namePrefix + "Y"),
+                blockPos.getY()
+        );
+
+        tag.putInt(
+                PomkotsMechs.nbtName(namePrefix + "Z"),
+                blockPos.getZ()
+        );
+    }
+
+    public static BlockPos loadBlockPos(String namePrefix, CompoundTag tag) {
+        return new BlockPos(
+                tag.getInt(PomkotsMechs.nbtName(namePrefix + "X")),
+                tag.getInt(PomkotsMechs.nbtName(namePrefix + "Y")),
+                tag.getInt(PomkotsMechs.nbtName(namePrefix + "Z"))
+        );
     }
 }

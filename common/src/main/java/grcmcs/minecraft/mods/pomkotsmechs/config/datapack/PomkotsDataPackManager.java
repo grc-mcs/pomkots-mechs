@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.config.datapack;
 
 import com.google.common.reflect.TypeToken;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -10,9 +11,13 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.raid.EventDefinition;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.raid.RaidDefinition;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.raid.WaveDefinition;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.CircuitSkill;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.data.CircuitSkillJsonParser;
+import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.registry.CircuitRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.GsonHelper;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +53,10 @@ public class PomkotsDataPackManager {
         loadAllEnemyData(manager);
         loadAllRaidData(manager);
         loadAllChestData(manager);
+        loadAllTraderData(manager);
+        loadAllFighterData(manager);
+        loadAllAssetsData(manager);
+        loadAllSkillData(manager);
 
         if (Platform.getEnvironment() == Env.CLIENT && !dataPackServer.isEmpty()) {
             dataPackClient = dataPackServer;
@@ -118,33 +127,6 @@ public class PomkotsDataPackManager {
         });
     }
 
-//    private void loadAllPartsData(ResourceManager manager) {
-//        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "parts.json");
-//
-//        List<Resource> resources;
-//
-//        try {
-//            resources = manager.getResourceStack(path);
-//        } catch (Exception e) {
-//            PomkotsMechs.LOGGER.error("Failed to load resource stack:" + path, e);
-//            return;
-//        }
-//
-//        for (Resource resource : resources) {
-//            try (InputStream stream = resource.open()) {
-//                JsonObject json = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
-//
-//                if (json != null) {
-//                    loadRootPartsData(json);
-//                } else {
-//                    PomkotsMechs.LOGGER.error("No parts on a parts pack:" + resource);
-//                }
-//            } catch (IOException e) {
-//                PomkotsMechs.LOGGER.error("Failed to load a parts pack:" + resource, e);
-//            }
-//        }
-//    }
-
     private void loadRootPartsData(JsonObject json) {
         var root = json.get("mech_parts").getAsJsonObject();
         if (root == null) {
@@ -201,7 +183,7 @@ public class PomkotsDataPackManager {
                 levelData.missileMaxNum = getInt(levelParamsObj, "missile_max_num");
                 levelData.missileLockInterval = getFloat(levelParamsObj, "missile_lock_interval");
                 levelData.maxEnergy = getInt(levelParamsObj, "max_energy");
-                levelData.energyChargePerTick = getInt(levelParamsObj, "energy_charge_per_tick");
+                levelData.energyChargePerTick = getFloat(levelParamsObj, "energy_charge_per_tick");
                 levelData.workSecPerFuel = getInt(levelParamsObj, "work_sec_per_fuel");
                 levelData.energyConsumeEvasion = getInt(levelParamsObj, "energy_consume_evasion");
                 levelData.energyConsumeVertical = getInt(levelParamsObj, "energy_consume_vertical");
@@ -232,33 +214,6 @@ public class PomkotsDataPackManager {
 
         dataPackServer.addPartsData(itemName, data);
     }
-
-
-//    private void loadAllEnemyData(ResourceManager manager) {
-//        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "enemies.json");
-//        List<Resource> resources;
-//
-//        try {
-//            resources = manager.getResourceStack(path);
-//        } catch (Exception e) {
-//            PomkotsMechs.LOGGER.error("Failed to load resource stack:" + path, e);
-//            return;
-//        }
-//
-//        for (Resource resource : resources) {
-//            try (InputStream stream = resource.open()) {
-//                JsonObject json = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
-//
-//                if (json != null) {
-//                    loadRootEnemyData(json);
-//                } else {
-//                    PomkotsMechs.LOGGER.error("No enemy on a enemies pack:" + resource);
-//                }
-//            } catch (IOException e) {
-//                PomkotsMechs.LOGGER.error("Failed to load a enemies pack:" + resource, e);
-//            }
-//        }
-//    }
 
     private void loadAllEnemyData(ResourceManager manager) {
         ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "enemies.json");
@@ -359,52 +314,6 @@ public class PomkotsDataPackManager {
         }
     }
 
-//    private void loadAllRaidData(ResourceManager manager) {
-//        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "raid.json");
-//        List<Resource> resources;
-//
-//        try {
-//            resources = manager.getResourceStack(path);
-//        } catch (Exception e) {
-//            PomkotsMechs.LOGGER.error("Failed to load resource stack:" + path, e);
-//            return;
-//        }
-//
-//        for (Resource resource : resources) {
-//            PomkotsMechs.LOGGER.info("Resource Pack:" + resource.sourcePackId() + ":" + resource);
-//            try (InputStream stream = resource.open()) {
-//                Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-//                Map<String, RaidDefinition> allRd = GSON.fromJson(reader, new TypeToken<Map<String, RaidDefinition>>(){}.getType());
-//
-//                for (var entry: allRd.entrySet()) {
-//                    if (entry.getKey() != null && entry.getValue() != null) {
-//                        RaidDefinition rd = entry.getValue();
-//
-//                        if (rd.waves != null) {
-//                            for (WaveDefinition wd: rd.waves) {
-//                                if (wd.events != null) {
-//                                    for (EventDefinition ed: wd.events) {
-//                                        if ("time".equals(ed.trigger_type)) {
-//                                            if (wd.timeline == null) {
-//                                                wd.timeline = new HashMap<Integer, EventDefinition>();
-//                                            }
-//                                            wd.timeline.put(ed.trigger_tick, ed);
-//                                        }
-//                                    }
-//                                }
-//                            }
-//
-//                        }
-//
-//                        dataPackServer.addRaidData(entry.getKey(), rd);
-//                    }
-//                }
-//            } catch (IOException e) {
-//                PomkotsMechs.LOGGER.error("Failed to load a raid pack:" + resource, e);
-//            }
-//        }
-//    }
-
     private void loadAllRaidData(ResourceManager manager) {
         ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "raid.json");
 
@@ -443,33 +352,6 @@ public class PomkotsDataPackManager {
         });
     }
 
-//    private void loadAllChestData(ResourceManager manager) {
-//        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "chest.json");
-//        List<Resource> resources;
-//
-//        try {
-//            resources = manager.getResourceStack(path);
-//        } catch (Exception e) {
-//            PomkotsMechs.LOGGER.error("Failed to load resource stack:" + path, e);
-//            return;
-//        }
-//
-//        for (Resource resource : resources) {
-//            try (InputStream stream = resource.open()) {
-//                Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
-//                Map<String, PomkotsDataPack.ChestData> allRd = GSON.fromJson(reader, new TypeToken<Map<String, PomkotsDataPack.ChestData>>(){}.getType());
-//
-//                for (var entry: allRd.entrySet()) {
-//                    if (entry.getKey() != null && entry.getValue() != null) {
-//                        dataPackServer.addChestData(entry.getKey(), entry.getValue());
-//                    }
-//                }
-//            } catch (IOException e) {
-//                PomkotsMechs.LOGGER.error("Failed to load a raid pack:" + resource, e);
-//            }
-//        }
-//    }
-
     private void loadAllChestData(ResourceManager manager) {
         ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "chest.json");
 
@@ -487,6 +369,148 @@ public class PomkotsDataPackManager {
                 PomkotsMechs.LOGGER.error("Failed to load a raid pack:" + resource, e);
             }
         });
+    }
+
+    private void loadAllTraderData(ResourceManager manager) {
+        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "trader_pool.json");
+
+        loadResources(path, manager, resource -> {
+            try (InputStream stream = resource.open()) {
+                Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+                Map<String, List<PomkotsDataPack.TraderPoolItem>> allRd = GSON.fromJson(reader, new TypeToken<Map<String, List<PomkotsDataPack.TraderPoolItem>>>(){}.getType());
+
+                for (var entry: allRd.entrySet()) {
+                    if (entry.getKey() != null && entry.getValue() != null) {
+                        dataPackServer.setTraderPool(entry.getValue());
+                    }
+                }
+            } catch (IOException e) {
+                PomkotsMechs.LOGGER.error("Failed to load a trader pack:" + resource, e);
+            }
+        });
+    }
+
+    private void loadAllFighterData(ResourceManager manager) {
+        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "arena_fighter_pool.json");
+
+        loadResources(path, manager, resource -> {
+            try (InputStream stream = resource.open()) {
+                Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+                Map<String, List<PomkotsDataPack.FighterJson>> allRd = GSON.fromJson(reader, new TypeToken<Map<String, List<PomkotsDataPack.FighterJson>>>(){}.getType());
+
+                for (var entry: allRd.entrySet()) {
+                    if (entry.getKey() != null && entry.getValue() != null) {
+                        dataPackServer.setFighterPool(entry.getValue());
+                    }
+                }
+            } catch (IOException e) {
+                PomkotsMechs.LOGGER.error("Failed to load a trader pack:" + resource, e);
+            }
+        });
+    }
+
+
+    private void loadAllAssetsData(ResourceManager manager) {
+        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "assets.json");
+
+        loadResources(path, manager, resource -> {
+            try (InputStream stream = resource.open()) {
+                Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+                Map<String, List<PomkotsDataPack.AssetDefinition>> all = GSON.fromJson(reader, new TypeToken<Map<String, List<PomkotsDataPack.AssetDefinition>>>(){}.getType());
+
+                for (var entry: all.entrySet()) {
+                    if (entry.getKey() != null && entry.getValue() != null) {
+                        dataPackServer.setAssetDefinitions(entry.getValue());
+                    }
+                }
+            } catch (IOException e) {
+                PomkotsMechs.LOGGER.error("Failed to load a trader pack:" + resource, e);
+            }
+        });
+    }
+
+    private void loadAllSkillData(ResourceManager manager) {
+        ResourceLocation path = new ResourceLocation(PomkotsMechs.MODID, "circuit_skills.json");
+
+        loadResources(path, manager, resource -> {
+            List<CircuitSkill> skills =
+                    new ArrayList<>();
+
+            try (InputStream stream = resource.open()) {
+                Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+
+                JsonObject root =
+                        GsonHelper.fromJson(
+                                GSON,
+                                reader,
+                                JsonObject.class
+                        );
+
+                if (root == null) {
+                    throw new IllegalArgumentException(
+                            "Root JSON object is null."
+                    );
+                }
+
+                JsonArray array =
+                        GsonHelper.getAsJsonArray(
+                                root,
+                                "skills"
+                        );
+
+                for (JsonElement element : array) {
+                    if (!element.isJsonObject()) {
+                        throw new IllegalArgumentException(
+                                "Skill entry must be object in file: circuit_skills.json"
+                        );
+                    }
+
+                    CircuitSkill skill =
+                            CircuitSkillJsonParser.parse(
+                                    element.getAsJsonObject()
+                            );
+
+                    skills.add(skill);
+                }
+
+            } catch (IOException e) {
+                PomkotsMechs.LOGGER.error("Failed to load a trader pack:" + resource, e);
+            }
+
+            applySkills(skills);
+        });
+    }
+
+    private void applySkills(
+            List<CircuitSkill> skills
+    ) {
+        CircuitRegistries.SKILLS.unfreezeForReload();
+        CircuitRegistries.SKILLS.clearForReload();
+
+        int loaded = 0;
+        int failed = 0;
+
+        for (CircuitSkill skill : skills) {
+            try {
+                CircuitRegistries.SKILLS.register(skill);
+                loaded++;
+
+            } catch (Exception e) {
+                failed++;
+
+                PomkotsMechs.LOGGER.error(
+                        "Failed to register circuit skill '{}'",
+                        skill.id(),
+                        e
+                );
+            }
+        }
+
+        PomkotsMechs.LOGGER.info(
+                "Loaded {} circuit skills. Failed registrations: {}",
+                loaded,
+                failed
+        );
     }
 
     public void serializeServerData(OutputStream outputStream) throws IOException {

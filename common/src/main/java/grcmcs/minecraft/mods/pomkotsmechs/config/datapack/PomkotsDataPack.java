@@ -1,6 +1,5 @@
 package grcmcs.minecraft.mods.pomkotsmechs.config.datapack;
 
-import com.mojang.datafixers.util.Pair;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.raid.RaidDefinition;
 
 import java.io.Serializable;
@@ -15,6 +14,9 @@ public class PomkotsDataPack implements Serializable {
     private final Map<String, EnemyData> enemyData = new HashMap<>();
     private final Map<String, RaidDefinition> raidData = new HashMap<>();
     private final Map<String, ChestData> chestData = new HashMap<>();
+    private final Map<String, List<TraderPoolItem>> traderData = new HashMap<>();
+    private final Map<String, List<FighterJson>> fighterData = new HashMap<>();
+    private final Map<String, AssetDefinition> assetDefinitions = new HashMap<>();
 
     public PartsData getPartsData(String partsName) {
         return partsData.get(partsName);
@@ -29,6 +31,9 @@ public class PomkotsDataPack implements Serializable {
         enemyData.clear();
         raidData.clear();
         chestData.clear();
+        traderData.clear();
+        fighterData.clear();
+        assetDefinitions.clear();
     }
 
     public boolean isEmpty() {
@@ -95,7 +100,7 @@ public class PomkotsDataPack implements Serializable {
 
         // ジェネレーターのみ
         public int maxEnergy;
-        public int energyChargePerTick;
+        public float energyChargePerTick;
         public int workSecPerFuel;
 
         // ブースターのみ
@@ -189,5 +194,113 @@ public class PomkotsDataPack implements Serializable {
 
     public void addChestData(String chestLootTable, ChestData data) {
         chestData.put(chestLootTable, data);
+    }
+
+    public List<TraderPoolItem> getTraderPoolItems() {
+        return traderData.get("entries");
+    }
+
+    public void setTraderPool(List<TraderPoolItem> pool) {
+        traderData.put("entries", pool);
+    }
+
+    public static class TraderPoolItem implements Serializable {
+        public String category;
+        public String offer_item;
+        public int offer_count;
+        public String price_item;
+        public int price_count;
+        public int weight;
+    }
+
+    public List<FighterJson> getFighterPoolItems() {
+        return fighterData.get("entries");
+    }
+
+    public void setFighterPool(List<FighterJson> pool) {
+        fighterData.put("entries", pool);
+    }
+
+    public static class FighterJson implements Serializable {
+        public String name;
+        public String comment;
+        public String ai_level;
+        public int initial_rate;
+        public int win;
+        public int lose;
+        public String model;
+        public String texture;
+        public MechJson mech;
+    }
+
+    public class MechJson implements Serializable {
+        public String name;
+        public int texture_color;
+        public List<PartJson> parts;
+    }
+
+    public class PartJson implements Serializable {
+        public int slot;
+        public String item;
+        public int level;
+    }
+
+    public Map<String, AssetDefinition> getAssetDefinitions() {
+        return assetDefinitions;
+    }
+
+    public void setAssetDefinitions(List<AssetDefinition> list) {
+        assetDefinitions.clear();
+
+        for (var entry: list) {
+            assetDefinitions.put(entry.asset_id, entry);
+        }
+    }
+
+    public class AssetDefinition implements Serializable{
+
+        private String asset_id;
+
+        private String asset_type;
+
+        private int latest_version;
+
+        private String npc_id;
+
+        private String structure_id;
+
+        private Map<Integer, String> functions;
+
+        public String getAssetId() {
+            return asset_id;
+        }
+
+        public String getAssetType() {
+            return asset_type;
+        }
+
+        public int getLatestVersion() {
+            return latest_version;
+        }
+
+        public Map<Integer, String> getFunctions() {
+            return functions;
+        }
+
+        public String getNpcId() {
+            return npc_id;
+        }
+
+        public String getStructureId() {
+            return structure_id;
+        }
+    }
+
+    public class AssetDefinitionsRoot {
+        private List<AssetDefinition> assets;
+
+        public List<AssetDefinition> getAssets() {
+            return assets;
+        }
     }
 }
