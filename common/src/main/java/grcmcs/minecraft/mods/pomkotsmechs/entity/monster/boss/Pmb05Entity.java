@@ -2,14 +2,12 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BossAerialDiveGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BossAerialDiveGoal2;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossAttackGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.SimpleBossWalkGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.BulletGrenadeEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEnemyEntity;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.MissileGenericEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -49,6 +47,8 @@ public class Pmb05Entity extends BaseBossEntity {
         actionController.registerAction("missile", new BossActionController.BossAction(40,20, this::missileHorizontalAction));
         actionController.registerAction("stomp", new BossActionController.BossAction(40,40, this::stompAction));
         actionController.registerAction("onground", new BossActionController.BossAction(20,16, this::onGroundAction));
+
+        actionController.registerAction("onsmalldown", new BossActionController.BossAction(20,15, this::smallDown));
 
         this.registerActionGoal(new SimpleBossWalkGoal(this, getMechData().speed, 30),
                 AI_MODE_ALL,
@@ -401,6 +401,27 @@ public class Pmb05Entity extends BaseBossEntity {
         }
     }
 
+    @Override
+    protected void onStun() {
+        this.triggerAnim("action_controller", "on_stun");
+    }
+
+    @Override
+    protected void offStun() {
+        this.triggerAnim("action_controller", "off_stun");
+    }
+
+    @Override
+    protected void onSmallDown() {
+        this.actionController.reset();
+        this.actionController.getAction("onsmalldown").startAction();
+        this.triggerAnim("action_controller", "on_small_down");
+    }
+    
+    private void smallDown(BossActionController.BossAction action) {
+
+    }
+
     public final AnimationController<Pmb05Entity> trigger = new AnimationController<>(this, "action_controller", state -> PlayState.STOP)
             .triggerableAnim("laser_short", RawAnimation.begin().thenPlay("animation.pmb03.laser1"))
             .triggerableAnim("laser_long", RawAnimation.begin().thenPlay("animation.pmb03.laser2"))
@@ -410,6 +431,12 @@ public class Pmb05Entity extends BaseBossEntity {
             .triggerableAnim("jump", RawAnimation.begin().thenPlay("animation.pmb03.jump"))
             .triggerableAnim("onground", RawAnimation.begin().thenPlay("animation.pmb03.onground"))
             .triggerableAnim("boot", RawAnimation.begin().thenPlay("animation.pmb03.boot"))
+
+            .triggerableAnim("on_stun", RawAnimation.begin().thenPlay("animation.pmb03.hurt").thenPlayAndHold("animation.pmb03.down"))
+            .triggerableAnim("off_stun", RawAnimation.begin().thenPlay("animation.pmb03.up"))
+
+            .triggerableAnim("on_small_down", RawAnimation.begin().thenPlay("animation.pmb03.hurt"))
+
             .setSoundKeyframeHandler(this::playSounds);
 
     private final AnimationController<Pmb05Entity> base = new AnimationController<>(this, "basic_move", 0, event -> {

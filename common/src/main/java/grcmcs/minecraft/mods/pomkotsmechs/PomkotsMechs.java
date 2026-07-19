@@ -366,6 +366,7 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Block> POMKOTS_CUBE_BLOCK_YELLOW = BLOCKS.register("pomkotscube_yellow", ()-> new PomkotsCubeBlockYellow());
 	public static final RegistrySupplier<Block> POMKOTS_CUBE_BLOCK_RED = BLOCKS.register("pomkotscube_red", ()-> new PomkotsCubeBlockRed());
 	public static final RegistrySupplier<Block> POMKOTS_CUBE_BLOCK_PURPLE = BLOCKS.register("pomkotscube_purple", ()-> new PomkotsCubeBlockPurple());
+	public static final RegistrySupplier<Block> PERSONAL_POMKOTS_CUBE_BLOCK = BLOCKS.register("personal_pomkots_cube", PersonalPomkotsCubeBlock::new);
 
 	public static final RegistrySupplier<Block> POMKOTS_LEVER_BLOCK = BLOCKS.register("pomkotslever", ()-> new PomkotsLeverBlock());
 
@@ -397,6 +398,7 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<BlockEntityType<PomkotsCubeBlockYellowEntity>> POMKOTS_CUBE_BLOCK_ENTITY_YELLOW = BLOCK_ENTITIES.register("pomkotscubeentity_yellow", () -> BlockEntityType.Builder.of(PomkotsCubeBlockYellowEntity::new, POMKOTS_CUBE_BLOCK_YELLOW.get()).build(null));
 	public static final RegistrySupplier<BlockEntityType<PomkotsCubeBlockRedEntity>> POMKOTS_CUBE_BLOCK_ENTITY_RED = BLOCK_ENTITIES.register("pomkotscubeentity_red", () -> BlockEntityType.Builder.of(PomkotsCubeBlockRedEntity::new, POMKOTS_CUBE_BLOCK_RED.get()).build(null));
 	public static final RegistrySupplier<BlockEntityType<PomkotsCubeBlockPurpleEntity>> POMKOTS_CUBE_BLOCK_ENTITY_PURPLE = BLOCK_ENTITIES.register("pomkotscubeentity_purple", () -> BlockEntityType.Builder.of(PomkotsCubeBlockPurpleEntity::new, POMKOTS_CUBE_BLOCK_PURPLE.get()).build(null));
+	public static final RegistrySupplier<BlockEntityType<PersonalPomkotsCubeBlockEntity>> PERSONAL_POMKOTS_CUBE_BLOCK_ENTITY = BLOCK_ENTITIES.register("personal_pomkots_cube_entity", () -> BlockEntityType.Builder.of(PersonalPomkotsCubeBlockEntity::new, PERSONAL_POMKOTS_CUBE_BLOCK.get()).build(null));
 
 	public static final RegistrySupplier<BlockEntityType<PomkotsLeverBlockEntity>> POMKOTS_LEVER_BLOCK_ENTITY = BLOCK_ENTITIES.register("pomkotsleverentity", () -> BlockEntityType.Builder.of(PomkotsLeverBlockEntity::new, POMKOTS_LEVER_BLOCK.get()).build(null));
 
@@ -461,6 +463,7 @@ public class PomkotsMechs {
 	public static final RegistrySupplier<Item> POMKOTS_CUBE_BLOCK_ITEM_YELLOW = ITEMS.register("pomkotscube_yellow", () -> new BlockItem(POMKOTS_CUBE_BLOCK_YELLOW.get(), new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> POMKOTS_CUBE_BLOCK_ITEM_RED = ITEMS.register("pomkotscube_red", () -> new BlockItem(POMKOTS_CUBE_BLOCK_RED.get(), new Item.Properties().stacksTo(64)));
 	public static final RegistrySupplier<Item> POMKOTS_CUBE_BLOCK_ITEM_PURPLE = ITEMS.register("pomkotscube_purple", () -> new BlockItem(POMKOTS_CUBE_BLOCK_PURPLE.get(), new Item.Properties().stacksTo(64)));
+	public static final RegistrySupplier<Item> PERSONAL_POMKOTS_CUBE_BLOCK_ITEM = ITEMS.register("personal_pomkots_cube", () -> new BlockItem(PERSONAL_POMKOTS_CUBE_BLOCK.get(), new Item.Properties().stacksTo(1)));
 
 	public static final RegistrySupplier<Item> POMKOTS_LEVER_BLOCK_ITEM = ITEMS.register("pomkotslever", () -> new BlockItem(POMKOTS_LEVER_BLOCK.get(), new Item.Properties().stacksTo(64)));
 
@@ -687,68 +690,16 @@ public class PomkotsMechs {
 
 	public static final DeferredRegister<CreativeModeTab> ITEM_GROUPS = DeferredRegister.create(MODID, Registries.CREATIVE_MODE_TAB);
 	public static final RegistrySupplier<CreativeModeTab> BASE_TAB = ITEM_GROUPS.register(PomkotsMechs.id("item_group"), () -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, -1)
-			.icon(() -> new ItemStack(MECH_WORKBENCH_BLOCK_ITEM.get()))
+			.icon(() -> new ItemStack(POMKOTS_DATAPAD_ITEM.get()))
 			.title(Component.translatable("itemGroup." + PomkotsMechs.MODID))
 			.displayItems((parameters, output) -> {
 				output.accept(new ItemStack(MECH_WORKBENCH_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(PARTS_WORKBENCH_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(MECH_SALVAGER_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(POMKOTS_CUBE_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(POMKOTS_CUBE_BLOCK_ITEM_YELLOW.get()));
-				output.accept(new ItemStack(POMKOTS_CUBE_BLOCK_ITEM_RED.get()));
-				output.accept(new ItemStack(POMKOTS_CUBE_BLOCK_ITEM_PURPLE.get()));
-
-				output.accept(new ItemStack(POMKOTS_LEVER_BLOCK_ITEM.get()));
-
-				output.accept(new ItemStack(CORE_STONE_BLOCK_ITEM.get()));
-
-				output.accept(new ItemStack(EXCHANGE_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(CASK_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(STRUCTURE_SPAWNER_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(ENTITY_SPAWNER_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(CUSTOM_SPAWNER_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(COMMAND_EXECUTOR_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(PLACE_HOLDER_BLOCK_ITEM.get()));
-
-				output.accept(new ItemStack(ARENA_CONTROLLER_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(ARENA_GATE_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(ARENA_BATTLEFIELD_ANCHOR_BLOCK_ITEM.get()));
-				output.accept(new ItemStack(ARENA_TELEPORT_BLOCK_ITEM.get()));
-
-				output.accept(new ItemStack(ASSET_ANCHOR_ITEM.get()));
 
 				output.accept(new ItemStack(WRENCH_ITEM.get()));
 				output.accept(new ItemStack(SPANNER_ITEM.get()));
 				output.accept(new ItemStack(MECH_CAPSULE2_ITEM.get()));
-//				output.accept(new ItemStack(MECH_CAPSULE_ITEM.get()));
 
-				output.accept(new ItemStack(POMKOTS_RADAR_ITEM.get()));
-				output.accept(new ItemStack(POMKOTS_DATAPAD_ITEM.get()));
-
-				output.accept(new ItemStack(KEYCARD_ITEM.get()));
-				output.accept(new ItemStack(CUBEKEY_ITEM.get()));
-				output.accept(new ItemStack(CUBEKEYFRAGMENT_ITEM.get()));
-				output.accept(new ItemStack(CUBEKEY_ITEM_PURPLE.get()));
-
-				output.accept(new ItemStack(WORLD_LOG_FRAGMENT_ITEM.get()));
-				output.accept(new ItemStack(FOLKLORE_COMPENDIUM_ITEM.get()));
-				output.accept(new ItemStack(VILLAGERS_JOURNAL_ITEM.get()));
-
-				output.accept(new ItemStack(REPAIRKIT_ITEM.get()));
-
-				output.accept(new ItemStack(POM_COIN.get()));
-				output.accept(new ItemStack(POM_COIN_SILVER.get()));
-				output.accept(new ItemStack(POM_COIN_GOLD.get()));
-
-				output.accept(new ItemStack(PILOT_CONRFIGURATOR_ITEM.get()));
-				output.accept(new ItemStack(PILOT_LICENSE_NOVICE_ITEM.get()));
-				output.accept(new ItemStack(PILOT_LICENSE_INTERMEDIATE_ITEM.get()));
-				output.accept(new ItemStack(PILOT_LICENSE_ADVANCED_ITEM.get()));
-				output.accept(new ItemStack(PILOT_LICENSE_LEGEND_ITEM.get()));
-				output.accept(new ItemStack(PILOT_ROLE_WINGMAN_ITEM.get()));
-				output.accept(new ItemStack(PILOT_ROLE_GUARDIAN_ITEM.get()));
-				output.accept(new ItemStack(PILOT_ROLE_GLADIATOR_ITEM.get()));
-				output.accept(new ItemStack(PILOT_ROLE_RAIDER_ITEM.get()));
+				output.accept(new ItemStack(PERSONAL_POMKOTS_CUBE_BLOCK_ITEM.get()));
 
 				output.accept(new ItemStack(WANDERER_ARMOR_HELMET.get()));
 				output.accept(new ItemStack(WANDERER_ARMOR_CHESTPLATE.get()));
@@ -825,7 +776,7 @@ public class PomkotsMechs {
 				output.accept(new ItemStack(PMS09_SPAWN_EGG.get()));
 				output.accept(new ItemStack(PMS10_SPAWN_EGG.get()));
 
-				output.accept(new ItemStack(MECH_PILOT_SPAWN_EGG.get()));
+				// output.accept(new ItemStack(MECH_PILOT_SPAWN_EGG.get()));
 //				output.accept(new ItemStack(ARENA_RECEP_SPAWN_EGG.get()));
 
 				output.accept(new ItemStack(TURRET_01_ITEM.get()));
@@ -885,8 +836,6 @@ public class PomkotsMechs {
 				output.accept(new ItemStack(GLIDER_UNIT.get()));
 				output.accept(new ItemStack(CORE_DRILL.get()));
 
-				output.accept(new ItemStack(PELLET.get()));
-
 				CircuitStackFactory.addAll(output);
 			})
 			.build()
@@ -936,6 +885,8 @@ public class PomkotsMechs {
 								output.accept(new ItemStack(MISSILE_LARGE_MAGAZINE.get()));
 								output.accept(new ItemStack(GRENADE_MAGAZINE.get()));
 
+								output.accept(new ItemStack(PELLET.get()));
+								output.accept(new ItemStack(REPAIRKIT_ITEM.get()));
 							})
 							.build()
 	);
@@ -1128,6 +1079,64 @@ public class PomkotsMechs {
 							.build()
 			);
 
+		public static final RegistrySupplier<CreativeModeTab> EXPERIMENTAL_TAB =
+			ITEM_GROUPS.register(PomkotsMechs.id("item_group_zzexperimental"),
+					() -> CreativeModeTab.builder(CreativeModeTab.Row.TOP, -1)
+							.icon(() -> new ItemStack(WORLD_LOG_FRAGMENT_ITEM.get()))
+							.title(Component.translatable("itemGroup." + PomkotsMechs.MODID + ".experimental"))
+							.displayItems((parameters, output) -> {
+								output.accept(new ItemStack(POMKOTS_DATAPAD_ITEM.get()));
+								output.accept(new ItemStack(POMKOTS_RADAR_ITEM.get()));
+								
+								output.accept(new ItemStack(POM_COIN.get()));
+								output.accept(new ItemStack(POM_COIN_SILVER.get()));
+								output.accept(new ItemStack(POM_COIN_GOLD.get()));
+
+								output.accept(new ItemStack(KEYCARD_ITEM.get()));
+								output.accept(new ItemStack(CUBEKEY_ITEM.get()));
+								output.accept(new ItemStack(CUBEKEYFRAGMENT_ITEM.get()));
+								output.accept(new ItemStack(CUBEKEY_ITEM_PURPLE.get()));
+
+								output.accept(new ItemStack(PARTS_WORKBENCH_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(MECH_SALVAGER_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(CORE_STONE_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(POMKOTS_LEVER_BLOCK_ITEM.get()));
+
+								output.accept(new ItemStack(POMKOTS_CUBE_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(POMKOTS_CUBE_BLOCK_ITEM_YELLOW.get()));
+								output.accept(new ItemStack(POMKOTS_CUBE_BLOCK_ITEM_RED.get()));
+								output.accept(new ItemStack(POMKOTS_CUBE_BLOCK_ITEM_PURPLE.get()));
+
+								output.accept(new ItemStack(STRUCTURE_SPAWNER_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(ENTITY_SPAWNER_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(CUSTOM_SPAWNER_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(COMMAND_EXECUTOR_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(PLACE_HOLDER_BLOCK_ITEM.get()));
+
+								output.accept(new ItemStack(ARENA_CONTROLLER_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(ARENA_GATE_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(ARENA_BATTLEFIELD_ANCHOR_BLOCK_ITEM.get()));
+								output.accept(new ItemStack(ARENA_TELEPORT_BLOCK_ITEM.get()));
+
+								output.accept(new ItemStack(ASSET_ANCHOR_ITEM.get()));
+
+								output.accept(new ItemStack(WORLD_LOG_FRAGMENT_ITEM.get()));
+								output.accept(new ItemStack(FOLKLORE_COMPENDIUM_ITEM.get()));
+								output.accept(new ItemStack(VILLAGERS_JOURNAL_ITEM.get()));
+
+								output.accept(new ItemStack(PILOT_CONRFIGURATOR_ITEM.get()));
+								output.accept(new ItemStack(PILOT_LICENSE_NOVICE_ITEM.get()));
+								output.accept(new ItemStack(PILOT_LICENSE_INTERMEDIATE_ITEM.get()));
+								output.accept(new ItemStack(PILOT_LICENSE_ADVANCED_ITEM.get()));
+								output.accept(new ItemStack(PILOT_LICENSE_LEGEND_ITEM.get()));
+								output.accept(new ItemStack(PILOT_ROLE_WINGMAN_ITEM.get()));
+								output.accept(new ItemStack(PILOT_ROLE_GUARDIAN_ITEM.get()));
+								output.accept(new ItemStack(PILOT_ROLE_GLADIATOR_ITEM.get()));
+								output.accept(new ItemStack(PILOT_ROLE_RAIDER_ITEM.get()));
+							})
+							.build()
+			);
+
 	public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(PomkotsMechs.MODID, Registries.SOUND_EVENT);
 
 	public static final RegistrySupplier<SoundEvent> SE_BOOSTER_EVENT = SOUNDS.register(id("se_booster"), () -> SoundEvent.createVariableRangeEvent(id("se_booster")));
@@ -1276,7 +1285,6 @@ public class PomkotsMechs {
 
 		});
 		CONFIG = configHolder.getConfig();
-
 
 		ENTITIES.register();
 
@@ -1471,8 +1479,6 @@ public class PomkotsMechs {
 			boolean isRankMatch = buf.readBoolean();
 			String arenaId = buf.readUtf();
 			UUID targetUUID = buf.readUUID();
-
-			System.out.println(player);
 
 			context.queue(() -> {
 				ArenaManager.startRankMatch(

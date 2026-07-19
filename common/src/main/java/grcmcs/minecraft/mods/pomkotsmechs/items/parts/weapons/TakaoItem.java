@@ -39,7 +39,8 @@ public class TakaoItem extends BasePartsItem.WeaponArm {
 
                 if (ent instanceof LivingEntity le) {
                     if (!world.isClientSide()) {
-                        le.knockback(2, kbVel.x, kbVel.z);
+                        int sbModifier = mechInterface.isSuperBoost()? 2: 1;
+                        le.knockback(sbModifier * 4, sbModifier * kbVel.x, sbModifier * kbVel.z);
 
                         DamageSource ds;
                         if (driver instanceof Player p) {
@@ -58,7 +59,7 @@ public class TakaoItem extends BasePartsItem.WeaponArm {
                         if (le instanceof BossHitBoxEntity hit) {
                             hit.addStunPoint(10 * chargeModifier);
                         }
-                        le.hurt(ds, baseDamage * chargeModifier);
+                        le.hurt(ds, baseDamage * chargeModifier * sbModifier);
                     } else {
                         mechInterface.addHitParticles(le);
                     }

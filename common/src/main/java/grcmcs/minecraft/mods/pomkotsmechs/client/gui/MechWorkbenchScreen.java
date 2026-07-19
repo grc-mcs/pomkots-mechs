@@ -1014,6 +1014,8 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
                 );
             }
 
+            renderEquippedSlotTag(guiGraphics, slotIndex, x, y);
+
             // ====================================
             // NAME
             // ====================================
@@ -1077,6 +1079,37 @@ public class MechWorkbenchScreen extends AbstractContainerScreen<MechWorkbenchMe
             );
         }
 
+    }
+
+    /**
+     * Marks cards that represent parts currently installed in one of the paired slots.
+     * The list also contains player-inventory cards, so the source slot index tells us
+     * whether this exact stack is equipped without comparing otherwise identical items.
+     */
+    private void renderEquippedSlotTag(GuiGraphics guiGraphics, int slotIndex, int cardX, int cardY) {
+        String label = switch (slotIndex) {
+            case 6, 8 -> "R";
+            case 7, 9 -> "L";
+            case 10 -> "1";
+            case 11 -> "2";
+            default -> null;
+        };
+
+        if (label == null) {
+            return;
+        }
+
+        int textColor = switch (slotIndex) {
+            case 6, 8, 10 -> 0xFF80E8FF;
+            default -> 0xFFFF9CD8;
+        };
+        int textWidth = font.width(label);
+        int tagWidth = textWidth + 4;
+        int tagX = cardX + cardWidth - tagWidth - 2;
+        int tagY = cardY + 2;
+
+        guiGraphics.fill(tagX, tagY, tagX + tagWidth, tagY + 11, 0xCC101820);
+        guiGraphics.drawString(font, label, tagX + 2, tagY + 1, textColor, false);
     }
 
     private boolean mouseInRange(int mx, int my, int x1, int y1, int x2, int y2) {

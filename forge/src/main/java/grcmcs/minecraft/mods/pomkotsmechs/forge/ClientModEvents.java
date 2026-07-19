@@ -74,6 +74,7 @@ public class ClientModEvents {
             BlockEntityRendererRegistry.register(PomkotsMechs.POMKOTS_CUBE_BLOCK_ENTITY_PURPLE.get(), (context)->{
                 return new PomkotsCubePurpleRenderer(context);
             });
+            BlockEntityRendererRegistry.register(PomkotsMechs.PERSONAL_POMKOTS_CUBE_BLOCK_ENTITY.get(), PersonalPomkotsCubeRenderer::new);
 
             BlockEntityRendererRegistry.register(PomkotsMechs.POMKOTS_LEVER_BLOCK_ENTITY.get(), (context)->{
                 return new PomkotsLeverRenderer(context);

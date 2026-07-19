@@ -1,0 +1,7 @@
+{
+  "parent": "pomkotsmechs:block/pomkotscube",
+  "textures": {
+    "0": "pomkotsmechs:block/personal_pomkots_cube",
+    "particle": "pomkotsmechs:block/personal_pomkots_cube"
+  }
+}

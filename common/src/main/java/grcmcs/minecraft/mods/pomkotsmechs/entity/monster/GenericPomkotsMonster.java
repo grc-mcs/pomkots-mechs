@@ -4,7 +4,6 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPack;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.items.CoreStonePMB01Item;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;

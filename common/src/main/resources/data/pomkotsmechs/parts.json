@@ -715,11 +715,11 @@
       "description": "Hummer on arm",
       "weight": 400,
       "level_param": [
-        {"damage": 40},
-        {"damage": 45},
-        {"damage": 50},
-        {"damage": 55},
-        {"damage": 60}
+        {"damage": 60},
+        {"damage": 70},
+        {"damage": 80},
+        {"damage": 90},
+        {"damage": 100}
       ],
       "recipes": [
         {"pomkotsmechs:blue_print_takao": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_carbide_alloy": 8},

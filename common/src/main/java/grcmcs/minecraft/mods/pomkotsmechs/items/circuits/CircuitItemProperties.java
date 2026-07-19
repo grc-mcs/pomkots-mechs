@@ -1,7 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.items.circuits;
 
+import dev.architectury.registry.item.ItemPropertiesRegistry;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -31,7 +31,7 @@ public final class CircuitItemProperties {
             String propertyName,
             String targetPrefix
     ) {
-        ItemProperties.register(
+        ItemPropertiesRegistry.register(
                 PomkotsMechs.CIRCUIT_BASE.get(),
                 new ResourceLocation(PomkotsMechs.MODID, propertyName),
                 (stack, level, entity, seed) ->

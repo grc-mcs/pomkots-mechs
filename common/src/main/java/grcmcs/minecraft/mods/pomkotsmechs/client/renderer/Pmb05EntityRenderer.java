@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
-import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 
 public class Pmb05EntityRenderer extends GeoEntityRenderer<Pmb05Entity> {
     public Pmb05EntityRenderer(EntityRendererProvider.Context renderManager) {
@@ -43,5 +42,13 @@ public class Pmb05EntityRenderer extends GeoEntityRenderer<Pmb05Entity> {
     public void actuallyRender(PoseStack poseStack, Pmb05Entity animatable, BakedGeoModel model, RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         updateLaserBones(animatable);
         super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
+    }
+
+    @Override
+    public void render(Pmb05Entity entity, float entityYaw, float partialTick,
+                       PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+
+        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+        RenderUtils.renderBossBars(entity, poseStack, bufferSource, this.entityRenderDispatcher, 7);
     }
 }

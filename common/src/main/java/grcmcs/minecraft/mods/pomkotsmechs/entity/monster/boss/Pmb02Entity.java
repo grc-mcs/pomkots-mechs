@@ -38,6 +38,8 @@ public class Pmb02Entity extends BaseBossEntity {
         actionController.registerAction("canon", new BossActionController.BossAction(60,20, this::canonAction));
         actionController.registerAction("saber_horizontal", new BossActionController.BossAction(60,105, this::saberHorizontal));
 
+        actionController.registerAction("onsmalldown", new BossActionController.BossAction(20,15, this::smallDown));
+
         this.registerActionGoal(
                 new OrbitalFlyGoal(this, getMechData().speed,  20, 100, 10, 30),
                 AI_MODE_ALL,
@@ -356,6 +358,27 @@ public class Pmb02Entity extends BaseBossEntity {
     }
 
     @Override
+    protected void onStun() {
+        this.triggerAnim("action_controller", "on_stun");
+    }
+
+    @Override
+    protected void offStun() {
+        this.triggerAnim("action_controller", "off_stun");
+    }
+
+    @Override
+    protected void onSmallDown() {
+        this.actionController.reset();
+        this.actionController.getAction("onsmalldown").startAction();
+        this.triggerAnim("action_controller", "on_small_down");
+    }
+    
+    private void smallDown(BossActionController.BossAction action) {
+
+    }
+
+    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "basic_move", 0, event -> {
             if (this.getAiMode() == AI_MODE_INACTIVE) {
@@ -376,6 +399,12 @@ public class Pmb02Entity extends BaseBossEntity {
                 .triggerableAnim("canon", RawAnimation.begin().thenPlay("animation.pmb02.canon"))
                 .triggerableAnim("missile", RawAnimation.begin().thenPlay("animation.pmb02.missile"))
                 .triggerableAnim("boot", RawAnimation.begin().thenPlay("animation.pmb02.boot"))
+
+                .triggerableAnim("on_stun", RawAnimation.begin().thenPlay("animation.pmb02.hurt").thenPlayAndHold("animation.pmb02.down"))
+                .triggerableAnim("off_stun", RawAnimation.begin().thenPlay("animation.pmb02.up"))
+
+                .triggerableAnim("on_small_down", RawAnimation.begin().thenPlay("animation.pmb02.hurt"))
+
                 .setSoundKeyframeHandler(this::playSounds)
         );
     }

@@ -52,7 +52,7 @@ public class CreateWorldScreenMixin {
     )
     private static Optional<ResourceKey<WorldPreset>> modifyDefaultPreset(Optional<ResourceKey<WorldPreset>> original) {
         Optional<ResourceKey<WorldPreset>> result = original;
-        if (ModList.get().isLoaded("lostcities")) {
+        if (ModList.get().isLoaded("lostcities") && PomkotsMechs.CONFIG.survivalModeEnabled) {
             result = Optional.of(CUSTOM_PRESET_KEY);
         }
         return result;
@@ -60,7 +60,7 @@ public class CreateWorldScreenMixin {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
-        if (!ModList.get().isLoaded("lostcities")) {
+        if (!ModList.get().isLoaded("lostcities") || !PomkotsMechs.CONFIG.survivalModeEnabled) {
             return;
         }
 

@@ -3453,7 +3453,7 @@
 			}
 		},
 		"animation.pmb03.up": {
-			"animation_length": 1,
+			"animation_length": 0.25,
 			"bones": {
 				"spine": {
 					"rotation": {
