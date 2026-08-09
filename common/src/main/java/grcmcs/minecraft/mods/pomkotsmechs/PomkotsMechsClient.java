@@ -16,13 +16,22 @@ import grcmcs.minecraft.mods.pomkotsmechs.client.gui.datapad.DataPadScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.narration.IntroNarrationScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.gui.pilot.PilotScreen;
 import grcmcs.minecraft.mods.pomkotsmechs.client.hud.PomkotsHud;
+import grcmcs.minecraft.mods.pomkotsmechs.client.hud.RadioCommunicationHud;
+import grcmcs.minecraft.mods.pomkotsmechs.client.hud.RadioCommunicationManager;
+import grcmcs.minecraft.mods.pomkotsmechs.client.hud.MissionHudManager;
+import grcmcs.minecraft.mods.pomkotsmechs.client.hud.MissionObjectiveHud;
+import grcmcs.minecraft.mods.pomkotsmechs.client.hud.MissionPresentationHud;
+import grcmcs.minecraft.mods.pomkotsmechs.client.hud.MissionTargetMarkerHud;
+import grcmcs.minecraft.mods.pomkotsmechs.client.hud.MissionTargetMarkerManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.MechCameraHandler;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.UserInteractionManager;
 import grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientHudShake;
+import grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientScreenShake;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.*;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.*;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.misc.BlockPlacementPreviewRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.misc.PlacementPreviewRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.misc.MissionMarkerRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.projectile.*;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.scan.ScanPulseEntityRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.turret.Pmt01EntityRenderer;
@@ -37,10 +46,15 @@ import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemProperties;
 import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.CircuitItemStackHelper;
 import grcmcs.minecraft.mods.pomkotsmechs.items.circuits.core.CircuitRarity;
 import grcmcs.minecraft.mods.pomkotsmechs.misc.scan.ClientScanManager;
+import grcmcs.minecraft.mods.pomkotsmechs.radio.RadioInterruptMode;
+import grcmcs.minecraft.mods.pomkotsmechs.radio.RadioMessage;
 import grcmcs.minecraft.mods.pomkotsmechs.sounds.bgm.BGMState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
 
 import java.io.ByteArrayInputStream;
 
@@ -172,6 +186,7 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.MECH_PILOT, (context)->{
 			return new MechPilotEntityRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.KARAN, KaranEntityRenderer::new);
 		EntityRendererRegistry.register(PomkotsMechs.ARENA_RECEP, (context)->{
 			return new ArenaReceptionistEntityRenderer(context);
 		});
@@ -257,6 +272,8 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.NEEDLE, (context)->{
 			return new NeedleEntityRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.GIANT_TOMAHAWK, GiantTomahawkRenderer::new);
+		EntityRendererRegistry.register(PomkotsMechs.SMALL_MOB_HITBOX, SmallMobHitBoxRenderer::new);
 		EntityRendererRegistry.register(PomkotsMechs.MINE, (context)->{
 			return new MineEntityRenderer(context);
 		});
@@ -276,6 +293,7 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.ARENA_CAMERA, (context)->{
 			return new ArenaCameraRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.CUTSCENE_CAMERA, grcmcs.minecraft.mods.pomkotsmechs.client.renderer.CutsceneCameraRenderer::new);
 
 		EntityRendererRegistry.register(PomkotsMechs.WAVE_HOR, (context)->{
 			return new WaveHorizontalEntityRenderer(context);
@@ -324,10 +342,13 @@ public class PomkotsMechsClient {
 		EntityRendererRegistry.register(PomkotsMechs.RAID_OBJECTIVE, (context)->{
 			return new RaidObjectiveEntityRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.DEFENSE_SHELTER, DefenseShelterEntityRenderer::new);
+		EntityRendererRegistry.register(PomkotsMechs.TRANSPORT_SHIP, TransportShipEntityRenderer::new);
 
 		EntityRendererRegistry.register(PomkotsMechs.PLACEMENT_PREVIEW, (context)->{
 			return new PlacementPreviewRenderer(context);
 		});
+		EntityRendererRegistry.register(PomkotsMechs.MISSION_MARKER, MissionMarkerRenderer::new);
 
 		EntityRendererRegistry.register(PomkotsMechs.BLOCK_PLACEMENT_PREVIEW, (context)->{
 			return new BlockPlacementPreviewRenderer(context);
@@ -435,18 +456,31 @@ public class PomkotsMechsClient {
 		ParticleProviderRegistry.register(PomkotsMechs.SPARK, SparkParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.SPARK_ORANGE, SparkParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.SPARK_RED, SparkParticle.Provider::new);
+		ParticleProviderRegistry.register(PomkotsMechs.ELECTRIC_SPARK, ElectricSparkParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.SPIRAL, SpiralAttractParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MAGAZINE, MagazineParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MAGAZINE_RIGHT, MagazineParticle.ProviderR::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MAGAZINE_LEFT, MagazineParticle.ProviderL::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MECH_DUST, DustParticle.Provider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MECH_DUST_HEAVY, DustHeavyParticle.Provider::new);
+		ParticleProviderRegistry.register(PomkotsMechs.WATER_SPLASH, WaterSplashParticle.Provider::new);
+		ParticleProviderRegistry.register(PomkotsMechs.WATER_WAKE, WaterSplashParticle.WakeProvider::new);
 		ParticleProviderRegistry.register(PomkotsMechs.MUZZLE_FLASH, MuzzleFlashParticle.Provider::new);
 
 		ClientGuiEvent.RENDER_HUD.register(new PomkotsHud());
+		ClientGuiEvent.RENDER_HUD.register(MissionObjectiveHud.INSTANCE::render);
+		ClientGuiEvent.RENDER_HUD.register(MissionTargetMarkerHud.INSTANCE::render);
+		// 最後に登録し、既存のMech HUDより前面へ描画する。
+		ClientGuiEvent.RENDER_HUD.register(RadioCommunicationHud.INSTANCE::renderHud);
+		ClientGuiEvent.RENDER_HUD.register(MissionPresentationHud.INSTANCE::render);
+		ClientTickEvent.CLIENT_POST.register(RadioCommunicationManager::tick);
+		ClientTickEvent.CLIENT_POST.register(MissionHudManager::tick);
+		ClientTickEvent.CLIENT_POST.register(MissionTargetMarkerManager::tick);
 		ClientTickEvent.CLIENT_POST.register(PomkotsSoundManager::cleanup);
 		ClientTickEvent.CLIENT_POST.register(MechCameraHandler::tick);
 		ClientTickEvent.CLIENT_POST.register(ClientHudShake::tick);
+		ClientTickEvent.CLIENT_POST.register(ClientScreenShake::tick);
+		ClientTickEvent.CLIENT_POST.register(ClientElectricSparkEmitter::tick);
 		ClientTickEvent.CLIENT_POST.register(
 				minecraft -> ClientScanManager.clientTick()
 		);
@@ -459,12 +493,99 @@ public class PomkotsMechsClient {
 			ScreenFadeManager.start(in, keep, out);
 		});
 
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C,
+				PomkotsMechs.id(PomkotsMechs.PACKET_RADIO_START), (buf, context) -> {
+			RadioInterruptMode mode = buf.readEnum(RadioInterruptMode.class);
+			RadioMessage message = RadioMessage.read(buf);
+			context.queue(() -> RadioCommunicationManager.enqueue(message, mode));
+		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C,
+				PomkotsMechs.id(PomkotsMechs.PACKET_RADIO_STOP), (buf, context) ->
+						context.queue(RadioCommunicationManager::stop));
+
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C,
+				PomkotsMechs.id(PomkotsMechs.PACKET_MISSION_OBJECTIVE), (buf, context) -> {
+			boolean active = buf.readBoolean();
+			if (!active) { context.queue(MissionHudManager::clearObjective); return; }
+			var mission = buf.readComponent();
+			var stage = buf.readComponent();
+			var objective = buf.readComponent();
+			var progress = buf.readComponent();
+			int remaining = buf.readVarInt() - 1;
+			context.queue(() -> MissionHudManager.setObjective(mission, stage, objective, progress, remaining));
+		});
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C,
+				PomkotsMechs.id(PomkotsMechs.PACKET_MISSION_PRESENTATION), (buf, context) -> {
+			String style = buf.readUtf();
+			var title = buf.readComponent();
+			var message = buf.readComponent();
+			int duration = buf.readVarInt();
+			context.queue(() -> MissionHudManager.show(style, title, message, duration));
+		});
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C,
+				PomkotsMechs.id(PomkotsMechs.PACKET_MISSION_TARGET_MARKERS), (buf, context) -> {
+			int size = buf.readVarInt();
+			var updates = new java.util.HashMap<java.util.UUID, MissionTargetMarkerManager.Update>();
+			for (int i = 0; i < size; i++) {
+				int entityId = buf.readVarInt();
+				java.util.UUID uuid = buf.readUUID();
+				boolean hostile = buf.readBoolean();
+				var dimension = buf.readResourceLocation();
+				var position = new net.minecraft.world.phys.Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
+				float height = buf.readFloat();
+				updates.put(uuid, new MissionTargetMarkerManager.Update(entityId, hostile, dimension, position, height));
+			}
+			context.queue(() -> MissionTargetMarkerManager.replace(updates));
+		});
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C,
+				PomkotsMechs.id(PomkotsMechs.PACKET_MISSION_EFFECT), (buf, context) -> {
+			var dimension = buf.readResourceLocation();
+			double x = buf.readDouble();
+			double y = buf.readDouble();
+			double z = buf.readDouble();
+			boolean hasSound = buf.readBoolean();
+			ResourceLocation soundId = hasSound ? buf.readResourceLocation() : null;
+			net.minecraft.sounds.SoundSource source = hasSound
+					? buf.readEnum(net.minecraft.sounds.SoundSource.class) : null;
+			float volume = hasSound ? buf.readFloat() : 0.0F;
+			float pitch = hasSound ? buf.readFloat() : 0.0F;
+			boolean hasShake = buf.readBoolean();
+			float intensity = hasShake ? buf.readFloat() : 0.0F;
+			int duration = hasShake ? buf.readVarInt() : 0;
+			float frequency = hasShake ? buf.readFloat() : 0.0F;
+			context.queue(() -> {
+				Minecraft minecraft = Minecraft.getInstance();
+				if (minecraft.level == null || !minecraft.level.dimension().location().equals(dimension)) return;
+				if (hasSound) {
+					BuiltInRegistries.SOUND_EVENT.getOptional(soundId).ifPresent(sound ->
+							minecraft.level.playLocalSound(x, y, z, sound, source, volume, pitch, false));
+				}
+				if (hasShake) {
+					if (minecraft.options.getCameraType().isFirstPerson()) {
+						ClientScreenShake.start(intensity, duration, frequency);
+					} else {
+						ClientHudShake.addShake(intensity);
+					}
+				}
+			});
+		});
+
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_ARENA_OPENING_START), (buf, context) -> {
 			ArenaCameraClient.startOpeningCamera();
 		});
 
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_ARENA_OPENING_END), (buf, context) -> {
 			ArenaCameraClient.endOpeningCamera();
+		});
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_CUTSCENE_START), (buf, context) -> {
+			context.queue(grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientCutsceneCamera::begin);
+		});
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_CUTSCENE_END), (buf, context) -> {
+			float finalYaw = buf.readFloat();
+			float finalPitch = buf.readFloat();
+			context.queue(() -> grcmcs.minecraft.mods.pomkotsmechs.client.misc.ClientCutsceneCamera.end(
+					finalYaw, finalPitch));
 		});
 
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_UPDATE_DATAPACK), (buf, context) -> {
@@ -494,6 +615,14 @@ public class PomkotsMechsClient {
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_BGM_STATE), (buf, context) -> {
 			var newState = buf.readEnum(BGMState.class);
 			PomkotsBGMManager.setState(newState);
+		});
+
+		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_ELECTRIC_SPARK_EMITTER), (buf, context) -> {
+			Vec3 center = new Vec3(buf.readDouble(), buf.readDouble(), buf.readDouble());
+			double radius = buf.readDouble();
+			int count = buf.readVarInt();
+			double durationSeconds = buf.readDouble();
+			context.queue(() -> ClientElectricSparkEffect.spawnOverTime(center, radius, count, durationSeconds));
 		});
 
 		NetworkManager.registerReceiver(NetworkManager.Side.S2C, PomkotsMechs.id(PomkotsMechs.PACKET_ARENA_REFRESH_RANKING), (buf, context) -> {

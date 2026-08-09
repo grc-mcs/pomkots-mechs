@@ -73,6 +73,12 @@ public class DriverInput {
         return (this.keyPressStatus & UserInteractionManager.Keys.LOCK.getKeyID()) != 0;
     }
 
+    public boolean isLockJustPressed() {
+        return isLockPressed()
+                && (this.prevInput == null
+                || (this.prevInput.keyPressStatus & UserInteractionManager.Keys.LOCK.getKeyID()) == 0);
+    }
+
     public boolean isEvasionPressed() {
         return (this.keyPressStatus & UserInteractionManager.Keys.EVASION.getKeyID()) != 0;
     }

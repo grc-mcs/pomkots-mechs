@@ -37,6 +37,11 @@ public abstract class BaseTinyMonsterEntity extends BaseSmallMonsterEntity {
         super(entityType, world);
     }
 
+    @Override
+    protected boolean usesSeparateDamageHitBox() {
+        return false;
+    }
+
     protected int attackingTime = 0;
 
     public boolean isAttacking() {

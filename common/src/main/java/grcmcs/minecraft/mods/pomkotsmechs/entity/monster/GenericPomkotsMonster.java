@@ -10,6 +10,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -36,6 +37,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.UUID;
+
 public abstract class GenericPomkotsMonster extends Monster {
     public static AttributeSupplier.Builder createMobAttributes() {
         return LivingEntity.createLivingAttributes()
@@ -50,6 +53,8 @@ public abstract class GenericPomkotsMonster extends Monster {
     protected boolean alwaysLookAtTarget = true;
 
     protected boolean isInRaid = false;
+
+    private UUID missionDefenseTargetId;
 
     protected PomkotsDataPack.EnemyData mechData;
 
@@ -143,6 +148,10 @@ public abstract class GenericPomkotsMonster extends Monster {
         }
 
         super.tick();
+
+        if (!level().isClientSide && shouldStayAboveWaterSurface()) {
+            keepAboveWaterSurface();
+        }
 
         if (this.attackCooltime > 0) {
             this.attackCooltime--;
@@ -304,12 +313,47 @@ public abstract class GenericPomkotsMonster extends Monster {
         AttributeInstance healthAttribute = getAttribute(Attributes.MAX_HEALTH);
         if (healthAttribute == null || healthModifier == 1.0F) return;
 
+        float oldMaxHealth = getMaxHealth();
+        float healthRatio = oldMaxHealth > 0.0F
+                ? Mth.clamp(getHealth() / oldMaxHealth, 0.0F, 1.0F)
+                : 1.0F;
         double newHealthValue = healthAttribute.getBaseValue() * healthModifier;
 
         healthAttribute.setBaseValue(newHealthValue);
+        setHealth(getMaxHealth() * healthRatio);
+    }
 
-        if (getHealth() > newHealthValue) {
-            setHealth((float) newHealthValue);
+    protected boolean shouldStayAboveWaterSurface() {
+        return false;
+    }
+
+    private void keepAboveWaterSurface() {
+        BlockPos feet = BlockPos.containing(getX(), getY() + 0.01D, getZ());
+        boolean feetInWater = level().getFluidState(feet).is(FluidTags.WATER);
+
+        if (!feetInWater) {
+            if (getDeltaMovement().y < 0.0D
+                    && level().getFluidState(feet.below()).is(FluidTags.WATER)) {
+                Vec3 movement = getDeltaMovement();
+                setDeltaMovement(movement.x, 0.0D, movement.z);
+                fallDistance = 0.0F;
+            }
+            return;
+        }
+
+        BlockPos.MutableBlockPos surface = feet.mutable();
+        while (surface.getY() < level().getMaxBuildHeight()
+                && level().getFluidState(surface).is(FluidTags.WATER)) {
+            surface.move(0, 1, 0);
+        }
+
+        double surfaceY = surface.getY();
+        if (getY() < surfaceY) {
+            setPos(getX(), surfaceY, getZ());
+            Vec3 movement = getDeltaMovement();
+            setDeltaMovement(movement.x, Math.max(0.0D, movement.y), movement.z);
+            fallDistance = 0.0F;
+            hurtMarked = true;
         }
     }
 
@@ -344,6 +388,9 @@ public abstract class GenericPomkotsMonster extends Monster {
         }
 
         this.isInRaid = compound.getBoolean(PomkotsMechs.nbtName("IsInRaid"));
+        String defenseTargetKey = PomkotsMechs.nbtName("MissionDefenseTarget");
+        this.missionDefenseTargetId = compound.hasUUID(defenseTargetKey)
+                ? compound.getUUID(defenseTargetKey) : null;
 
         if (compound.contains(PomkotsMechs.nbtName("IsInEvent"))) {
             this.setInEvent(compound.getBoolean(PomkotsMechs.nbtName("IsInEvent")));
@@ -359,6 +406,9 @@ public abstract class GenericPomkotsMonster extends Monster {
         compound.putFloat(PomkotsMechs.nbtName("MonsterHealthModifier"), this.healthModifier);
         compound.putFloat(PomkotsMechs.nbtName("MonsterAttackModifier"), this.attackModifier);
         compound.putBoolean(PomkotsMechs.nbtName("IsInRaid"), this.isInRaid);
+        if (missionDefenseTargetId != null) {
+            compound.putUUID(PomkotsMechs.nbtName("MissionDefenseTarget"), missionDefenseTargetId);
+        }
         compound.putBoolean(PomkotsMechs.nbtName("IsInEvent"), this.isInEvent());
         compound.putBoolean(PomkotsMechs.nbtName("AttributeInitialized"), this.attributeInitialized);
     }
@@ -369,6 +419,18 @@ public abstract class GenericPomkotsMonster extends Monster {
 
     public void setInRaid(boolean flag) {
         this.isInRaid = flag;
+    }
+
+    public UUID getMissionDefenseTargetId() {
+        return missionDefenseTargetId;
+    }
+
+    public void setMissionDefenseTargetId(UUID targetId) {
+        this.missionDefenseTargetId = targetId;
+    }
+
+    public void clearMissionDefenseTargetId() {
+        this.missionDefenseTargetId = null;
     }
 
     public float getModifiedDamage(float base) {
@@ -408,6 +470,10 @@ public abstract class GenericPomkotsMonster extends Monster {
     private boolean breakingMode = false;
 
     private void handleObstacleBlocking() {
+        if (!Utils.isBlockDestructionAllowed(this)) {
+            return;
+        }
+        
         if (breakCooldown > 0) {
             breakCooldown--;
             return;

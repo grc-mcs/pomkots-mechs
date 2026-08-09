@@ -22,7 +22,7 @@ public class ServerBGMTracker {
     public static LostCitiesCompatible lostCitiesAccessor = new LostCitiesCompatible();
 
     public static void tick(ServerPlayer player) {
-        if (!PomkotsMechs.CONFIG.survivalModeEnabled) {
+        if (!PomkotsMechs.CONFIG.survivalModeEnabled && !FORCE.containsKey(player.getUUID())) {
             return;
         }
 
@@ -37,10 +37,15 @@ public class ServerBGMTracker {
 
     public static void forceSetBGMState(ServerPlayer player, BGMState state) {
         FORCE.put(player.getUUID(), state);
+        LAST.put(player.getUUID(), state);
+        sendDataPack2Player(player, state);
     }
 
     public static void forceUnsetBGMState(ServerPlayer player) {
         FORCE.remove(player.getUUID());
+        BGMState state = PomkotsMechs.CONFIG.survivalModeEnabled ? computeState(player, LAST.get(player.getUUID())) : BGMState.NONE;
+        LAST.put(player.getUUID(), state);
+        sendDataPack2Player(player, state);
     }
 
     public static void sendDataPack2Player(ServerPlayer player, BGMState newState) {

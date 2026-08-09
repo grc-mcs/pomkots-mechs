@@ -1,5 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.config.datapack;
 
+import grcmcs.minecraft.mods.pomkotsmechs.config.definition.PomkotsDefinitionManager;
+
 import com.google.common.reflect.TypeToken;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -57,6 +59,7 @@ public class PomkotsDataPackManager {
         loadAllFighterData(manager);
         loadAllAssetsData(manager);
         loadAllSkillData(manager);
+        PomkotsDefinitionManager.initialize(manager);
 
         if (Platform.getEnvironment() == Env.CLIENT && !dataPackServer.isEmpty()) {
             dataPackClient = dataPackServer;

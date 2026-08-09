@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "pomkotsmechs:block/mission_anchor" },
+    "facing=south": { "model": "pomkotsmechs:block/mission_anchor", "y": 180 },
+    "facing=west": { "model": "pomkotsmechs:block/mission_anchor", "y": 270 },
+    "facing=east": { "model": "pomkotsmechs:block/mission_anchor", "y": 90 }
+  }
+}

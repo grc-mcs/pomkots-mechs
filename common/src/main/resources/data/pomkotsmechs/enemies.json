@@ -224,7 +224,7 @@
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "bullet_damage": 20.0,
+      "bullet_damage": 10.0,
       "bullet_speed": 4.0
     },
     "pmt02": {
@@ -238,7 +238,7 @@
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "missile_damage": 20.0,
+      "missile_damage": 10.0,
       "missile_speed": 1.9
     },
     "pmt03": {
@@ -252,7 +252,7 @@
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "grenade_damage": 60.0,
+      "grenade_damage": 20.0,
       "grenade_speed": 3.9,
       "grenade_explosion_scale": 4.0
     },
@@ -267,7 +267,7 @@
       "base_damage_modifier": 1.0,
       "explosion_damage_modifier": 1.0,
 
-      "missile_damage": 150.0,
+      "missile_damage": 15.0,
       "missile_speed": 1.5
     },
     "pmc01": {

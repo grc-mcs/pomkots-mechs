@@ -3,6 +3,9 @@ package grcmcs.minecraft.mods.pomkotsmechs.misc.arena.core;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -14,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class ArenaCameraEntity extends LivingEntity {
     private static final int MAX_LIFE_TICKS = 300;
+    private static final EntityDataAccessor<Integer> DATA_TARGET_ID =
+            SynchedEntityData.defineId(ArenaCameraEntity.class, EntityDataSerializers.INT);
 
     private int targetEntityId = -1;
     private int lifeTicks = MAX_LIFE_TICKS;
@@ -48,6 +53,7 @@ public class ArenaCameraEntity extends LivingEntity {
             Entity target
     ) {
         this.targetEntityId = target.getId();
+        this.entityData.set(DATA_TARGET_ID, target.getId());
         this.startPos =
                 player.getEyePosition();
 
@@ -71,6 +77,20 @@ public class ArenaCameraEntity extends LivingEntity {
 //                        target.getBbHeight() * 0.6,
 //                        0
 //                );
+    }
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(DATA_TARGET_ID, -1);
+    }
+
+    public Vec3 getClientLookTarget(float partialTick) {
+        Entity target = entityData.get(DATA_TARGET_ID) < 0
+                ? null : level().getEntity(entityData.get(DATA_TARGET_ID));
+        return target == null
+                ? getPosition(partialTick).add(getLookAngle())
+                : target.getPosition(partialTick).add(0.0, target.getBbHeight() * 0.5, 0.0);
     }
 
     @Override

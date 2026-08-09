@@ -1,29 +1,22 @@
 package grcmcs.minecraft.mods.pomkotsmechs.items.parts.weapons;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
-import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.KagenobuItemRenderer;
+import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ClientElectricSparkEffect;
 import grcmcs.minecraft.mods.pomkotsmechs.client.renderer.parts.weapons.TenpouItemRenderer;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.ActionWeapon;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.equipment.action.custom.Motion;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BasePartsItem;
-import grcmcs.minecraft.mods.pomkotsmechs.misc.scan.ScanUtils;
+import grcmcs.minecraft.mods.pomkotsmechs.util.ServerElectricSparkEffect;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.animatable.SingletonGeoAnimatable;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
 
 public class TenpouItem extends BasePartsItem.WeaponArm {
     public TenpouItem(Properties properties) {

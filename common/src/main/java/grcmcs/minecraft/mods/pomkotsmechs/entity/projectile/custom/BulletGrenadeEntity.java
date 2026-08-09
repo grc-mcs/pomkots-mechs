@@ -43,6 +43,11 @@ public class BulletGrenadeEntity extends PomkotsCustomThrowableProjectile implem
     }
 
     @Override
+    protected double getWaterImpactIntensity() {
+        return 2.2D;
+    }
+
+    @Override
     public void tick() {
         super.tick();
         this.hasImpulse = true;

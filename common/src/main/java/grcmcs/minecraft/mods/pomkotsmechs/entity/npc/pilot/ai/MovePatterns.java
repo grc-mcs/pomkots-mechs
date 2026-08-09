@@ -13,9 +13,8 @@ public class MovePatterns {
             MechAutoController.PilotRank rank,
             LivingEntity pilot,
             Pmvc01Entity mech,
-            MechAutoController controller) {
-
-        float preferredDistance = style.getPreferedDistance();
+            MechAutoController controller,
+            float preferredDistance) {
 
         return switch (style) {
             case CLOSE_RANGE -> createCombatMovePatternTableClose(pilot, mech, role, rank, controller, preferredDistance);

@@ -17,10 +17,6 @@ public class PomkotsBGMManager {
     }
 
     public static void setState(BGMState newState) {
-        if (!PomkotsMechs.CONFIG.survivalModeEnabled) {
-            return;
-        }
-
         if (newState == currentState) {
             return;
         }

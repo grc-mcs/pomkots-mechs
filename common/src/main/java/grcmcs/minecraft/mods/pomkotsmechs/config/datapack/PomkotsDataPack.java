@@ -174,6 +174,8 @@ public class PomkotsDataPack implements Serializable {
         public String key = "";
         public String type = "";
         public String raid_id;
+        public String mission_id;
+        public boolean requires_inactive_boss = false;
     }
 
     public static class ChestMobSpawnData implements Serializable {

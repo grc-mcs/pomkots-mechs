@@ -6,6 +6,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonsterPe
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -23,18 +24,23 @@ import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.core.keyframe.event.SoundKeyframeEvent;
 
 import java.util.function.Predicate;
+import java.util.Locale;
 
 // Charging Mob
 public abstract class BaseTurretEntity extends GenericPomkotsMonsterPercistant implements GeoEntity, GeoAnimatable {
 
     public enum TargetEntityType {
-        PLAYER(0),
-        POMKOTS_MONSTERS(1),
-        HOSTILE_MOBS(2);
+        PLAYER(0, "player"),
+        POMKOTS_MONSTERS(1, "hostile_mechs"),
+        HOSTILE_MOBS(2, "hostile_mobs");
 
         private final int num;
+        private final String serializedName;
 
-        TargetEntityType(int num) { this.num = num; }
+        TargetEntityType(int num, String serializedName) {
+            this.num = num;
+            this.serializedName = serializedName;
+        }
 
         public static TargetEntityType of(int num) {
             if (num < 0) return PLAYER;
@@ -46,6 +52,24 @@ public abstract class BaseTurretEntity extends GenericPomkotsMonsterPercistant i
 
         public int getNum() {
             return num;
+        }
+
+        public String getSerializedName() {
+            return serializedName;
+        }
+
+        public static TargetEntityType of(String value) {
+            String normalized = value.trim().toLowerCase(Locale.ROOT);
+            return switch (normalized) {
+                case "player", "players" -> PLAYER;
+                case "hostile_mechs", "enemy_mechs", "pomkots_monsters" -> POMKOTS_MONSTERS;
+                case "hostile_mobs" -> HOSTILE_MOBS;
+                default -> {
+                    PomkotsMechs.LOGGER.warn(
+                            "Unknown turret target entity type '{}'; falling back to player", value);
+                    yield PLAYER;
+                }
+            };
         }
     }
 
@@ -71,8 +95,8 @@ public abstract class BaseTurretEntity extends GenericPomkotsMonsterPercistant i
             registerTargetSelectorGoals();
 
             if (targetEntityType == TargetEntityType.POMKOTS_MONSTERS) {
-                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(mechData.health * 3);
-                this.setHealth(mechData.health * 3);
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(mechData.health * 1.5);
+                this.setHealth(mechData.health * 1.5F);
             }
         }
         super.tick();
@@ -134,14 +158,19 @@ public abstract class BaseTurretEntity extends GenericPomkotsMonsterPercistant i
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
 
-        if (compound.contains(PomkotsMechs.nbtName("TargetEntityType"))) {
-            this.targetEntityType = TargetEntityType.of(compound.getInt(PomkotsMechs.nbtName("TargetEntityType")));
+        String key = PomkotsMechs.nbtName("TargetEntityType");
+        if (compound.contains(key, Tag.TAG_STRING)) {
+            this.targetEntityType = TargetEntityType.of(compound.getString(key));
+        } else if (compound.contains(key, Tag.TAG_ANY_NUMERIC)) {
+            this.targetEntityType = TargetEntityType.of(compound.getInt(key));
         }
     }
 
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
-        compound.putInt(PomkotsMechs.nbtName("TargetEntityType"), this.targetEntityType.getNum());
+        compound.putString(
+                PomkotsMechs.nbtName("TargetEntityType"),
+                this.targetEntityType.getSerializedName());
     }
 }

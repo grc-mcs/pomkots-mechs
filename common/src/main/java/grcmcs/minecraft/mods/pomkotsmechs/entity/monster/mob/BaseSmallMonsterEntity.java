@@ -5,10 +5,12 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RaidTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
+import grcmcs.minecraft.mods.pomkotsmechs.util.ServerElectricSparkEffect;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -22,6 +24,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class BaseSmallMonsterEntity extends GenericPomkotsMonster {
+    private SmallMobHitBoxEntity damageHitBox;
+
     public static AttributeSupplier.Builder createMobAttributes() {
         return LivingEntity.createLivingAttributes()
                 .add(Attributes.ATTACK_KNOCKBACK)
@@ -68,6 +72,40 @@ public abstract class BaseSmallMonsterEntity extends GenericPomkotsMonster {
                 }
             }
         }
+
+        handleElectricStun();
+
+        if (!level().isClientSide && usesSeparateDamageHitBox()) {
+            ensureDamageHitBox();
+        }
+    }
+
+    protected boolean usesSeparateDamageHitBox() {
+        return true;
+    }
+
+    protected float getDamageHitBoxWidth() {
+        return 3.0F;
+    }
+
+    protected float getDamageHitBoxHeight() {
+        return 3.0F;
+    }
+
+    public SmallMobHitBoxEntity getDamageHitBox() {
+        return damageHitBox;
+    }
+
+    private void ensureDamageHitBox() {
+        if (!isAlive() || (damageHitBox != null && !damageHitBox.isRemoved())) {
+            return;
+        }
+
+        SmallMobHitBoxEntity hitBox = new SmallMobHitBoxEntity(PomkotsMechs.SMALL_MOB_HITBOX.get(), level());
+        hitBox.attachTo(this, getDamageHitBoxWidth(), getDamageHitBoxHeight());
+        if (level().addFreshEntity(hitBox)) {
+            damageHitBox = hitBox;
+        }
     }
 
     abstract protected void fireOpenAnimation();
@@ -79,12 +117,36 @@ public abstract class BaseSmallMonsterEntity extends GenericPomkotsMonster {
         return false;
     }
 
+    private int electricStunTick = 0;
+    
+    public void onElectricStun() {
+        if (isServerSide() && electricStunTick == 0) {
+            electricStunTick = 40;
+            
+            double height = getBbHeight() / 2;
+            ServerElectricSparkEffect.spawnOverTime(
+                (ServerLevel)this.level(),
+                this.position().add(0, height, 0),
+                height, // 球の半径
+                40,   // 期間中に生成する総数
+                2.0D  // 発生時間（秒）
+            );
+        }
+    }
+
+    private void handleElectricStun() {
+        if (isServerSide() && electricStunTick > 0) {
+            this.setDeltaMovement(Vec3.ZERO);
+            electricStunTick--;
+        }
+    }
+
     private static final EntityDataAccessor<Boolean> CLOSED = SynchedEntityData.defineId(BaseSmallMonsterEntity.class, EntityDataSerializers.BOOLEAN);
 
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(CLOSED, false); // 初期値を設定
+        this.entityData.define(CLOSED, false);
     }
 
     public void setClosed(boolean value) {

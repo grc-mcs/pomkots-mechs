@@ -554,11 +554,21 @@ public abstract class BasePartsItem extends Item implements GeoItem {
         public WeaponArm(Properties properties) {
             super(properties);
         }
+
+        @Override
+        public boolean isSoftLockEnabled() {
+            return true;
+        }
     }
 
     public static abstract class WeaponShoulder extends Weapon {
         public WeaponShoulder(Properties properties) {
             super(properties);
+        }
+        
+        @Override
+        public boolean isSoftLockEnabled() {
+            return false;
         }
     }
 }

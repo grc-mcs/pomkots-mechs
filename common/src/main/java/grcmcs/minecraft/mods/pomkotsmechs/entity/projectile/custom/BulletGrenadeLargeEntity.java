@@ -21,6 +21,11 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class BulletGrenadeLargeEntity extends BulletGrenadeEntity {
     public static float scale = 6;
 
+    @Override
+    protected double getWaterImpactIntensity() {
+        return 3.2D;
+    }
+
     public BulletGrenadeLargeEntity(EntityType<? extends ThrowableProjectile> entityType, Level level) {
         this(entityType, level, null, 80, BattleBalance.MECH_BULLET_GRENADE_DAMAGE, 15);
     }

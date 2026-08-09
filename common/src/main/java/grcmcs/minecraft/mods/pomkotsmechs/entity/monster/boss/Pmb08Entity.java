@@ -21,6 +21,9 @@ import software.bernie.geckolib.core.object.PlayState;
 
 public class Pmb08Entity extends BaseBossEntity {
     @Override
+    protected boolean shouldStayAboveWaterSurface() { return true; }
+
+    @Override
     public String getMechName() {
         return "pmb08";
     }

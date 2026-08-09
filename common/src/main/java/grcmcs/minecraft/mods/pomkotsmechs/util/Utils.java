@@ -303,27 +303,27 @@ public class Utils {
 
     public static float[] getShootingAngle(Entity bullet, Entity target, boolean useDeviation, boolean aimFoot) {
         var targetPos = getTargetPos(target, useDeviation, aimFoot);
-
-        if (aimFoot) {
-            targetPos = new Vec3(targetPos.x, targetPos.y - 3, targetPos.z);
-        }
-
         var bulletPos = bullet.position();
 
-        Vec3 bulletDir = targetPos.subtract(bulletPos).normalize();
+        Vec3 bulletDir = targetPos.subtract(bulletPos);
+        double horizontalDistance = Math.sqrt(bulletDir.x * bulletDir.x + bulletDir.z * bulletDir.z);
 
         float yaw = (float) (Math.atan2(-bulletDir.x, bulletDir.z) * (180.0 / Math.PI));
-        float pitch = (float) (Math.asin(-bulletDir.y) * (180.0 / Math.PI));
+        float pitch = (float) Math.toDegrees(Math.atan2(-bulletDir.y, horizontalDistance));
 
         return new float[]{pitch, yaw};
     }
 
     public static Vec3 getTargetPos(Entity target, boolean useDeviation, boolean aimFoot) {
         Vec3 targetPos;
-        useDeviation = true;
 
         if (target.getVehicle() != null) {
             target = target.getVehicle();
+        }
+
+        if (target instanceof grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity hitBox) {
+            targetPos = hitBox.getStableAimPosition(aimFoot);
+            return useDeviation ? applyDeviation(2, targetPos, hitBox.getStableAimVelocity()) : targetPos;
         }
 
         if (aimFoot) {
@@ -356,6 +356,11 @@ public class Utils {
         Vec3 bulletPos    = bullet.position();
         Vec3 targetPos    = getTargetPos2(target, aimFoot);
         Vec3 targetVelocity = target.getDeltaMovement();
+
+        if (target instanceof grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity hitBox) {
+            targetPos = hitBox.getStableAimPosition(aimFoot);
+            targetVelocity = hitBox.getStableAimVelocity();
+        }
 
         if (useDeviation) {
             return getShootingAngle(bulletPos, bulletSpeed, targetPos, targetVelocity, RANDOM, inaccuracy);

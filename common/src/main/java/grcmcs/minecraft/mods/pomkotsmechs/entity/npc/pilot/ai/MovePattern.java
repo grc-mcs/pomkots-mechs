@@ -1,6 +1,7 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.npc.pilot.ai;
 
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.npc.pilot.MechPilotEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -569,6 +570,15 @@ public abstract class MovePattern {
             var players =
                     mech.level()
                             .players();
+
+            if (pilot instanceof MechPilotEntity mechPilot
+                    && mechPilot.getWingmanMasterId().isPresent()) {
+                var masterId = mechPilot.getWingmanMasterId().get();
+                return players.stream()
+                        .filter(player -> player.getUUID().equals(masterId))
+                        .findFirst()
+                        .orElse(null);
+            }
 
             double bestDistance =
                     Double.MAX_VALUE;

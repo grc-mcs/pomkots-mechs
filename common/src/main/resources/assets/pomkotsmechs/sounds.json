@@ -262,6 +262,11 @@
       "pomkotsmechs:se_gashan"
     ]
   },
+  "se_tomahawk_impact": {
+    "sounds": [
+      "pomkotsmechs:se_gashan"
+    ]
+  },
   "se_boost": {
     "sounds": [
       "pomkotsmechs:se_boost"
@@ -355,6 +360,16 @@
   "se_scan2": {
     "sounds": [
       "pomkotsmechs:se_scan2"
+    ]
+  },
+  "se_panel_open": {
+    "sounds": [
+      "pomkotsmechs:se_panel_open"
+    ]
+  },
+  "se_panel_close": {
+    "sounds": [
+      "pomkotsmechs:se_panel_close"
     ]
   }
 }

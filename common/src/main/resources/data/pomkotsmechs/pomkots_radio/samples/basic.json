@@ -1,0 +1,21 @@
+{
+  "messages": [
+    {
+      "id": "pomkotsmechs:samples/basic_welcome",
+      "speaker": { "translate": "radio.pomkotsmechs.sample.operator" },
+      "portrait": {
+        "type": "player_model",
+        "texture": "minecraft:textures/entity/player/wide/efe.png",
+        "yaw": -20.0,
+        "pitch": 5.0,
+        "scale": 1.0
+      },
+      "texts": [
+        {
+          "text": { "translate": "radio.pomkotsmechs.sample.welcome" },
+          "duration_ticks": 60
+        }
+      ]
+    }
+  ]
+}

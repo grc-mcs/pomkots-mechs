@@ -298,7 +298,7 @@ public class Pmb04Entity extends BaseBossEntity {
                 this.rangeAttack(
                         new Vec3(20, 10F, 20F),
                         new Vec3(-20, -6F, -20F),
-                        getMechData().meleeDamage * 3F,
+                        getMechData().meleeDamage * 1.5F,
                         2);
 
                 this.triggerAnim("action_controller", "saber_jump2");

@@ -39,7 +39,7 @@ public class DustParticle extends TextureSheetParticle {
 
         public Particle createParticle(SimpleParticleType typeIn, ClientLevel worldIn, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
             Particle p = new DustParticle(worldIn, x, y, z, xSpeed, ySpeed, zSpeed, this.spriteSet);
-            p.setLifetime((int)(10 * Math.random()) + 10);
+            p.setLifetime((int)(5 * Math.random()) + 5);
             return p;
         }
     }

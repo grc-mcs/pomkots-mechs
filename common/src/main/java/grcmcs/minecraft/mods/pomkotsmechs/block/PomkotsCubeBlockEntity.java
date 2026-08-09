@@ -2,12 +2,17 @@ package grcmcs.minecraft.mods.pomkotsmechs.block;
 
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.definition.MissionDefinitionRegistry;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.raid.RaidDefinition;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidControllerEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.AlertEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.runtime.MissionManager;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.support.MissionParticipantResolver;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.runtime.MissionService;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -53,6 +58,7 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
 
     private UUID raidControllerUUID;
     private RaidControllerEntity raidControllerEntity;
+    private UUID activeMissionInstanceUUID;
 
     @Override
     public void saveAdditional(@NotNull CompoundTag tag) {
@@ -70,6 +76,11 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
             tag.putUUID(PomkotsMechs.nbtName("RaidControllerUUID"), raidControllerUUID);
         } else {
             tag.remove(PomkotsMechs.nbtName("RaidControllerUUID"));
+        }
+        if (activeMissionInstanceUUID != null) {
+            tag.putUUID(PomkotsMechs.nbtName("MissionInstanceUUID"), activeMissionInstanceUUID);
+        } else {
+            tag.remove(PomkotsMechs.nbtName("MissionInstanceUUID"));
         }
 
     }
@@ -95,6 +106,8 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
                 }
             }
         }
+        activeMissionInstanceUUID = tag.hasUUID(PomkotsMechs.nbtName("MissionInstanceUUID"))
+                ? tag.getUUID(PomkotsMechs.nbtName("MissionInstanceUUID")) : null;
         tryRefill();
     }
 
@@ -172,7 +185,8 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
 
             case PomkotsCubeBlockEntity.MODE_YELLOW:
                 if (!this.level.isClientSide) {
-                    if (raidControllerUUID == null && summonActionTickCount == 0) {
+                    if (raidControllerUUID == null && activeMissionInstanceUUID == null
+                            && summonActionTickCount == 0) {
                         summonActionTickCount = 1;
                     }
                 } else {
@@ -184,25 +198,11 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
                 if (!this.level.isClientSide) {
                     if (p.getMainHandItem().is(PomkotsMechs.CUBEKEY_ITEM.get())) {
                         if (raidControllerUUID == null && summonActionTickCount == 0 && this.lootTable != null) {
-                            var chestData = PomkotsDataPackManager.getInstance().getDataPack().getChestData(this.lootTable.toString());
-                            var raidData = PomkotsDataPackManager.getInstance().getDataPack().getRaidData(chestData.raid_id);
-
-                            if (raidData != null) {
-                                if ("activate".equals(raidData.type)) {
-                                    var bosses = RaidControllerEntity.getInactiveBossesAroundPos(this.level, this.getBlockPos());
-                                    if (bosses.isEmpty()) {
-                                        sendMessageForOpener("{text.pomkotsmechs.messages.pomkotscube.01}");
-                                        break;
-                                    }
-                                }
-
+                            if (canStartConfiguredEncounter()) {
                                 summonActionTickCount = 1;
-
                                 if (!PomkotsMechs.CONFIG.debugModeEnabled) {
                                     p.getMainHandItem().shrink(1);
                                 }
-                            } else {
-                                break;
                             }
                         }
                     } else {
@@ -218,22 +218,9 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
                 if (!this.level.isClientSide) {
                     if (p.getMainHandItem().is(PomkotsMechs.CUBEKEY_ITEM_PURPLE.get())) {
                         if (raidControllerUUID == null && summonActionTickCount == 0 && this.lootTable != null) {
-                            var chestData = PomkotsDataPackManager.getInstance().getDataPack().getChestData(this.lootTable.toString());
-                            var raidData = PomkotsDataPackManager.getInstance().getDataPack().getRaidData(chestData.raid_id);
-
-                            if (raidData != null) {
-                                if ("activate".equals(raidData.type)) {
-                                    var bosses = RaidControllerEntity.getInactiveBossesAroundPos(this.level, this.getBlockPos());
-                                    if (bosses.isEmpty()) {
-                                        sendMessageForOpener("{text.pomkotsmechs.messages.pomkotscube.01}");
-                                        break;
-                                    }
-                                }
-
+                            if (canStartConfiguredEncounter()) {
                                 summonActionTickCount = 1;
                                 p.getMainHandItem().shrink(1);
-                            } else {
-                                break;
                             }
                         }
                     } else {
@@ -256,6 +243,7 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
 
     public void tick() {
         if (level != null && !level.isClientSide) {
+            refreshActiveMission();
             if (this.mode == MODE_BLUE) {
                 tryRefill();
             } else {
@@ -271,10 +259,11 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
                         spawnAlertEffect();
 
                     } else if (summonActionTickCount > 50) {
-                        startRaid();
+                        startConfiguredEncounter();
                         summonActionTickCount = 0;
                     }
-                } else if (raidControllerEntity == null || !raidControllerEntity.isAlive()) {
+                } else if (activeMissionInstanceUUID == null
+                        && (raidControllerEntity == null || !raidControllerEntity.isAlive())) {
                     this.raidControllerUUID = null;
                     this.raidControllerEntity = null;
                     this.setChanged();
@@ -297,13 +286,21 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
         level.addFreshEntity(e);
     }
 
-    private void startRaid() {
+    private void startConfiguredEncounter() {
         if (opener != null
                 && this.lootTable != null
                 && this.lootTable.getNamespace().equals("pomkotsmechs")
                 && PomkotsDataPackManager.getInstance().getDataPack().getChestData(this.lootTable.toString()) != null) {
 
             var chestData = PomkotsDataPackManager.getInstance().getDataPack().getChestData(this.lootTable.toString());
+            if ("mission".equals(chestData.type)) {
+                startMission(chestData.mission_id);
+                return;
+            }
+            if (!"raid".equals(chestData.type)) {
+                PomkotsMechs.LOGGER.error("Unsupported chest encounter type: {}", chestData.type);
+                return;
+            }
             var raidData = PomkotsDataPackManager.getInstance().getDataPack().getRaidData(chestData.raid_id);
 
             if (raidData != null) {
@@ -354,6 +351,69 @@ public class PomkotsCubeBlockEntity extends ChestBlockEntity implements GeoBlock
                 PomkotsMechs.LOGGER.error("Specified raid does not exist:" + chestData.raid_id);
             }
         }
+    }
+
+    private boolean canStartConfiguredEncounter() {
+        if (activeMissionInstanceUUID != null || this.lootTable == null) return false;
+        var chestData = PomkotsDataPackManager.getInstance().getDataPack().getChestData(this.lootTable.toString());
+        if (chestData == null) return false;
+        if ("mission".equals(chestData.type)) {
+            if (chestData.mission_id == null) return false;
+            if (MissionDefinitionRegistry.get(new ResourceLocation(chestData.mission_id)).isEmpty()) return false;
+            if (chestData.requires_inactive_boss
+                    && RaidControllerEntity.getInactiveBossesAroundPos(this.level, this.getBlockPos()).isEmpty()) {
+                sendMessageForOpener("{text.pomkotsmechs.messages.pomkotscube.01}");
+                return false;
+            }
+            return true;
+        }
+        if (!"raid".equals(chestData.type) || chestData.raid_id == null) return false;
+        var raidData = PomkotsDataPackManager.getInstance().getDataPack().getRaidData(chestData.raid_id);
+        if (raidData == null) return false;
+        if ("activate".equals(raidData.type)
+                && RaidControllerEntity.getInactiveBossesAroundPos(this.level, this.getBlockPos()).isEmpty()) {
+            sendMessageForOpener("{text.pomkotsmechs.messages.pomkotscube.01}");
+            return false;
+        }
+        return true;
+    }
+
+    private void startMission(String missionIdText) {
+        if (!(opener instanceof ServerPlayer serverPlayer) || missionIdText == null) return;
+        ResourceLocation missionId = new ResourceLocation(missionIdText);
+        var definition = MissionDefinitionRegistry.get(missionId).orElse(null);
+        if (definition == null) {
+            PomkotsMechs.LOGGER.error("Specified mission does not exist: {}", missionId);
+            return;
+        }
+        var result = MissionService.start(
+                serverPlayer,
+                definition,
+                GlobalPos.of(serverPlayer.serverLevel().dimension(), this.getBlockPos()),
+                MissionParticipantResolver.resolve(serverPlayer, definition),
+                null,
+                null
+        );
+        if (result.success()) {
+            activeMissionInstanceUUID = result.instanceId();
+            setChanged();
+        } else {
+            PomkotsMechs.LOGGER.warn("Cube could not start mission {}: {}", missionId, result.reason());
+            serverPlayer.displayClientMessage(
+                    net.minecraft.network.chat.Component.literal("Mission start failed: " + result.reason()), false);
+        }
+    }
+
+    private void refreshActiveMission() {
+        if (activeMissionInstanceUUID == null || !(level instanceof ServerLevel serverLevel)) return;
+        boolean running = MissionManager.all(serverLevel.getServer()).stream()
+                .anyMatch(instance -> instance.instanceId().equals(activeMissionInstanceUUID));
+        if (!running) clearActiveMission();
+    }
+
+    public void clearActiveMission() {
+        activeMissionInstanceUUID = null;
+        setChanged();
     }
 
     private BlockPos getRaidEntitySpawnPos(RaidDefinition raidData) {

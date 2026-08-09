@@ -246,6 +246,59 @@ public class RenderUtils {
         poseStack.popPose();
     }
 
+    public static void renderHealthBar(
+            LivingEntity entity,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            EntityRenderDispatcher erd,
+            float heightOffset
+    ) {
+        Minecraft mc = Minecraft.getInstance();
+
+        if (mc.options.hideGui || entity.tickCount < 5) {
+            return;
+        }
+
+        poseStack.pushPose();
+
+        // 頭の上
+        poseStack.translate(0.0, entity.getBbHeight() + heightOffset, 0.0);
+
+        // カメラ向き
+        poseStack.mulPose(erd.cameraOrientation());
+
+        // ===== 距離補正スケール =====
+        Vec3 camPos = erd.camera.getPosition();
+        double dist = camPos.distanceTo(entity.position());
+
+        // ここが肝
+        float baseScale = 0.002f;
+        float scale = (float) (baseScale * dist);
+        poseStack.scale(-scale, -scale, scale);
+
+        PoseStack.Pose pose = poseStack.last();
+
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.debugQuads());
+
+        float barWidth = 20f;
+        float barHeight = 3f;
+        float gap = 3f;
+
+        // ===== 値（仮）=====
+        float hpRatio = entity.getHealth() / entity.getMaxHealth();
+
+        // Y位置
+        float hpY = -(barHeight + gap);
+
+        // HPバー
+        drawBar(vc, pose, barWidth, barHeight, hpY, hpRatio,
+                0, 0, 0,
+                224, 224, 224);
+
+        poseStack.translate(0.0, -15, 0.0);
+
+        poseStack.popPose();
+    }
 
     public static void renderMarking(
             LivingEntity entity,

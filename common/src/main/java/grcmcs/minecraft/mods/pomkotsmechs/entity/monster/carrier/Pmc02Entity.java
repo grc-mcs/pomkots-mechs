@@ -8,6 +8,9 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonsterPe
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb01mk2Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.BaseSmallMonsterEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.event.MissionSpawnContext;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.event.MissionSpawnSource;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.support.MissionSpawnTrackingService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -39,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Pmc02Entity extends GenericPomkotsMonsterPercistant implements GeoEntity, GeoAnimatable {
+public class Pmc02Entity extends GenericPomkotsMonsterPercistant implements GeoEntity, GeoAnimatable, MissionSpawnSource {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private static final int MAX_LIFE_TICKS = 4000;
     private int lifeTicks = 0;
@@ -51,6 +54,7 @@ public class Pmc02Entity extends GenericPomkotsMonsterPercistant implements GeoE
 
     public RaidControllerEntity raidControllerEntity = null;
     public UUID raidControllerEntityUUID = null;
+    private MissionSpawnContext missionSpawnContext;
 
     @Override
     public String getMechName() {
@@ -66,7 +70,8 @@ public class Pmc02Entity extends GenericPomkotsMonsterPercistant implements GeoE
     @Override
     public void tick() {
         this.setNoGravity(false);
-
+        this.setNoAi(true);
+        
         super.tick();
 
         if (this.isServerSide()) {
@@ -111,11 +116,12 @@ public class Pmc02Entity extends GenericPomkotsMonsterPercistant implements GeoE
                                     mons.setInRaid(this.isInRaid);
                                     mons.setInEvent(this.isInEvent());
                                 }
-                                if (raidControllerEntity != null) {
-                                    raidControllerEntity.addSpawnedEntity(ent);
+                                if (this.level().addFreshEntity(ent)) {
+                                    if (raidControllerEntity != null) raidControllerEntity.addSpawnedEntity(ent);
+                                    MissionSpawnTrackingService.registerSpawnedChild(this, ent);
+                                } else {
+                                    ent.discard();
                                 }
-
-                                this.level().addFreshEntity(ent);
                             }
                         }
                     }
@@ -149,6 +155,9 @@ public class Pmc02Entity extends GenericPomkotsMonsterPercistant implements GeoE
         } else {
             compound.remove(PomkotsMechs.nbtName("RaidControllerEntityUUID"));
         }
+        if (missionSpawnContext != null) {
+            compound.put(PomkotsMechs.nbtName("MissionSpawnContext"), missionSpawnContext.save());
+        }
     }
 
     @Override
@@ -176,6 +185,33 @@ public class Pmc02Entity extends GenericPomkotsMonsterPercistant implements GeoE
         } else {
             raidControllerEntityUUID = null;
         }
+        if (compound.contains(PomkotsMechs.nbtName("MissionSpawnContext"), Tag.TAG_COMPOUND)) {
+            missionSpawnContext = MissionSpawnContext.load(
+                    compound.getCompound(PomkotsMechs.nbtName("MissionSpawnContext")));
+        } else {
+            missionSpawnContext = null;
+        }
+    }
+
+    @Override
+    public boolean hasPendingMissionSpawns() {
+        return !spawnTargetMobs.isEmpty();
+    }
+
+    @Override
+    public MissionSpawnContext getMissionSpawnContext() {
+        return missionSpawnContext;
+    }
+
+    @Override
+    public void setMissionSpawnContext(MissionSpawnContext context) {
+        missionSpawnContext = context;
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        if (reason.shouldDestroy()) MissionSpawnTrackingService.completeSource(this);
+        super.remove(reason);
     }
 
     private final AnimationController<Pmc02Entity> trigger = new AnimationController<>(this, "action_controller", state -> PlayState.STOP)

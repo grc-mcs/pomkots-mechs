@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 6,
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:iron_ingot", "weight": 8 },
+        { "type": "minecraft:item", "name": "pomkotsmechs:pellet", "weight": 3 },
+        { "type": "minecraft:item", "name": "pomkotsmechs:p_titanium_nugget", "weight": 2 }
+      ]
+    }
+  ]
+}

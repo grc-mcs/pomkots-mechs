@@ -25,6 +25,15 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 // Gun Mob
 public class Pms08Entity extends BaseSmallMonsterEntity implements GeoEntity, GeoAnimatable {
+    @Override
+    protected boolean shouldStayAboveWaterSurface() { return true; }
+
+    @Override
+    protected float getDamageHitBoxWidth() { return 5.0F; }
+
+    @Override
+    protected float getDamageHitBoxHeight() { return 5.0F; }
+
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     public static final float DEFAULT_SCALE = 1.0f;
 

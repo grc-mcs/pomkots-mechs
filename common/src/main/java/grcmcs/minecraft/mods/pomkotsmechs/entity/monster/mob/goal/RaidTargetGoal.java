@@ -1,8 +1,9 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal;
 
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -43,8 +44,11 @@ public class RaidTargetGoal<T extends LivingEntity> extends TargetGoal {
     protected LivingEntity findTarget() {
         long time = mob.tickCount;
         long lastHurtTime = mob.getLastHurtByMobTimestamp();
+        LivingEntity attacker = mob.getLastHurtByMob();
 
-        if (time - lastHurtTime < playerRetargetTicks && mob.getLastHurtByMob() instanceof Player attacker) {
+        if (time - lastHurtTime < playerRetargetTicks
+                && attacker != null
+                && !(attacker instanceof Enemy)) {
             return attacker;
         }
 
@@ -78,8 +82,17 @@ public class RaidTargetGoal<T extends LivingEntity> extends TargetGoal {
     }
 
     @Nullable
-    private T findBaseTarget() {
+    private LivingEntity findBaseTarget() {
         if (!(mob.level() instanceof ServerLevel level)) return null;
+        if (mob instanceof GenericPomkotsMonster pomkots && pomkots.getMissionDefenseTargetId() != null) {
+            Entity target = level.getEntity(pomkots.getMissionDefenseTargetId());
+            if (target instanceof LivingEntity living
+                    && living.isAlive() && !living.isRemoved()) {
+                return living;
+            }
+            // Mission対象が指定されている個体は、別Missionや既存Raidの対象へフォールバックしない。
+            return null;
+        }
         Vec3 pos = mob.position();
         AABB area = new AABB(pos.x - targetRange, pos.y - 100, pos.z - targetRange,
                 pos.x + targetRange, pos.y + 100, pos.z + targetRange);

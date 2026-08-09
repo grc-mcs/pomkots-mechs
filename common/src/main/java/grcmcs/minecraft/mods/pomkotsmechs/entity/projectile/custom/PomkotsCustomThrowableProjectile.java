@@ -1,8 +1,10 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom;
 
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
+import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.SmallMobHitBoxEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PomkotsThrowableProjectile;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ProjectileUtil;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
@@ -10,6 +12,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
@@ -18,6 +24,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableProjectile {
+    private static final double WATER_IMPACT_VIEW_DISTANCE = 200.0D;
+
     public enum RangeCategory {
         OPTIMAL            ((short)0),
         EFFECTIVE            ((short)1),
@@ -44,6 +52,8 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
     protected boolean toDiscard = false;
 
     private static final int SUBSTEPS = 1;
+    private static final double CLIENT_REMOVAL_LOOKAHEAD_TICKS = 3.0D;
+    private boolean waterImpactHandled;
 
     public PomkotsCustomThrowableProjectile(
             EntityType<? extends ThrowableProjectile> entityType, Level world,
@@ -95,13 +105,29 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
             Vec3 start = this.position();
             Vec3 end = start.add(subStepMovement);
 
+            if (!waterImpactHandled && isWaterAt(start)) {
+                waterImpactHandled = true;
+            }
+
             // ブロックへのレイキャスト
             BlockHitResult blockHit = this.level().clip(new ClipContext(
                     start, end,
                     ClipContext.Block.COLLIDER,
-                    ClipContext.Fluid.NONE,
+                    waterImpactHandled ? ClipContext.Fluid.NONE : ClipContext.Fluid.ANY,
                     this
             ));
+            if (!waterImpactHandled && isWaterHit(blockHit)) {
+                spawnWaterImpact(blockHit.getLocation());
+                waterImpactHandled = true;
+                // Water only produces a visual effect. Solid collision behind it
+                // must still be evaluated by the original block-only ray cast.
+                blockHit = this.level().clip(new ClipContext(
+                        start, end,
+                        ClipContext.Block.COLLIDER,
+                        ClipContext.Fluid.NONE,
+                        this
+                ));
+            }
 
             // エンティティへのレイキャスト（射出者を除外）
             AABB searchBox = new AABB(start, end).inflate(0.5);
@@ -117,6 +143,7 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
                             && entity.isPickable()
                             && !entity.isSpectator()
                             && !(entity instanceof BossHitBoxEntity hb && hb.isRelatedShooter(this))
+                            && !(entity instanceof SmallMobHitBoxEntity hb && hb.isAttachedTo(this.getShooter()))
             );
 
             HitResult hit = selectCloserHit(start, blockHit, entityHit);
@@ -131,6 +158,48 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
         }
 
         return true; // 生存
+    }
+
+    private boolean isWaterHit(BlockHitResult hit) {
+        return hit.getType() != HitResult.Type.MISS
+                && this.level().getFluidState(hit.getBlockPos()).is(FluidTags.WATER);
+    }
+
+    private boolean isWaterAt(Vec3 position) {
+        return this.level().getFluidState(BlockPos.containing(position)).is(FluidTags.WATER);
+    }
+
+    private void spawnWaterImpact(Vec3 position) {
+        if (!(this.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        double intensity = Math.max(1.0D, getWaterImpactIntensity());
+        Vec3 movement = getDeltaMovement();
+        double horizontalSpread = Math.min(
+                0.38D * Math.sqrt(intensity),
+                (movement.horizontalDistance() * 0.045D + 0.14D) * Math.sqrt(intensity));
+        double verticalSpread = 0.18D * Math.sqrt(intensity);
+        double launchSpeed = 0.32D * (1.0D + (intensity - 1.0D) * 0.28D);
+        int particleCount = (int) Math.round(18.0D * intensity);
+        double viewDistanceSqr = WATER_IMPACT_VIEW_DISTANCE * WATER_IMPACT_VIEW_DISTANCE;
+        for (ServerPlayer player : serverLevel.players()) {
+            if (player.distanceToSqr(position) > viewDistanceSqr) {
+                continue;
+            }
+            serverLevel.sendParticles(
+                    player,
+                    PomkotsMechs.WATER_SPLASH.get(),
+                    true,
+                    position.x, position.y + 0.12D, position.z,
+                    particleCount,
+                    horizontalSpread, verticalSpread, horizontalSpread,
+                    launchSpeed
+            );
+        }
+    }
+
+    protected double getWaterImpactIntensity() {
+        return 1.0D;
     }
 
     protected void setPosInSubStep(Vec3 pos) {
@@ -248,8 +317,52 @@ public abstract class PomkotsCustomThrowableProjectile extends PomkotsThrowableP
     @Override
     public void onClientRemoval() {
         if (this.level().isClientSide) {
-            ParticleUtil.addSparkParticles(this.position(), this.level());
+            ParticleUtil.addSparkParticles(findClientRemovalEffectPosition(), this.level());
         }
+    }
+
+    /**
+     * Reconstructs a likely impact point from the client's last synchronized position.
+     * This runs once, only when the projectile is removed, so active projectile cost is unchanged.
+     */
+    private Vec3 findClientRemovalEffectPosition() {
+        Vec3 start = position();
+        Vec3 movement = getDeltaMovement().scale(CLIENT_REMOVAL_LOOKAHEAD_TICKS);
+        if (movement.lengthSqr() < 1.0E-7D) {
+            return start;
+        }
+
+        Vec3 end = start.add(movement);
+        BlockHitResult blockHit = level().clip(new ClipContext(
+                start,
+                end,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                this
+        ));
+
+        AABB searchBox = new AABB(start, end).inflate(0.5D);
+        EntityHitResult entityHit = getEntityHitResult(
+                level(),
+                this,
+                start,
+                end,
+                searchBox,
+                entity -> entity != this
+                        && entity != getShooter()
+                        && entity != getOwner()
+                        && entity.isAlive()
+                        && entity.isPickable()
+                        && !entity.isSpectator()
+                        && !(entity instanceof BossHitBoxEntity hitBox && hitBox.isRelatedShooter(this))
+                        && !(entity instanceof SmallMobHitBoxEntity hitBox
+                            && (hitBox.isAttachedTo(getShooter()) || hitBox.isAttachedTo(getOwner())))
+        );
+
+        HitResult hit = selectCloserHit(start, blockHit, entityHit);
+        return hit != null && hit.getType() != HitResult.Type.MISS
+                ? hit.getLocation()
+                : start;
     }
 
     // 重力を無効化（ThrowableProjectileの挙動を上書き）

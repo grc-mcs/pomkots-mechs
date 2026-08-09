@@ -12,6 +12,9 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -22,7 +25,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class BossHitBoxEntity extends LivingEntity {
-    protected final BaseBossEntity parentEntity;
+    private static final EntityDataAccessor<Integer> PARENT_ID = SynchedEntityData.defineId(BossHitBoxEntity.class, EntityDataSerializers.INT);
+    protected BaseBossEntity parentEntity;
     protected Consumer<Void> breakCallback;
 
     public static AttributeSupplier.Builder createMobAttributes() {
@@ -38,6 +42,9 @@ public class BossHitBoxEntity extends LivingEntity {
     public BossHitBoxEntity(EntityType<? extends LivingEntity> entityType, Level world, BaseBossEntity parent) {
         super(entityType, world);
         this.parentEntity = parent;
+        if (parent != null) {
+            this.entityData.set(PARENT_ID, parent.getId());
+        }
         this.noPhysics = true; // 当たり判定のみで、物理的な挙動はなし
         this.setNoGravity(true);
     }
@@ -50,11 +57,45 @@ public class BossHitBoxEntity extends LivingEntity {
         return Vec3.ZERO;
     }
 
+    public BaseBossEntity getParentEntity() {
+        int parentId = this.entityData.get(PARENT_ID);
+        if (parentEntity == null || parentEntity.isRemoved() || parentEntity.getId() != parentId) {
+            var entity = this.level().getEntity(parentId);
+            parentEntity = entity instanceof BaseBossEntity boss ? boss : null;
+        }
+        return parentEntity;
+    }
+
+    public void snapToParent() {
+        BaseBossEntity parent = getParentEntity();
+        if (parent == null) return;
+        Vec3 position = parent.position().add(getRelativeParentPos());
+        this.setDeltaMovement(Vec3.ZERO);
+        this.setPos(position.x, position.y, position.z);
+        this.xo = position.x;
+        this.yo = position.y;
+        this.zo = position.z;
+    }
+
+    public Vec3 getStableAimPosition(boolean aimFoot) {
+        BaseBossEntity parent = getParentEntity();
+        Vec3 base = parent != null ? parent.position().add(getRelativeParentPos()) : this.position();
+        return aimFoot ? base : base.add(0, this.getBbHeight() * 0.5, 0);
+    }
+
+    public Vec3 getStableAimVelocity() {
+        BaseBossEntity parent = getParentEntity();
+        return parent != null ? parent.getDeltaMovement() : Vec3.ZERO;
+    }
+
     @Override
     public void tick() {
         super.tick();
 
-        if (isParentActive() && parentEntity.getAiMode() == BaseBossEntity.AI_MODE_INACTIVE) {
+        snapToParent();
+
+        BaseBossEntity parent = getParentEntity();
+        if (isParentActive() && parent.getAiMode() == BaseBossEntity.AI_MODE_INACTIVE) {
             return;
         }
 
@@ -86,21 +127,24 @@ public class BossHitBoxEntity extends LivingEntity {
     }
 
     public boolean isRelatedShooter(PomkotsThrowableProjectile projectile) {
-        return parentEntity != null && parentEntity.equals(projectile.getShooter());
+        BaseBossEntity parent = getParentEntity();
+        return parent != null && parent.equals(projectile.getShooter());
     }
 
     protected boolean isParentActive() {
-        return parentEntity != null && !parentEntity.isDeadOrDying();
+        BaseBossEntity parent = getParentEntity();
+        return parent != null && !parent.isDeadOrDying();
     }
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
         // 当たった場合、親エンティティにダメージを伝える
         if (isParentActive()) {
-            parentEntity.invulnerableTime = 0;
+            BaseBossEntity parent = getParentEntity();
+            parent.invulnerableTime = 0;
             this.invulnerableTime = 0;
 
-            return parentEntity.hurtFromAdditionalHitBox(source, amount);
+            return parent.hurtFromAdditionalHitBox(source, amount);
 
         } else if (Utils.isSystemicDamage(source)) {
             return super.hurt(source, amount);
@@ -111,8 +155,19 @@ public class BossHitBoxEntity extends LivingEntity {
 
     public void addStunPoint(int point) {
         if (isParentActive()) {
-            parentEntity.addStunPoint(point);
+            getParentEntity().addStunPoint(point);
         }
+    }
+
+    @Override
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        this.entityData.define(PARENT_ID, -1);
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
     }
 
     @Override

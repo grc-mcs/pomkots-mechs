@@ -202,6 +202,32 @@ public abstract class Motion {
         }
     }.init();
 
+    public static Motion TOMAHAWK = new Motion() {
+        public Motion init() {
+            maxActionTick = 24;
+            interval = -1;
+            actualFireTick = new HashSet<>();
+            actualFireTick.add(10);
+
+            return this;
+        }
+
+        @Override
+        public MotionType getType() {
+            return MotionType.ONE_SHOT;
+        }
+
+        @Override
+        public String getAnimationName(ActionWeapon act, String side) {
+            return "animation.pmv01.w_tomahawk_" + side;
+        }
+
+        @Override
+        public boolean concurrentAvailable() {
+            return true;
+        }
+    }.init();
+
     public static Motion SABER = new Motion() {
         public Motion init() {
             maxActionTick = 19;

@@ -9,6 +9,9 @@ import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BaseBossEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.StraightRushGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.ExplosionEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.event.MissionSpawnContext;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.event.MissionSpawnSource;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.support.MissionSpawnTrackingService;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -19,6 +22,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -38,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoEntity, GeoAnimatable {
+public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoEntity, GeoAnimatable, MissionSpawnSource {
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     private static final int MAX_LIVING_TICK = 600;
@@ -50,7 +54,7 @@ public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoE
     private int countDownForDiscard = -1;
 
     private float dropDistance = 100;
-    private float healthModifier = 1.0F;
+    private MissionSpawnContext missionSpawnContext;
 
     public Pmc01Entity(EntityType<? extends Monster> entityType, Level level) {
         super(entityType, level);
@@ -104,7 +108,7 @@ public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoE
         if (this.isServerSide()) {
             if (tickCount > MAX_LIVING_TICK) {
                 if (this.container != null) {
-                    this.container.discard();
+                    MissionSpawnTrackingService.discardSpawnedChild(this, this.container);
                 }
                 this.discard();
             }
@@ -120,14 +124,17 @@ public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoE
 
                     entity.setPos(this.position());
 
-                    this.level().addFreshEntity(entity);
+                    if (!this.level().addFreshEntity(entity)) {
+                        entity.discard();
+                        return;
+                    }
                     this.containerUUID = entity.getUUID();
                     this.container = entity;
 
                     if (entity instanceof GenericPomkotsMonster pomkots) {
                         pomkots.setInRaid(this.isInRaid);
                         pomkots.setInEvent(this.isInEvent());
-                        pomkots.setModifiers(healthModifier, 1.0F);
+                        pomkots.setModifiers(healthModifier, attackModifier);
                     }
 
                     if (raidControllerEntity != null) {
@@ -138,6 +145,7 @@ public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoE
                             pmc02.raidControllerEntity = raidControllerEntity;
                         }
                     }
+                    MissionSpawnTrackingService.registerSpawnedChild(this, entity);
                 }
                 containerType = "";
             }
@@ -162,8 +170,13 @@ public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoE
 
                 var yaw = this.getYRot();
                 container.setYRot(yaw);
-                container.setYHeadRot(yaw);
                 container.yRotO = yaw;
+                if (container instanceof LivingEntity living) {
+                    living.setYBodyRot(yaw);
+                    living.yBodyRotO = yaw;
+                    living.setYHeadRot(yaw);
+                    living.yHeadRotO = yaw;
+                }
 
                 if (this.getTarget() != null
                         && this.container != null
@@ -219,6 +232,7 @@ public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoE
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.putString(PomkotsMechs.nbtName("ContainerType"), containerType);
+        compound.putFloat(PomkotsMechs.nbtName("DropDistance"), dropDistance);
 
         if (containerUUID != null) {
             compound.putUUID(PomkotsMechs.nbtName("ContainerUUID"), containerUUID);
@@ -237,6 +251,9 @@ public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoE
             list.add(StringTag.valueOf(type));
         }
         compound.put(PomkotsMechs.nbtName("SpawnTargetMobs"), list);
+        if (missionSpawnContext != null) {
+            compound.put(PomkotsMechs.nbtName("MissionSpawnContext"), missionSpawnContext.save());
+        }
     }
 
     @Override
@@ -282,20 +299,49 @@ public class Pmc01Entity extends GenericPomkotsMonsterPercistant implements GeoE
         } else {
             healthModifier = 1.0F;
         }
+        if (compound.contains(PomkotsMechs.nbtName("MissionSpawnContext"), Tag.TAG_COMPOUND)) {
+            missionSpawnContext = MissionSpawnContext.load(
+                    compound.getCompound(PomkotsMechs.nbtName("MissionSpawnContext")));
+        } else {
+            missionSpawnContext = null;
+        }
+    }
+
+    @Override
+    public boolean hasPendingMissionSpawns() {
+        return !containerType.isEmpty();
+    }
+
+    @Override
+    public MissionSpawnContext getMissionSpawnContext() {
+        return missionSpawnContext;
+    }
+
+    @Override
+    public void setMissionSpawnContext(MissionSpawnContext context) {
+        missionSpawnContext = context;
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        if (reason.shouldDestroy()) MissionSpawnTrackingService.completeSource(this);
+        super.remove(reason);
     }
 
     @Override
     protected void tickDeath() {
         ++this.deathTime;
         if (this.deathTime == 10) {
-            if (isServerSide() && RemovalReason.KILLED.equals(this.getRemovalReason())) {
+            if (isServerSide()) {
                 var level = this.level();
                 ExplosionEntity e = new ExplosionEntity(PomkotsMechs.EXPLOSION.get(), level);
                 e.setPos(this.position());
                 level.addFreshEntity(e);
 
                 if (this.container != null) {
-                    this.container.discard();
+                    MissionSpawnTrackingService.discardSpawnedChild(this, this.container);
+                    this.container = null;
+                    this.containerUUID = null;
                 }
             }
 

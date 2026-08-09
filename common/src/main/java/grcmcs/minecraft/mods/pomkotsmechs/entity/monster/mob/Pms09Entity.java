@@ -27,6 +27,9 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 // Flying Mob
 public class Pms09Entity extends BaseSmallMonsterEntity implements GeoEntity, GeoAnimatable {
+    @Override
+    protected boolean shouldStayAboveWaterSurface() { return true; }
+
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     public static final float DEFAULT_SCALE = 0.5F;
 

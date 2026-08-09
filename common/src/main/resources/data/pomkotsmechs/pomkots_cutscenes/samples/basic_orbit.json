@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "type": "orbit",
+  "start_fade": true,
+  "duration_ticks": 60,
+  "radius": 6.0,
+  "height": 2.5,
+  "angular_speed_degrees": 2.0,
+  "clockwise": false
+}

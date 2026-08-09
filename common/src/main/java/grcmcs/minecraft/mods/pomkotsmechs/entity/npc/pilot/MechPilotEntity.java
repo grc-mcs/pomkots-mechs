@@ -4,6 +4,7 @@ import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.npc.pilot.ai.FindAndEnterMechGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.custom.Pmvc01Entity;
+import grcmcs.minecraft.mods.pomkotsmechs.mission.runtime.MissionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
@@ -33,6 +34,9 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.util.Optional;
+import java.util.UUID;
 
 public class MechPilotEntity extends PathfinderMob implements GeoEntity, GeoAnimatable {
     public static AttributeSupplier.@NotNull Builder createMobAttributes() {
@@ -90,6 +94,10 @@ public class MechPilotEntity extends PathfinderMob implements GeoEntity, GeoAnim
 
     @Override
     public void tick() {
+        if (MissionManager.discardOrphanedMissionEntity(this)) {
+            return;
+        }
+
         if (this.getVehicle() instanceof Pmvc01Entity) {
             this.setNoAi(true);
         } else {
@@ -140,6 +148,22 @@ public class MechPilotEntity extends PathfinderMob implements GeoEntity, GeoAnim
     @Override
     public void readAdditionalSaveData(@NotNull CompoundTag compound) {
         super.readAdditionalSaveData(compound);
+        wingmanMasterId = compound.hasUUID(PomkotsMechs.nbtName("WingmanMaster"))
+                ? compound.getUUID(PomkotsMechs.nbtName("WingmanMaster")) : null;
+        String actionRangeKey = PomkotsMechs.nbtName("CombatActionRange");
+        combatActionRange = compound.contains(actionRangeKey)
+                ? Math.max(0.0D, compound.getDouble(actionRangeKey)) : 0.0D;
+        String homeXKey = PomkotsMechs.nbtName("CombatHomeX");
+        String homeYKey = PomkotsMechs.nbtName("CombatHomeY");
+        String homeZKey = PomkotsMechs.nbtName("CombatHomeZ");
+        combatHome = compound.contains(homeXKey)
+                && compound.contains(homeYKey)
+                && compound.contains(homeZKey)
+                ? new Vec3(
+                        compound.getDouble(homeXKey),
+                        compound.getDouble(homeYKey),
+                        compound.getDouble(homeZKey))
+                : null;
 
         if (!compound.contains(PomkotsMechs.nbtName("PilotTexture")) || compound.getString(PomkotsMechs.nbtName("PilotTexture")).isEmpty()) {
             setTextureLocation(PomkotsMechs.id("textures/entity/pilot/mech_pilot_wide_john.png").toString());
@@ -157,6 +181,15 @@ public class MechPilotEntity extends PathfinderMob implements GeoEntity, GeoAnim
     @Override
     public void addAdditionalSaveData(@NotNull CompoundTag compound) {
         super.addAdditionalSaveData(compound);
+        if (wingmanMasterId != null) {
+            compound.putUUID(PomkotsMechs.nbtName("WingmanMaster"), wingmanMasterId);
+        }
+        compound.putDouble(PomkotsMechs.nbtName("CombatActionRange"), combatActionRange);
+        if (combatHome != null) {
+            compound.putDouble(PomkotsMechs.nbtName("CombatHomeX"), combatHome.x);
+            compound.putDouble(PomkotsMechs.nbtName("CombatHomeY"), combatHome.y);
+            compound.putDouble(PomkotsMechs.nbtName("CombatHomeZ"), combatHome.z);
+        }
 
         compound.putString(PomkotsMechs.nbtName("PilotTexture"), getTextureLocation());
         compound.putString(PomkotsMechs.nbtName("PilotModel"), getModelLocation());
@@ -193,6 +226,9 @@ public class MechPilotEntity extends PathfinderMob implements GeoEntity, GeoAnim
     // ==============================================================================================================
 
     private boolean shouldSave = true;
+    private UUID wingmanMasterId;
+    private Vec3 combatHome;
+    private double combatActionRange;
 
     public boolean isShouldSave() {
         return shouldSave;
@@ -200,6 +236,36 @@ public class MechPilotEntity extends PathfinderMob implements GeoEntity, GeoAnim
 
     public void setShouldSave(boolean shouldSave) {
         this.shouldSave = shouldSave;
+    }
+
+    public Optional<UUID> getWingmanMasterId() {
+        return Optional.ofNullable(wingmanMasterId);
+    }
+
+    public void setWingmanMasterId(UUID wingmanMasterId) {
+        this.wingmanMasterId = wingmanMasterId;
+    }
+
+    public void setCombatActionRange(Vec3 home, double range) {
+        this.combatHome = home;
+        this.combatActionRange = Math.max(0.0D, range);
+    }
+
+    public Optional<Vec3> getCombatHome() {
+        return Optional.ofNullable(combatHome);
+    }
+
+    public double getCombatActionRange() {
+        return combatActionRange;
+    }
+
+    public boolean isWithinCombatActionRange(Vec3 position) {
+        if (combatHome == null || combatActionRange <= 0.0D) {
+            return true;
+        }
+        double dx = position.x - combatHome.x;
+        double dz = position.z - combatHome.z;
+        return dx * dx + dz * dz <= combatActionRange * combatActionRange;
     }
 
     @Override

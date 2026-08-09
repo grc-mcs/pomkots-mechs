@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": 6,
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:gold_ingot", "weight": 6 },
+        { "type": "minecraft:item", "name": "pomkotsmechs:magazinerifle", "weight": 3 },
+        { "type": "minecraft:item", "name": "pomkotsmechs:p_titanium_nugget", "weight": 2 }
+      ]
+    }
+  ]
+}

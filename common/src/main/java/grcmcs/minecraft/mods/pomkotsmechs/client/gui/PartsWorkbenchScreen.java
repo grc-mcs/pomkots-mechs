@@ -129,6 +129,7 @@ public class PartsWorkbenchScreen  extends AbstractContainerScreen<PartsWorkbenc
         this.registerParts(PomkotsMechs.TENPOU_WEAPON);
         this.registerParts(PomkotsMechs.TSURUGI_WEAPON);
         this.registerParts(PomkotsMechs.MITAKE_WEAPON);
+        this.registerParts(PomkotsMechs.KINTOKI_WEAPON);
         this.registerParts(PomkotsMechs.KAGENOBU_WEAPON);
         this.registerParts(PomkotsMechs.TAKAO_WEAPON);
         this.registerParts(PomkotsMechs.JINBA_WEAPON);

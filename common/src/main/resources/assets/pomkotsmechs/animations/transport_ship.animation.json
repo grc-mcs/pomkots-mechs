@@ -1,0 +1,15 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.transport_ship.idle": {
+			"loop": true
+		},
+		"animation.transport_ship.move": {
+			"loop": true
+		},
+		"animation.transport_ship.destroy": {
+			"loop": true
+		}
+	},
+	"geckolib_format_version": 2
+}

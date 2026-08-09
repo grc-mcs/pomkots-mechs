@@ -224,9 +224,7 @@ public class HateTargetGoal extends Goal {
         }
 
         if (mob.isInRaid()) {
-            if (raidTarget == null) {
-                raidTarget = findRaidTarget();
-            }
+            raidTarget = findRaidTarget();
             if (highestHate < 300 && raidTarget != null) {
                 return raidTarget;
             }
@@ -235,12 +233,19 @@ public class HateTargetGoal extends Goal {
         return bestTarget;
     }
 
-    private RaidObjectiveEntity raidTarget = null;
+    private LivingEntity raidTarget = null;
 
-    private RaidObjectiveEntity findRaidTarget() {
-        double targetRange = mob.getAttribute(Attributes.FOLLOW_RANGE).getBaseValue();
-
+    private LivingEntity findRaidTarget() {
         if (!(mob.level() instanceof ServerLevel level)) return null;
+        UUID missionTargetId = mob.getMissionDefenseTargetId();
+        if (missionTargetId != null) {
+            Entity target = level.getEntity(missionTargetId);
+            return target instanceof LivingEntity living
+                    && living.isAlive() && !living.isRemoved() ? living : null;
+        }
+
+        // Mission対象がない既存Raid個体は、従来どおり周辺の拠点を検索する。
+        double targetRange = mob.getAttribute(Attributes.FOLLOW_RANGE).getBaseValue();
         Vec3 pos = mob.position();
         AABB area = new AABB(pos.x - targetRange, pos.y - 100, pos.z - targetRange,
                 pos.x + targetRange, pos.y + 100, pos.z + targetRange);

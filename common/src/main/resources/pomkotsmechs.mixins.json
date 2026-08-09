@@ -25,7 +25,8 @@
     "LevelRendererMixin",
     "SoundBufferLibraryMixin",
     "EntityScanHighlightMixin",
-    "EntityScanColorMixin"
+    "EntityScanColorMixin",
+    "EntityRenderDispatcherMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "display_name": { "translate": "mission.pomkotsmechs.sample.basic.name" },
+  "settings": {
+    "allow_concurrent_instances": true,
+    "owner_disconnect": "fail",
+    "participant_disconnect": "remove",
+    "owner_death": "fail",
+    "participant_death": "ignore",
+    "participant_mode": "owner"
+  },
+  "loaded_areas": [
+    {
+      "from": { "type": "anchor", "x": -16, "y": -16, "z": -16 },
+      "to": { "type": "anchor", "x": 16, "y": 16, "z": 16 }
+    }
+  ],
+  "stages": [
+    {
+      "id": "introduction",
+      "time_limit_ticks": 200,
+      "time_limit_result": "failure",
+      "objective": { "translate": "mission.pomkotsmechs.sample.basic.objective" },
+      "events": [
+        {
+          "id": "welcome_radio",
+          "at_tick": 5,
+          "type": "pomkotsmechs:radio",
+          "message": "pomkotsmechs:samples/basic_welcome",
+          "interrupt": "queue",
+          "targets": "participants"
+        },
+        {
+          "id": "sample_cutscene",
+          "at_tick": 50,
+          "type": "pomkotsmechs:cutscene",
+          "cutscene": "pomkotsmechs:samples/basic_orbit",
+          "targets": "participants",
+          "target": {
+            "type": "position",
+            "position": { "type": "anchor", "x": 0, "y": 2, "z": 0 }
+          }
+        }
+      ],
+      "success": { "type": "pomkotsmechs:elapsed_time", "ticks": 140 },
+      "failure": { "type": "pomkotsmechs:elapsed_time", "ticks": 200 }
+    }
+  ],
+  "presentation": {
+    "on_success": {
+      "style": "mission_success",
+      "title": { "translate": "mission.pomkotsmechs.presentation.complete.title" },
+      "message": { "translate": "mission.pomkotsmechs.sample.basic.complete" },
+      "duration_ticks": 60
+    }
+  },
+  "on_success": { "commands": [] },
+  "on_failure": { "commands": [] }
+}

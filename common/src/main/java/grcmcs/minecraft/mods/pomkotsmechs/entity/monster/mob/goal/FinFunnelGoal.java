@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.BaseSmallMonsterEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -45,6 +46,7 @@ public class FinFunnelGoal extends SmallMobGoalBase {
     private Vec3 targetVelocity;
     private static final double VELOCITY_SMOOTHING = 0.15;
     private static final double POSITION_SMOOTHING = 0.08;
+    private static final double TARGET_CLEARANCE = 3.0D;
 
     private enum CombatRange {
         LONG_RANGE,
@@ -99,6 +101,11 @@ public class FinFunnelGoal extends SmallMobGoalBase {
         if (target == null) return;
 
         mob.rotateToTarget(target);
+
+        if (escapeTargetBounds()) {
+            mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
+            return;
+        }
 
         rangeTimer++;
         attackTimer++;
@@ -316,8 +323,17 @@ public class FinFunnelGoal extends SmallMobGoalBase {
         Vec3 targetPos = target.position();
 
         // ターゲット周辺のランダム位置（立体的）
-        double distance = closeRange * (0.3 + random.nextDouble() * 0.4); // 0.3-0.7倍
-        double theta = random.nextDouble() * Math.PI * 2; // 0-2π
+        double minimumClearance = target.getBbWidth() * 0.5D
+                + mob.getBbWidth() * 0.5D + TARGET_CLEARANCE;
+        double distance = Math.max(
+                closeRange * (0.3 + random.nextDouble() * 0.4),
+                minimumClearance);
+
+        Vec3 currentOffset = mob.position().subtract(targetPos);
+        double currentAngle = currentOffset.horizontalDistanceSqr() > 0.01D
+                ? Math.atan2(currentOffset.z, currentOffset.x)
+                : random.nextDouble() * Math.PI * 2.0D;
+        double theta = currentAngle + (random.nextDouble() - 0.5D) * Math.PI;
         double phi = random.nextDouble() * Math.PI; // 0-π
 
         double x = targetPos.x + distance * Math.sin(phi) * Math.cos(theta);
@@ -328,6 +344,33 @@ public class FinFunnelGoal extends SmallMobGoalBase {
         y = Math.max(targetPos.y - 2, Math.min(targetPos.y + 4, y));
 
         targetPosition = new Vec3(x, y, z);
+    }
+
+    private boolean escapeTargetBounds() {
+        double padding = mob.getBbWidth() * 0.5D + 1.0D;
+        AABB exclusion = target.getBoundingBox().inflate(padding);
+        if (!mob.getBoundingBox().intersects(exclusion)) {
+            return false;
+        }
+
+        Vec3 center = exclusion.getCenter();
+        Vec3 away = new Vec3(mob.getX() - center.x, 0.0D, mob.getZ() - center.z);
+        if (away.horizontalDistanceSqr() < 0.0001D) {
+            double angle = mob.getRandom().nextDouble() * Math.PI * 2.0D;
+            away = new Vec3(Math.cos(angle), 0.0D, Math.sin(angle));
+        } else {
+            away = away.normalize();
+        }
+
+        Vec3 escapeVelocity = away.scale(baseSpeed * 1.8D).add(0.0D, 0.12D, 0.0D);
+        currentVelocity = escapeVelocity;
+        targetVelocity = escapeVelocity;
+        targetPosition = mob.position().add(away.scale(TARGET_CLEARANCE + padding));
+        isHovering = false;
+        hoverTimer = 0;
+        mob.setDeltaMovement(escapeVelocity);
+        mob.hurtMarked = true;
+        return true;
     }
 
     private void applySmoothedMovement() {

@@ -3,6 +3,7 @@ package grcmcs.minecraft.mods.pomkotsmechs.client.input;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.npc.pilot.PilotDisposition;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.PlateEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import net.minecraft.client.Camera;
@@ -17,6 +18,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class TargetFinder {
@@ -38,14 +41,36 @@ public class TargetFinder {
     public LivingEntity findTargetEntity(Player player) {
         Camera cam = minecraft.gameRenderer.getMainCamera();
         List<LivingEntity> candidates = getEntitiesInViewDirection(cam, player);
+        Vec3 cameraPos = cam.getPosition();
+        Vec3 lookDirection = new Vec3(cam.getLookVector()).normalize();
+        List<ScoredCandidate> rankedCandidates = new ArrayList<>(candidates.size());
 
-        return candidates.stream()
-                .filter(entity -> isValidTarget(cam, entity))
-                .max((a, b) -> Double.compare(
-                        targetPriority.calculatePriority(player, a),
-                        targetPriority.calculatePriority(player, b)
-                ))
-                .orElse(null);
+        // Perform cheap distance and angle checks before any block ray cast.
+        for (LivingEntity candidate : candidates) {
+            Vec3 toCandidate = candidate.position().subtract(cameraPos);
+            double distanceSqr = toCandidate.lengthSqr();
+            if (distanceSqr <= 1.0E-8D || distanceSqr > maxDistance * maxDistance) {
+                continue;
+            }
+            double dot = toCandidate.scale(1.0D / Math.sqrt(distanceSqr)).dot(lookDirection);
+            if (dot < viewAngleCosineThreshold) {
+                continue;
+            }
+            rankedCandidates.add(new ScoredCandidate(
+                    candidate,
+                    targetPriority.calculatePriority(player, candidate)));
+        }
+
+        rankedCandidates.sort(Comparator.comparingDouble(ScoredCandidate::priority).reversed());
+
+        // The highest-priority visible target still wins, but normally only
+        // one ray cast is needed. Occluded candidates fall through in order.
+        for (ScoredCandidate candidate : rankedCandidates) {
+            if (hasLineOfSight(player, candidate.entity())) {
+                return candidate.entity();
+            }
+        }
+        return null;
     }
 
     private List<LivingEntity> getEntitiesInViewDirection(Camera cam, Player player) {
@@ -58,12 +83,13 @@ public class TargetFinder {
         AABB roughBox = createDirectionalAABB(eyePos, lookDirection, maxDistance, searchWidth);
 
         return level.getEntitiesOfClass(LivingEntity.class, roughBox, entity -> {
-            return entity != player && !isSelf(entity, player) && isTargetClass(entity) && hasLineOfSight(player, entity);
+            return entity != player && !isSelf(entity, player) && isTargetClass(entity);
         });
     }
 
     private boolean isTargetClass(LivingEntity entity) {
-        return (entity instanceof PomkotsVehicleBase && PomkotsMechs.CONFIG.targetLockPomkotsVehicles)
+        return PilotDisposition.hasHostilePilot(entity)
+                || (entity instanceof PomkotsVehicleBase && PomkotsMechs.CONFIG.targetLockPomkotsVehicles)
                 || entity instanceof GenericPomkotsMonster
                 || entity instanceof BossHitBoxEntity
                 || (entity instanceof Player && PomkotsMechs.CONFIG.targetLockPlayers)
@@ -77,7 +103,7 @@ public class TargetFinder {
         } else {
             Vec3 vec3 = new Vec3(src.getX(), src.getEyeY(), src.getZ());
             Vec3 vec32 = new Vec3(candidate.getX(), candidate.getEyeY(), candidate.getZ());
-            if (vec32.distanceTo(vec3) > maxDistance) {
+            if (vec32.distanceToSqr(vec3) > maxDistance * maxDistance) {
                 return false;
             } else {
                 return src.level().clip(new ClipContext(vec3, vec32, ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, src)).getType() == HitResult.Type.MISS;
@@ -138,5 +164,8 @@ public class TargetFinder {
         );
 
         return new AABB(min, max);
+    }
+
+    private record ScoredCandidate(LivingEntity entity, double priority) {
     }
 }

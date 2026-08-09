@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -148,7 +149,8 @@ public class TargetLocker {
         var list = getEntitiesAroundPlayer(minecraft.player, 150);
 
         for (var ent: list) {
-            if (isInLockonTraceRange(ent, COSINE_THRESHOLD2)) {
+            if (isInLockonTraceRange(ent, COSINE_THRESHOLD2)
+                    && minecraft.player.hasLineOfSight(ent)) {
                 return ent;
             }
         }
@@ -336,7 +338,7 @@ public class TargetLocker {
             if (res == null) {
                 Player p = minecraft.player;
                 var list = getEntitiesAroundPlayer(p, 50);
-                res = getClosestEntityInLookDirection(p, list);
+                res = getClosestVisibleEntityInLookDirection(p, list);
             }
         }
 
@@ -353,7 +355,7 @@ public class TargetLocker {
         );
 
         List<LivingEntity> entities = world.getEntitiesOfClass(LivingEntity.class, searchBox, entity -> {
-            return entity != player && player.hasLineOfSight(entity) && !isSelf(entity, player);
+            return entity != player && !isSelf(entity, player);
         });
 
         return entities;
@@ -372,26 +374,27 @@ public class TargetLocker {
         }
     }
 
-    private Entity getClosestEntityInLookDirection(LivingEntity player, List<LivingEntity> entities) {
-        double maxCosineSimilarity = -1.0;
-        LivingEntity closestEntity = null;
-
+    private Entity getClosestVisibleEntityInLookDirection(LivingEntity player, List<LivingEntity> entities) {
         Vec3 lookVector = player.getLookAngle().normalize();
-
         Vec3 playerPos = player.position();
+        List<LookCandidate> rankedCandidates = new ArrayList<>(entities.size());
 
         for (LivingEntity entity : entities) {
             Vec3 entityVector = entity.position().subtract(playerPos).normalize();
-
             double cosineSimilarity = lookVector.dot(entityVector);
-
-            if (cosineSimilarity > maxCosineSimilarity && !isSelf(entity, player)) {
-                maxCosineSimilarity = cosineSimilarity;
-                closestEntity = entity;
-            }
+            rankedCandidates.add(new LookCandidate(entity, cosineSimilarity));
         }
 
-        return closestEntity;
+        rankedCandidates.sort(Comparator.comparingDouble(LookCandidate::cosineSimilarity).reversed());
+        for (LookCandidate candidate : rankedCandidates) {
+            if (player.hasLineOfSight(candidate.entity())) {
+                return candidate.entity();
+            }
+        }
+        return null;
+    }
+
+    private record LookCandidate(LivingEntity entity, double cosineSimilarity) {
     }
 
     public boolean isLockingHard() {

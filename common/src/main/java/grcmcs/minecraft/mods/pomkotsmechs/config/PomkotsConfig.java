@@ -22,4 +22,9 @@ public class PomkotsConfig implements ConfigData {
     public boolean targetLockNonPomkotsMobs = true;
     public boolean targetLockPlayers = true;
     public boolean targetLockPomkotsVehicles = true;
+
+    @ConfigEntry.Gui.Excluded
+    public int missionMaxForcedChunksPerInstance = 1024;
+    @ConfigEntry.Gui.Excluded
+    public int missionMaxForcedChunksTotal = 2048;
 }

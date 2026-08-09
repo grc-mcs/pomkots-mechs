@@ -8,6 +8,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
@@ -20,6 +21,11 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class MissileGenericEntity extends PomkotsCustomThrowableProjectile implements GeoEntity, GeoAnimatable {
+    /** falseにすると旧追尾処理へ即座に戻せる。 */
+    private static final boolean USE_ADAPTIVE_HOMING = true;
+    private static final float PLAYER_TURN_RATE_DEG = 3.0F;
+    private static final float MOB_TURN_RATE_DEG = 7.0F;
+    private static final float SMALL_MOB_TURN_RATE_DEG = 9.0F;
     protected final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 
     protected float speed;
@@ -96,7 +102,11 @@ public class MissileGenericEntity extends PomkotsCustomThrowableProjectile imple
         }
 
         if (lifeTicks > 3) {
-            homingUpdate();
+            if (USE_ADAPTIVE_HOMING) {
+                adaptiveHomingUpdate();
+            } else {
+                legacyHomingUpdate();
+            }
         }
 
         this.setPos(this.position().add(this.getDeltaMovement()));
@@ -137,7 +147,93 @@ public class MissileGenericEntity extends PomkotsCustomThrowableProjectile imple
         updateRotationFromVelocity(velocity);
     }
 
-    private void homingUpdate() {
+    /**
+     * Aims only at the target's current position. Difficulty is controlled solely
+     * by the maximum turn angle per tick, avoiding unnatural predictive deviation.
+     */
+    private void adaptiveHomingUpdate() {
+        Vec3 velocity = this.getDeltaMovement();
+
+        if (rotationLimitReached || isRotationLimitExceeded(velocity)) {
+            rotationLimitReached = true;
+            moveStraight();
+            return;
+        }
+
+        if (lifeTicks > 60) {
+            terminalPhase = true;
+        }
+
+        if (!terminalPhase || target instanceof BaseSmallMonsterEntity) {
+            Vec3 targetPosition = getHomingTargetPosition();
+            double missileSpeed = Math.max(getSpeed(), 0.05D);
+            Vec3 desiredDirection = targetPosition.subtract(this.position());
+
+            if (desiredDirection.lengthSqr() > 1.0E-6D) {
+                Vec3 currentDirection = velocity.lengthSqr() > 1.0E-6D
+                        ? velocity.normalize()
+                        : desiredDirection.normalize();
+                float turnRate = getAdaptiveTurnRate();
+                Vec3 steeredDirection = rotateTowards(currentDirection, desiredDirection.normalize(), turnRate);
+                velocity = steeredDirection.scale(missileSpeed);
+            }
+        }
+
+        if (velocity.length() > getSpeed()) {
+            velocity = velocity.normalize().scale(getSpeed());
+        }
+
+        this.setDeltaMovement(velocity);
+        updateRotationFromVelocity(velocity);
+        remainingTicks--;
+    }
+
+    private Vec3 getHomingTargetPosition() {
+        if (target instanceof grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity hitBox) {
+            return hitBox.getStableAimPosition(false);
+        }
+        return target.getBoundingBox().getCenter();
+    }
+
+    private float getAdaptiveTurnRate() {
+        float configuredRate = getMaxRotationAnglePerTick();
+        if (isPlayerControlledTarget()) {
+            return Math.max(configuredRate, PLAYER_TURN_RATE_DEG);
+        }
+        if (target instanceof BaseSmallMonsterEntity) {
+            return Math.max(configuredRate, SMALL_MOB_TURN_RATE_DEG);
+        }
+        return Math.max(configuredRate, MOB_TURN_RATE_DEG);
+    }
+
+    private boolean isPlayerControlledTarget() {
+        if (target instanceof Player) {
+            return true;
+        }
+        return target.getPassengers().stream().anyMatch(Player.class::isInstance);
+    }
+
+    private static Vec3 rotateTowards(Vec3 current, Vec3 desired, float maxDegrees) {
+        double dot = Mth.clamp(current.dot(desired), -1.0D, 1.0D);
+        double angle = Math.acos(dot);
+        double maxRadians = Math.toRadians(maxDegrees);
+        if (angle <= maxRadians || angle < 1.0E-6D) {
+            return desired;
+        }
+
+        double ratio = maxRadians / angle;
+        double sinAngle = Math.sin(angle);
+        if (Math.abs(sinAngle) < 1.0E-6D) {
+            return current.scale(1.0D - ratio).add(desired.scale(ratio)).normalize();
+        }
+
+        double currentWeight = Math.sin((1.0D - ratio) * angle) / sinAngle;
+        double desiredWeight = Math.sin(ratio * angle) / sinAngle;
+        return current.scale(currentWeight).add(desired.scale(desiredWeight)).normalize();
+    }
+
+    /** Original homing implementation retained for quick rollback. */
+    private void legacyHomingUpdate() {
         Vec3 position = this.position();
         Vec3 velocity = this.getDeltaMovement();
 

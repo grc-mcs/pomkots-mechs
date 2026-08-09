@@ -691,6 +691,25 @@
         {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_blade_fragment": 8}
       ]
     },
+    "kintoki": {
+      "type": "weapon",
+      "description": "Throughing Tomahawk on Shoulder",
+      "weight": 250,
+      "level_param": [
+        {"damage": 30},
+        {"damage": 35},
+        {"damage": 40},
+        {"damage": 45},
+        {"damage": 50}
+      ],
+      "recipes": [
+        {"pomkotsmechs:blue_print_kintoki": 1, "pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_blade_fragment": 8},
+        {"pomkotsmechs:p_titanium_ingot": 8, "minecraft:iron_ingot": 8, "minecraft:coal": 8, "minecraft:redstone": 8, "pomkotsmechs:materials/heavy_mech_blade_fragment": 2},
+        {"pomkotsmechs:p_titanium_ingot": 16, "minecraft:iron_ingot": 16, "minecraft:coal": 16, "minecraft:redstone": 16, "pomkotsmechs:materials/heavy_mech_blade_fragment": 4},
+        {"pomkotsmechs:p_titanium_ingot": 24, "minecraft:iron_ingot": 24, "minecraft:coal": 24, "minecraft:redstone": 24, "pomkotsmechs:materials/heavy_mech_blade_fragment": 6},
+        {"pomkotsmechs:p_titanium_ingot": 32, "minecraft:iron_ingot": 32, "minecraft:coal": 32, "minecraft:redstone": 32, "pomkotsmechs:materials/heavy_mech_blade_fragment": 8}
+      ]
+    },
     "kagenobu": {
       "type": "weapon",
       "description": "Pile bunker on arm",

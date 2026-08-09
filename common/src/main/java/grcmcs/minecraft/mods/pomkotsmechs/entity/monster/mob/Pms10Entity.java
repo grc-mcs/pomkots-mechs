@@ -3,9 +3,11 @@ package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob;
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.config.datapack.PomkotsDataPackManager;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidControllerEntity;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.Pmb06Entity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.SearchDroneGoal;
+import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RaidTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.BulletMiddleEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.projectile.custom.AlertEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
@@ -162,6 +164,12 @@ public class Pms10Entity extends BaseSmallMonsterEntity implements GeoEntity, Ge
 
         this.targetSelector.removeAllGoals((goal)->true);
 
+        this.targetSelector.addGoal(0, new RaidTargetGoal<>(
+                this,
+                RaidObjectiveEntity.class,
+                this.getAttribute(Attributes.FOLLOW_RANGE).getBaseValue(),
+                200,
+                this::isInRaid));
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal(this, Player.class, true, this::predicate));
 

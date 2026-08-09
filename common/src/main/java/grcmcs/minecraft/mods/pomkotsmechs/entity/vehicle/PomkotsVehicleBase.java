@@ -243,7 +243,9 @@ public abstract class PomkotsVehicleBase extends LivingEntity implements GeoEnti
         if (useLockTarget && lockTarget != null) {
             Vec3 positionA = bullet.position();
             // エンティティBの位置を取得
-            Vec3 positionB = lockTarget.getBoundingBox().getCenter();
+            Vec3 positionB = lockTarget instanceof grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.BossHitBoxEntity hitBox
+                    ? hitBox.getStableAimPosition(false)
+                    : lockTarget.getBoundingBox().getCenter();
 
             // エンティティAからエンティティBへの相対ベクトル
             double deltaX = positionB.x - positionA.x;

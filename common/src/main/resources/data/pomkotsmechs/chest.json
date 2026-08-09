@@ -22,5 +22,42 @@
   "pomkotsmechs:pomkotscube/scattered/loot_red_activate": {
     "type": "raid",
     "raid_id": "yellow_cube_boss_activate"
+  },
+  "pomkotsmechs:pomkotscube/test/phase_d_yellow_normal": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:yellow_cube_normal"
+  },
+  "pomkotsmechs:pomkotscube/test/phase_d_yellow_closed": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:yellow_cube_closed"
+  },
+  "pomkotsmechs:pomkotscube/test/phase_d_yellow_mini": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:yellow_cube_mini"
+  },
+  "pomkotsmechs:pomkotscube/test/phase_d_yellow_survive": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:yellow_cube_survive"
+  },
+  "pomkotsmechs:pomkotscube/test/phase_d_red_boss_box": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:red_cube_box"
+  },
+  "pomkotsmechs:pomkotscube/test/phase_d_red_activate": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:red_cube_activate",
+    "requires_inactive_boss": true
+  },
+  "pomkotsmechs:pomkotscube/test/phase_d_purple_raid": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:phase_d_purple_raid_test"
+  },
+  "pomkotsmechs:pomkotscube/base/red_boss_raid": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:red_cube_boss_raid_base"
+  },
+  "pomkotsmechs:pomkotscube/base/red_boss_raid_2": {
+    "type": "mission",
+    "mission_id": "pomkotsmechs:red_cube_boss_raid_base"
   }
 }

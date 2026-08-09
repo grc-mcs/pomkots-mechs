@@ -1,20 +1,20 @@
 package grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import grcmcs.minecraft.mods.pomkotsmechs.PomkotsMechs;
 import grcmcs.minecraft.mods.pomkotsmechs.client.input.DriverInput;
 import grcmcs.minecraft.mods.pomkotsmechs.client.particles.ParticleUtil;
-import grcmcs.minecraft.mods.pomkotsmechs.config.BattleBalance;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.PomkotsControllable;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.event.RaidObjectiveEntity;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonster;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.GenericPomkotsMonsterPercistant;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.BaseBossGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.GoalDice;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.boss.goal.HateTargetGoal;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.carrier.goal.NearestEntityTargetGoal;
-import grcmcs.minecraft.mods.pomkotsmechs.entity.monster.mob.goal.RaidTargetGoal;
 import grcmcs.minecraft.mods.pomkotsmechs.entity.vehicle.PomkotsVehicleBase;
 import grcmcs.minecraft.mods.pomkotsmechs.items.parts.BluePrintItem;
+import grcmcs.minecraft.mods.pomkotsmechs.util.ServerElectricSparkEffect;
 import grcmcs.minecraft.mods.pomkotsmechs.util.Utils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -29,17 +29,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -56,9 +53,6 @@ import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.keyframe.event.SoundKeyframeEvent;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant implements GeoEntity, GeoAnimatable, PomkotsControllable {
     public static final float DEFAULT_SCALE = 1f;
 
@@ -73,6 +67,9 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
     protected HateTargetGoal hateTargetGoal = null;
 
     protected float gravity = 0.98F;
+
+    private boolean suppressHealthStageDrops;
+    private boolean suppressDeathDrops;
 
     public BossActionController getActionController() {
         return actionController;
@@ -112,6 +109,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
 
     @Override
     public void tick() {
+        boolean spawnHitBoxes = this.isServerSide() && this.firstTick;
 //        if (this.getAiMode() == AI_MODE_INACTIVE) {
 //            this.noCulling = false;
 //        } else {
@@ -125,23 +123,21 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
 
             this.updateAiMode();
 
-            var offset = this.position();
-
-            if (this.firstTick) {
-                for (var hitBox: hitBoxes) {
-                    hitBox.setPos(hitBox.getRelativeParentPos().add(offset));
-                    this.level().addFreshEntity(hitBox);
-                }
-            } else {
-                for (var hitBox: hitBoxes) {
-                    hitBox.setPos(hitBox.getRelativeParentPos().add(offset));
-                }
-            }
-
             this.updateStunPoint();
         }
 
         super.tick();
+
+        // super.tick() applies movement. Following before it left the hitbox one tick
+        // behind, which was especially visible above a descending boss.
+        if (this.isServerSide()) {
+            for (var hitBox : hitBoxes) {
+                hitBox.snapToParent();
+                if (spawnHitBoxes) {
+                    this.level().addFreshEntity(hitBox);
+                }
+            }
+        }
         this.actionController.tick();
 
         if (this.isAlive() && this.isVehicle()) {
@@ -195,6 +191,7 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
 
     private int waitTicks = 60; // 初期状態で60tick待機
     private int bootTicks = -1;
+    private int postBootWaitTicks = -1;
 
     @Override
     public void aiStep() {
@@ -215,7 +212,16 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
                 } else if (bootTicks == 0) {
                     this.isActivated = true;
                     this.setAiMode(AI_MODE_BATTLE_PHASE_1);
+                    this.bootTicks = -1;
+                    this.postBootWaitTicks = getPostBootWaitTicks();
                 }
+            }
+
+            if (postBootWaitTicks > 0) {
+                postBootWaitTicks--;
+                this.setDeltaMovement(Vec3.ZERO);
+                this.setNoAi(true);
+                return;
             } else if (this.isNoAi()) {
                 this.setNoAi(false);
             }
@@ -225,7 +231,16 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
     }
 
     public void boot() {
-        this.bootTicks = 98;
+        this.bootTicks = getBootAnimationTicks();
+        this.postBootWaitTicks = -1;
+    }
+
+    protected int getBootAnimationTicks() {
+        return 98;
+    }
+
+    protected int getPostBootWaitTicks() {
+        return 60;
     }
 
     @Override
@@ -282,7 +297,9 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
         if (afterStage != 4 && afterStage < beforeStage) {
             this.goalSelector.getRunningGoals().forEach(WrappedGoal::stop);
             this.onSmallDown();
-            burstArmorDrops(1F, true);
+            if (!suppressHealthStageDrops) {
+                burstArmorDrops(1F, true);
+            }
         }
     }
 
@@ -510,6 +527,8 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
         super.addAdditionalSaveData(compound);
         compound.putBoolean(PomkotsMechs.nbtName("BossActivated"), isActivated);
         compound.putBoolean(PomkotsMechs.nbtName("IsCarrying"), isCarrying);
+        compound.putBoolean(PomkotsMechs.nbtName("SuppressHealthStageDrops"), suppressHealthStageDrops);
+        compound.putBoolean(PomkotsMechs.nbtName("SuppressDeathDrops"), suppressDeathDrops);
     }
 
     @Override
@@ -527,12 +546,28 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
         } else {
             isCarrying = false;
         }
+
+        suppressHealthStageDrops = compound.getBoolean(PomkotsMechs.nbtName("SuppressHealthStageDrops"));
+        suppressDeathDrops = compound.getBoolean(PomkotsMechs.nbtName("SuppressDeathDrops"));
+    }
+
+    public void setSuppressHealthStageDrops(boolean suppress) {
+        suppressHealthStageDrops = suppress;
+    }
+
+    public void setSuppressDeathDrops(boolean suppress) {
+        suppressDeathDrops = suppress;
+    }
+
+    public boolean suppressDeathDrops() {
+        return suppressDeathDrops;
     }
 
     public void setActivated(boolean value) {
         this.isActivated = value;
         if (!value) {
             bootTicks = -1;
+            postBootWaitTicks = -1;
         }
     }
 
@@ -657,6 +692,15 @@ public abstract class BaseBossEntity extends GenericPomkotsMonsterPercistant imp
                 current = STUN_MAX;
 
                 this.getAttribute(Attributes.ARMOR).setBaseValue(0);
+
+                var height = this.getBbHeight()/2;
+                ServerElectricSparkEffect.spawnOverTime(
+                        (ServerLevel) level(),
+                        position().add(0, height, 0),
+                        height * 1.3,
+                        100,
+                        (STUN_MAX - STUN_STUN_START) / 20.0D
+                );
 
                 this.goalSelector.getRunningGoals().forEach(WrappedGoal::stop);
                 this.actionController.reset();
